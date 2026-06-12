@@ -261,6 +261,12 @@ function openDetail(slug) {
     <div class="label">Safety &amp; supply <span class="live-badge">FDA</span></div>
     <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
 
+    <div class="label">Reported reactions <span class="live-badge">FAERS</span></div>
+    <div class="live-box" id="liveFaers"><span class="spinner"></span> <span style="color:var(--text-2)">Querying FDA adverse-event reports…</span></div>
+
+    <div class="label">Interactions <span class="live-badge">FDA label</span></div>
+    <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
+
     <div class="p-acts">
       <a href="${esc(dailyMed(d.generic))}" target="_blank" rel="noopener" class="btn btn-pri">FDA label ↗</a>
       <a href="https://www.goodrx.com/${esc(d.slug)}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
@@ -350,6 +356,37 @@ async function enrichLive(d, token) {
       }
       el.innerHTML = html;
     });
+
+  // FAERS adverse events — top reported reactions (with the spontaneous-report caveat).
+  live.getAdverseEvents(d.generic).then(ae => {
+    const el = $('#liveFaers'); if (!el) return;
+    if (!ae.events.length) {
+      el.innerHTML = `<div class="live-note">No FDA FAERS reports found for “${esc(token)}.”</div>`;
+      return;
+    }
+    const max = ae.events[0].count || 1;
+    el.innerHTML =
+      ae.events.map(e =>
+        `<div class="row" style="margin-bottom:.3rem"><div class="row-l" style="flex:1"><div style="flex:1"><div class="row-name">${esc(e.term)}</div>
+           <div style="height:4px;border-radius:2px;background:var(--surface-3);margin-top:.3rem"><div style="height:100%;border-radius:2px;background:var(--primary);width:${Math.round((e.count / max) * 100)}%"></div></div></div></div>
+         <span class="row-price" style="color:var(--text-2);font-weight:600">${e.count.toLocaleString()}</span></div>`).join('') +
+      `<div class="live-note"><strong>Spontaneous FDA FAERS reports</strong> — counts reflect reporting volume and drug popularity, <strong>not incidence and not causation</strong>. Not medical advice.</div>` +
+      `<a class="src-link" href="${esc(ae.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA FAERS ↗</a>`;
+  }).catch(() => { const el = $('#liveFaers'); if (el) el.innerHTML = `<div class="live-err">Adverse-event lookup unavailable.</div>`; });
+
+  // FDA label drug-interaction narrative (NOT a checked drug-pair result).
+  live.getLabelInteractions(d.generic, d.name).then(di => {
+    const el = $('#liveInteractions'); if (!el) return;
+    if (!di) {
+      el.innerHTML = `<div class="live-note">No FDA-label interaction text found for “${esc(token)}.”</div>`;
+      return;
+    }
+    const short = di.text.length > 420 ? di.text.slice(0, 420) + '…' : di.text;
+    el.innerHTML =
+      `<p style="font-size:var(--t-sm);line-height:1.55">${esc(short)}</p>
+       <div class="live-note">From the <strong>FDA label</strong> — narrative text, <strong>not a checked drug-pair interaction</strong>. Verify with a pharmacist.</div>
+       <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA label ↗</a>`;
+  }).catch(() => { const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
 }
 
 // Detail panel for an off-catalog drug — no curated price, pure live data.
@@ -370,6 +407,10 @@ function openLiveDetail(display, clean) {
     <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
     <div class="label">Safety &amp; supply <span class="live-badge">FDA</span></div>
     <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
+    <div class="label">Reported reactions <span class="live-badge">FAERS</span></div>
+    <div class="live-box" id="liveFaers"><span class="spinner"></span> <span style="color:var(--text-2)">Querying FDA adverse-event reports…</span></div>
+    <div class="label">Interactions <span class="live-badge">FDA label</span></div>
+    <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
     <div class="p-acts">
       <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener" class="btn btn-pri">GoodRx ↗</a>
       <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(clean)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>

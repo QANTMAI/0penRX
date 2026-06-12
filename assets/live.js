@@ -254,6 +254,43 @@ export async function getDrugRecalls(generic) {
   }
 }
 
+// ---- openFDA FAERS adverse events (top reported reactions) -----------------
+// IMPORTANT: FAERS is spontaneous, unverified reports. Counts reflect REPORTING
+// VOLUME, not incidence and not causation. The UI must label it as such.
+const OPENFDA_EVENT = 'https://api.fda.gov/drug/event.json';
+export async function getAdverseEvents(generic) {
+  const token = fdaToken(generic);
+  if (!token) return { events: [] };
+  try {
+    const url = `${OPENFDA_EVENT}?search=patient.drug.openfda.generic_name:${token}&count=patient.reaction.reactionmeddrapt.exact${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+    const data = await fetchJSON(url);
+    const events = (data?.results || []).slice(0, 6).map(r => ({ term: r.term, count: r.count }));
+    return { events, sourceUrl: `${OPENFDA_EVENT}?search=patient.drug.openfda.generic_name:${token}` };
+  } catch {
+    return { events: [] }; // openFDA 404s when there are no matches
+  }
+}
+
+// ---- openFDA label drug_interactions (narrative, NOT a pairwise checker) ----
+export async function getLabelInteractions(generic, brand) {
+  const g = fdaToken(generic), b = fdaToken(brand);
+  const tries = [
+    g && `search=openfda.generic_name:${g}&limit=1`,
+    b && `search=openfda.brand_name:${b}&limit=1`,
+  ].filter(Boolean);
+  for (const q of tries) {
+    try {
+      const data = await fetchJSON(`https://api.fda.gov/drug/label.json?${q}${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`);
+      const di = data?.results?.[0]?.drug_interactions;
+      if (di && di.length) {
+        const text = (Array.isArray(di) ? di.join(' ') : String(di)).replace(/\s+/g, ' ').trim();
+        return { text, sourceUrl: `https://api.fda.gov/drug/label.json?${q.replace('&limit=1', '')}` };
+      }
+    } catch { /* try next */ }
+  }
+  return null;
+}
+
 // ---- Source liveness (for the Data Sources page) ---------------------------
 // Only probes the three free APIs we actually call; others keep documented status.
 // Uses representative queries and one retry so transient throttling (openFDA rate-
