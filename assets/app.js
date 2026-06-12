@@ -47,22 +47,51 @@ function renderFilters() {
 // Per-drug authoritative reference: FDA DailyMed label search (verified live).
 const dailyMed = generic =>
   `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(generic)}`;
-// Manufacturer-direct programs — only URLs verified to resolve are hard-linked;
-// the rest fall back to a web search that reliably lands on the real program.
+
+// Manufacturer routing → each medication's OWN official manufacturer site, keyed
+// by slug. Every URL below was verified to resolve (HTTP 200, except a few real
+// brand domains that bot-block curl but serve in browsers: lillydirect.com,
+// striverdi.com). This is the correct-manufacturer-for-the-correct-medication map.
+const BRAND_URL = {
+  // AstraZeneca
+  airsupra: 'https://www.airsupra.com', bevespi: 'https://www.bevespi.com',
+  farxiga: 'https://www.farxiga.com', xigduo: 'https://www.xigduo.com',
+  // GSK (Ellipta)
+  'anoro-ellipta': 'https://www.anoro.com', 'arnuity-ellipta': 'https://www.arnuity.com',
+  'incruse-ellipta': 'https://www.incruse.com',
+  // Eli Lilly (brand sites; LillyDirect for products without a consumer brand site)
+  emgality: 'https://www.emgality.com', mounjaro: 'https://www.mounjaro.com',
+  trulicity: 'https://www.trulicity.com', zepbound: 'https://www.zepbound.com',
+  'zepbound-kwikpen': 'https://www.zepbound.com',
+  foundayo: 'https://lillydirect.com', 'insulin-lispro': 'https://lillydirect.com',
+  // Johnson & Johnson
+  invokana: 'https://www.invokana.com', invokamet: 'https://www.invokamet.com',
+  'invokamet-xr': 'https://www.invokamet.com', xarelto: 'https://www.xarelto-us.com',
+  // Bristol Myers Squibb
+  'orencia-sc': 'https://www.orencia.com', sotyktu: 'https://www.sotyktu.com',
+  zeposia: 'https://www.zeposia.com',
+  // Novartis
+  mayzent: 'https://www.mayzent.com', rydapt: 'https://www.rydapt.com',
+  tabrecta: 'https://www.tabrecta.com',
+  // Sanofi
+  admelog: 'https://www.admelog.com', apidra: 'https://www.apidra.com',
+  lantus: 'https://www.lantus.com', toujeo: 'https://www.toujeo.com',
+  'insulin-glargine': 'https://www.toujeo.com', merilog: 'https://www.merilog.com',
+  // Boehringer Ingelheim
+  'striverdi-respimat': 'https://www.striverdi.com',
+};
+// Verified manufacturer-program fallback (only if a slug is ever unmapped),
+// then DailyMed as a last resort — never a government site or a web search.
 const PARTNER_URL = {
-  'Pfizer RxPathways': 'https://www.pfizerrxpathways.com',
-  'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
   'AstraZeneca Direct': 'https://www.azandmeapp.com',
-  'Amgen Assist360': 'https://www.amgenassist360.com',
-  'Novo Nordisk Savings Program': 'https://www.novocare.com',
+  'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
   'GSK For You': 'https://www.gskforyou.com',
   'J&J Direct': 'https://www.jnjwithme.com',
-  'Boehringer Ingelheim Cares': 'https://www.bicares.com',
   'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com',
-  'Cost Plus Drugs': 'https://www.costplusdrugs.com',
+  'Boehringer Ingelheim Cares': 'https://www.bicares.com',
+  'LillyDirect®': 'https://lillydirect.com', 'Eli Lilly Direct': 'https://lillydirect.com',
 };
-const partnerUrl = p =>
-  PARTNER_URL[p] || `https://duckduckgo.com/?q=${encodeURIComponent(p + ' patient savings program')}`;
+const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d.generic);
 
 // ---- Browse grid -----------------------------------------------------------
 const savClass = s => s >= 70 ? 'hi' : s >= 40 ? 'md' : 'lo';
@@ -194,7 +223,7 @@ function couponBlock(d) {
     return `<div class="coupon">
       <div class="coupon-t">Manufacturer direct program</div>
       <p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(d.partner)} manages this medication directly — eligibility and checkout on their site.</p>
-      <a href="${esc(partnerUrl(d.partner))}" target="_blank" rel="noopener" class="copy-btn" style="display:block;text-align:center;text-decoration:none">Continue to ${esc(d.partner)} →</a>
+      <a href="${esc(manufacturerUrl(d))}" target="_blank" rel="noopener" class="copy-btn" style="display:block;text-align:center;text-decoration:none">Continue to ${esc(d.partner)} →</a>
     </div>`;
   }
   return '';
