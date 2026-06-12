@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+from datetime import date
 
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,6 +36,7 @@ app.add_middleware(
 )
 
 DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")
+COUPONS_DATA_PATH = os.environ.get("COUPONS_DATA", "data/coupons.jsonl")
 
 # In-memory fallback used when no ingested data file is available.
 _SAMPLE = [
@@ -68,8 +70,53 @@ def _load_records(path: str) -> list[dict]:
     return records or list(_SAMPLE)
 
 
+# In-memory fallback used when no coupon dataset file is available.
+_COUPON_SAMPLE = [
+    {
+        "program_name": "Amgen Assist360",
+        "manufacturer": "Amgen",
+        "drug_name": "erenumab-aooe",
+        "drug_slug": "aimovig",
+        "brand": "Aimovig®",
+        "program_type": "copay-card",
+        "bin": "015995",
+        "pcn": "GDC",
+        "group": "MAHA",
+        "member_id": "RXFINDER",
+        "eligibility": None,
+        "medicare_medicaid_excluded": True,
+        "url": "https://www.amgenassist360.com",
+        "source": "catalog",
+        "source_url": "https://0penrx.org",
+        "effective_date": "2026-01-01",
+        "expiration_date": "2026-12-31",
+        "state_restrictions": ["MA", "CA"],
+        "status": "active",
+        "ingested_at": "2026-01-01T00:00:00+00:00",
+    },
+]
+
+
+def _load_coupons(path: str) -> list[dict]:
+    """Load coupon records from a JSONL file, or the in-memory sample."""
+    if not path or not os.path.exists(path):
+        return list(_COUPON_SAMPLE)
+    records: list[dict] = []
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                records.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+    return records or list(_COUPON_SAMPLE)
+
+
 # Loaded once at startup; restart the process to pick up new data.
 _RECORDS = _load_records(DEFAULT_DATA_PATH)
+_COUPONS = _load_coupons(COUPONS_DATA_PATH)
 
 
 @app.get("/health")
@@ -95,4 +142,34 @@ def prices(
     if zip:
         results = [r for r in results if r.get("zip") == zip]
     results.sort(key=lambda r: r["price_usd"])
+    return {"drug": drug, "count": len(results), "results": results[:limit]}
+
+
+@app.get("/coupons")
+def coupons(
+    drug: str = Query(..., description="Drug name/brand/slug substring to match"),
+    type: str | None = Query(
+        None, description="Exact program_type filter (copay-card|manufacturer-direct)"
+    ),
+    limit: int = Query(25, ge=1, le=200, description="Max results to return"),
+):
+    """Return matching coupon records, excluding any that have expired."""
+    needle = drug.lower()
+    # ISO dates sort lexically, so a string compare is correct for expiry.
+    today = date.today().isoformat()
+
+    results = []
+    for r in _COUPONS:
+        haystacks = (r.get("drug_name"), r.get("brand"), r.get("drug_slug"))
+        if not any(h and needle in h.lower() for h in haystacks):
+            continue
+        if type is not None and r.get("program_type") != type:
+            continue
+        if r.get("status") == "expired":
+            continue
+        expiry = r.get("expiration_date")
+        if expiry and expiry < today:
+            continue
+        results.append(r)
+
     return {"drug": drug, "count": len(results), "results": results[:limit]}
