@@ -14,8 +14,20 @@ import json
 import os
 
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="0penRX API", version="0.1.0")
+
+# The static frontend (0penrx.org, GitHub Pages, or local preview) calls this
+# API cross-origin, so CORS must be open for GET. Override the allowed origins
+# with the OPENRX_CORS_ORIGINS env var (comma-separated) to lock it down.
+_origins = os.environ.get("OPENRX_CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _origins],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")
 
