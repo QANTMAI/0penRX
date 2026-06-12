@@ -1,0 +1,36 @@
+name: New data source
+description: Propose a public/open prescription pricing data source
+title: "[Data]: "
+labels: ["data-source"]
+body:
+  - type: input
+    id: source-name
+    attributes:
+      label: Source name
+      description: e.g. NADAC, State Medicaid CT, NPI Registry
+    validations:
+      required: true
+  - type: input
+    id: source-url
+    attributes:
+      label: Source URL
+      description: Link to the dataset or API.
+    validations:
+      required: true
+  - type: dropdown
+    id: license
+    attributes:
+      label: Is the data public/open and free to redistribute?
+      options:
+        - "Yes, public domain / open license"
+        - "Unsure"
+        - "No / restricted"
+    validations:
+      required: true
+  - type: textarea
+    id: mapping
+    attributes:
+      label: Schema mapping notes
+      description: How do the source fields map to docs/SCHEMA.md?
+    validations:
+      required: false
