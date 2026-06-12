@@ -24,4 +24,4 @@ jobs:
       - name: Compile check
         run: python -m compileall backend data
       - name: Tests
-        run: pytest -q || echo "No tests yet"
+        run: pytest -q
