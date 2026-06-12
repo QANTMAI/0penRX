@@ -65,7 +65,10 @@ async function fetchJSON(url, { timeout = TIMEOUT } = {}) {
 // "sitagliptin/metformin HCl" -> "SITAGLIPTIN", "atorvastatin calcium" -> "ATORVASTATIN".
 export function searchToken(generic) {
   if (!generic) return '';
-  return generic.split(/[\/,\s]+/)[0].replace(/[^a-z-]/gi, '').toUpperCase();
+  // Keep digits (e.g. "5-aminosalicylic"), strip leading/trailing hyphens so a
+  // numeric-prefixed moiety doesn't yield a "-AMINOSALICYLIC" token that misses.
+  return generic.split(/[\/,\s]+/)[0]
+    .replace(/[^a-z0-9-]/gi, '').replace(/^-+|-+$/g, '').toUpperCase();
 }
 
 // ---- RxNorm: drug identity --------------------------------------------------

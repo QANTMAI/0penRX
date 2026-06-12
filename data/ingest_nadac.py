@@ -53,10 +53,15 @@ def fetch_page(dist: str, limit: int, offset: int) -> list[dict]:
             with urllib.request.urlopen(req, timeout=60) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
             return payload.get("results", [])
+        except urllib.error.HTTPError as err:
+            # Client errors (bad distribution id, 4xx) are not transient — fail fast.
+            if 400 <= err.code < 500:
+                raise
+            last_err = err
         except (urllib.error.URLError, TimeoutError, ValueError) as err:
             last_err = err
-            if attempt < MAX_RETRIES - 1:
-                time.sleep(2**attempt)
+        if attempt < MAX_RETRIES - 1:
+            time.sleep(2**attempt)
     raise RuntimeError(f"NADAC fetch failed after {MAX_RETRIES} attempts: {last_err}")
 
 
@@ -73,7 +78,9 @@ def iter_rows(dist: str, max_rows: int | None = None):
             fetched += 1
             if max_rows is not None and fetched >= max_rows:
                 return
-        offset += PAGE_SIZE
+        # Advance by the actual page length, not PAGE_SIZE, so a short page
+        # mid-stream never causes rows to be skipped.
+        offset += len(page)
 
 
 def _num(value):
