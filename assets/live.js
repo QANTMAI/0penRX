@@ -186,8 +186,9 @@ export async function getNadac(generic) {
         pricing_unit: r.unit, ndc: r.ndc, effective_date: r.effective_date,
       }));
       const out = normalizeNadacRows(rows);
-      if (out) out.via = 'backend';
-      return out;
+      // Only use the backend result if it actually has data; otherwise fall
+      // through to CMS direct (the backend /prices may be sample-only).
+      if (out) { out.via = 'backend'; return out; }
     } catch { /* fall through to CMS direct */ }
   }
 
