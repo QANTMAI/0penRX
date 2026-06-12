@@ -1,4 +1,5 @@
 """Tests for the 0penRX price lookup API."""
+
 import os
 import sys
 

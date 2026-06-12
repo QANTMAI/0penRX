@@ -8,22 +8,42 @@ still work out of the box.
 Set the NADAC_DATA env var to point at a JSONL file, otherwise the default
 path data/processed/nadac.jsonl is used.
 """
+
 from __future__ import annotations
 
 import json
 import os
 
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="0penRX API", version="0.1.0")
+
+# The static frontend (0penrx.org, GitHub Pages, or local preview) calls this
+# API cross-origin, so CORS must be open for GET. Override the allowed origins
+# with the OPENRX_CORS_ORIGINS env var (comma-separated) to lock it down.
+_origins = os.environ.get("OPENRX_CORS_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _origins],
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
 DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")
 
 # In-memory fallback used when no ingested data file is available.
 _SAMPLE = [
-    {"drug_name": "atorvastatin", "dose": "10 mg tablet", "quantity": 30,
-     "price_usd": 8.42, "unit": "EA", "pharmacy_name": "Example Pharmacy",
-     "zip": "06095", "source": "NADAC"},
+    {
+        "drug_name": "atorvastatin",
+        "dose": "10 mg tablet",
+        "quantity": 30,
+        "price_usd": 8.42,
+        "unit": "EA",
+        "pharmacy_name": "Example Pharmacy",
+        "zip": "06095",
+        "source": "NADAC",
+    },
 ]
 
 
@@ -50,7 +70,7 @@ _RECORDS = _load_records(DEFAULT_DATA_PATH)
 
 @app.get("/health")
 def health():
-        return {"status": "ok"}
+    return {"status": "ok"}
 
 
 @app.get("/prices")
@@ -62,8 +82,10 @@ def prices(
     """Return matching price records, ranked cheapest first."""
     needle = drug.lower()
     results = [
-        r for r in _RECORDS
-        if r.get("drug_name") and needle in r["drug_name"].lower()
+        r
+        for r in _RECORDS
+        if r.get("drug_name")
+        and needle in r["drug_name"].lower()
         and r.get("price_usd") is not None
     ]
     if zip:
