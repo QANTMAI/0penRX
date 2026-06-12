@@ -204,6 +204,26 @@ function renderSuggest() {
 function pcnFor(bin) { return bin === '015995' ? 'GDC' : bin === '601341' ? 'OHCP' : bin === '610020' ? 'PDMI' : '—'; }
 function grpFor(bin) { return bin === '015995' ? 'MAHA' : bin === '601341' ? 'OH9013621' : bin === '610020' ? '99996218' : '—'; }
 
+// Backend-sourced coupon / patient-assistance card (live data; backend only).
+function couponCardHTML(c) {
+  const hasCard = !!c.bin;
+  const pcn = c.pcn || '—', grp = c.group || '—', mem = c.member_id || 'N/A';
+  return `<div class="coupon" style="margin-top:0">
+    <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="row-tag mfr">${esc(c.program_type)}</span>` : ''}</div>
+    ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
+    ${hasCard ? `<div class="cfields">
+        <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${esc(c.bin)}</div></div>
+        <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(pcn)}</div></div>
+        <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(grp)}</div></div>
+        <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(mem)}</div></div>
+      </div>
+      <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">📋 Copy coupon</button>` : ''}
+    ${c.url ? `<a class="btn btn-sec" href="${esc(c.url)}" target="_blank" rel="noopener">Program site ↗</a>` : ''}
+    ${c.state_restrictions?.length ? `<div class="live-note">Restricted in: ${esc(c.state_restrictions.join(', '))}</div>` : ''}
+    ${c.expiration_date ? `<div class="row-note" style="margin-top:.4rem">Expires ${esc(c.expiration_date)}</div>` : ''}
+  </div>`;
+}
+
 function couponBlock(d) {
   const ext = d.heroType === 'ExternalLinkRouting';
   if (!ext && d.bin) {
@@ -253,6 +273,8 @@ function openDetail(slug) {
       <a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag amz">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify</div></div></div><span class="row-price" style="color:var(--text-2)">Check ↗</span></a>` : ''}
 
     ${couponBlock(d)}
+
+    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs…</span></div>` : ''}
 
     <div class="label">Live drug data <span class="live-badge">live</span></div>
     <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(token || d.generic)}</strong> in RxNorm &amp; openFDA…</span></div>
@@ -390,6 +412,17 @@ async function enrichLive(d, token) {
        <div class="live-note">From the <strong>FDA label</strong> — narrative text, <strong>not a checked drug-pair interaction</strong>. Verify with a pharmacist.</div>
        <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA label ↗</a>`;
   }).catch(() => { const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
+
+  // Coupons / patient-assistance programs (backend only; getCoupons returns null
+  // on the static deploy and the #liveCoupons box is never rendered, so this no-ops).
+  live.getCoupons(d.slug || d.generic).then(list => {
+    const el = $('#liveCoupons'); if (!el) return;
+    if (!list || !list.length) { el.remove(); return; }   // no coupons or feature off -> remove the box cleanly
+    // Collapse identical program cards (a slug can match drug-form variants).
+    const seen = new Set();
+    const uniq = list.filter(c => { const k = `${c.program_name}|${c.bin}|${c.url}`; return seen.has(k) ? false : seen.add(k); });
+    el.innerHTML = uniq.map(c => couponCardHTML(c)).join('') + `<div class="live-note">Reference only — verify each program before use. Manufacturer copay cards cannot be used with Medicare or Medicaid.</div>`;
+  }).catch(() => { const el = $('#liveCoupons'); if (el) el.remove(); });
 }
 
 // Detail panel for an off-catalog drug — no curated price, pure live data.
@@ -405,6 +438,7 @@ function openLiveDetail(display, clean) {
     <div class="p-hero" style="background:var(--surface-2)">
       <div><div class="p-hero-sub" style="opacity:1;color:var(--text-2)">Not in the curated cash-pay catalog — showing sourced reference data below. Verify the final price at the pharmacy.</div></div>
     </div>
+    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs…</span></div>` : ''}
     <div class="label">Live drug data <span class="live-badge">live</span></div>
     <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(clean)}</strong> in RxNorm &amp; openFDA…</span></div>
     <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>

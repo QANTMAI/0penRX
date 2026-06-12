@@ -208,6 +208,21 @@ export async function getNadac(generic) {
   }
 }
 
+// ---- Coupons / patient-assistance programs (backend only) ------------------
+// Static GitHub Pages deploy has no backend (API_BASE is null), so this fails
+// soft to null and the feature renders nothing. Only active when API_BASE is set.
+export async function getCoupons(query) {
+  if (!API_BASE) return null;                 // static deploy: feature off
+  // Query by the catalog slug (unique, no ® so it substring-matches the backend's
+  // drug_slug); off-catalog drugs pass a generic and simply match nothing.
+  const q = (query || '').replace(/[®™]/g, '').trim();
+  if (!q) return null;
+  try {
+    const data = await fetchJSON(`${API_BASE.replace(/\/$/, '')}/coupons?drug=${encodeURIComponent(q)}&limit=25`);
+    return data?.results || [];
+  } catch { return null; }                     // fail soft like getNadac
+}
+
 // Cost Plus Drugs-style estimate from a REAL NADAC per-unit cost:
 // acquisition × quantity × 1.15 markup + $3 dispensing.  (Estimate, labeled as such.)
 export function nadacEstimate(perUnit, qty = 30) {

@@ -1,0 +1,58 @@
+# Coupon dataset refresh — the timed sentinel.
+#
+# Why this workflow exists:
+#   Manufacturer copay cards and patient-assistance offers are time-boxed: they
+#   expire at the end of the calendar year (and many cap out after ~12 fills).
+#   The committed dataset (data/coupons.jsonl) is built by data/build_coupons.py,
+#   which stamps each record with effective_date = Jan 1 and expiration_date =
+#   Dec 31 of the CURRENT year. A static, never-rebuilt dataset would therefore
+#   keep advertising last year's (now expired) offers as if they were live.
+#
+#   This sentinel keeps the dataset honest:
+#     * the monthly job re-runs the build so a freshly cloned/redeployed site
+#       always reflects the current catalog, and
+#     * the Jan-1 job handles the year-rollover boundary, re-stamping every
+#       record to the new year the moment coupons would otherwise expire.
+#
+#   This is the coupon analogue of the NADAC year-rollover maintenance in
+#   .github/workflows/ingest.yml: a small scheduled task whose only job is to
+#   stop stale, expired data from being served as live.
+name: Coupon dataset refresh
+
+on:
+  schedule:
+    # Monthly refresh — 1st of every month, 09:00 UTC.
+    - cron: "0 9 1 * *"
+    # Year-rollover — Jan 1, 06:00 UTC. Re-stamps effective/expiration dates so
+    # coupons that expired at midnight on Dec 31 are immediately refreshed.
+    - cron: "0 6 1 1 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Build coupon dataset
+        run: python data/build_coupons.py --out data/coupons.jsonl
+      - name: Summarize output
+        run: |
+          echo "Records: $(wc -l < data/coupons.jsonl)"
+          head -n 1 data/coupons.jsonl || true
+      - name: Commit if changed
+        run: |
+          if ! git diff --quiet -- data/coupons.jsonl; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/coupons.jsonl
+            git commit -m "chore: refresh coupon dataset (scheduled)"
+            git push
+          else
+            echo "No change in coupon dataset."
+          fi
