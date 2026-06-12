@@ -14,8 +14,11 @@ Thanks for your interest in improving prescription price transparency. This guid
 1. Fork the repo and create a feature branch from `main`:
    `git checkout -b feature/short-description`
 2. Make focused commits with clear messages.
-3. Run any relevant tests/linters before pushing.
+3. Run the linter and tests before pushing:
+   `make lint && make test` (requires Python 3.12+).
 4. Open a pull request against `main` describing the change and why.
+
+CI runs the same `ruff` lint and `pytest` suite on every pull request.
 
 ## Commit messages
 
@@ -31,13 +34,18 @@ Thanks for your interest in improving prescription price transparency. This guid
 
 ## Code style
 
-- Python: follow PEP 8; format with Black and lint with Ruff.
-- JavaScript/React: follow the project ESLint/Prettier config.
+- **Python** (backend + ingestion): follow PEP 8; lint with Ruff
+  (`ruff check .`). Target Python 3.12+.
+- **Frontend**: the UI is a single static `index.html` at the repo root with no
+  build step or framework. Keep it dependency-free and self-contained; test by
+  opening it in a browser (`make serve-frontend`).
 - Keep functions small and documented.
 
 ## Reporting security issues
 
-Do not open public issues for security or credential-exposure problems. Contact the maintainers privately.
+Do not open public issues for security, data-integrity, or credential-exposure
+problems. Use GitHub private vulnerability reporting and follow the process in
+[SECURITY.md](SECURITY.md).
 
 ## License
 
