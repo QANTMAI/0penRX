@@ -324,6 +324,7 @@ footer { margin-top: 3rem; padding: 1.5rem; background: var(--surface); border-t
 .foot a { color: var(--primary); }
 .foot strong { color: var(--text-2); }
 .foot-sep { margin: 0 .4rem; opacity: .5; }
+.ft-disc { margin: .6rem auto 0; max-width: 70ch; }
 
 /* ---- Responsive -------------------------------------------- */
 @media (max-width: 720px) { .logo-tag { display: none; } }
