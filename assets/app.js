@@ -307,7 +307,8 @@ async function enrichLive(d, token) {
       el.innerHTML =
         `<dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
          <a class="src-link" href="${esc(src)}" target="_blank" rel="noopener">Source: ${fv ? 'openFDA NDC' : 'RxNorm'} ↗</a>`;
-    });
+    })
+    .catch(() => { const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
 
   // NADAC: real acquisition cost + estimated cash price.
   live.getNadac(d.generic).then(n => {
@@ -327,7 +328,8 @@ async function enrichLive(d, token) {
         <dt>NDC</dt><dd><span class="mono">${esc(n.ndc)}</span> · ${n.matches} match${n.matches !== 1 ? 'es' : ''}</dd>
       </dl>
       <a class="src-link" href="${esc(n.sourceUrl)}" target="_blank" rel="noopener">Source: CMS NADAC${n.via === 'backend' ? ' (via API)' : ''} ↗</a>`;
-  });
+  })
+    .catch(() => { const el = $('#liveNadac'); if (el) el.innerHTML = `<div class="live-err">NADAC lookup unavailable.</div>`; });
 
   // FDA shortages + recalls (openFDA drug/shortages + drug/enforcement).
   Promise.allSettled([live.getDrugShortages(d.generic), live.getDrugRecalls(d.generic)])
@@ -355,7 +357,8 @@ async function enrichLive(d, token) {
         html += `<div class="live-note">No FDA recall records found for “${esc(token)}.”</div>`;
       }
       el.innerHTML = html;
-    });
+    })
+    .catch(() => { const el = $('#liveSafety'); if (el) el.innerHTML = `<div class="live-err">Safety lookup unavailable.</div>`; });
 
   // FAERS adverse events — top reported reactions (with the spontaneous-report caveat).
   live.getAdverseEvents(d.generic).then(ae => {
