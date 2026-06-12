@@ -1,0 +1,51 @@
+# CodeQL static analysis for 0penRX (Python + JavaScript).
+#
+# Manual-trigger only by default. CodeQL upload requires GitHub code scanning,
+# which is free on PUBLIC repositories but needs GitHub Advanced Security on
+# private ones. While this repo is private without GHAS, auto-running on every
+# push/PR would leave a permanently failing check, so triggers are limited to
+# manual dispatch. TO ACTIVATE once the repo is public (or GHAS code scanning is
+# enabled): add back the push/pull_request/schedule triggers shown below.
+#
+#   on:
+#     push:
+#       branches: ["main"]
+#     pull_request:
+#       branches: ["main"]
+#     schedule:
+#       - cron: "27 4 * * 1"
+
+name: "CodeQL"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["python", "javascript-typescript"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
