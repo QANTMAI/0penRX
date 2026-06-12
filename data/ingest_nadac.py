@@ -17,9 +17,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
+
+MAX_RETRIES = 4
 
 # CMS NADAC distribution ids on data.medicaid.gov (DKAN datastore).
 # Update yearly; see https://data.medicaid.gov/datasets?keyword=nadac
@@ -35,13 +39,25 @@ PAGE_SIZE = 5000
 
 
 def fetch_page(dist: str, limit: int, offset: int) -> list[dict]:
-    """Fetch a single page of rows from the DKAN datastore query API."""
+    """Fetch a single page of rows from the DKAN datastore query API.
+
+    Retries transient failures with exponential backoff so one flaky response
+    does not abort the whole ingest.
+    """
     params = urllib.parse.urlencode({"limit": limit, "offset": offset})
     url = f"{DATASTORE_QUERY.format(dist=dist)}?{params}"
     req = urllib.request.Request(url, headers={"Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=60) as resp:
-        payload = json.loads(resp.read().decode("utf-8"))
-    return payload.get("results", [])
+    last_err = None
+    for attempt in range(MAX_RETRIES):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+            return payload.get("results", [])
+        except (urllib.error.URLError, TimeoutError, ValueError) as err:
+            last_err = err
+            if attempt < MAX_RETRIES - 1:
+                time.sleep(2**attempt)
+    raise RuntimeError(f"NADAC fetch failed after {MAX_RETRIES} attempts: {last_err}")
 
 
 def iter_rows(dist: str, max_rows: int | None = None):
@@ -106,11 +122,20 @@ def main() -> None:
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
+    # Write to a temp file and atomically rename on success, so a mid-stream
+    # failure never leaves a truncated/empty file in place of good data.
+    tmp = f"{args.out}.tmp"
     count = 0
-    with open(args.out, "w") as f:
-        for row in iter_rows(dist, args.limit):
-            f.write(json.dumps(normalize_row(row, source_url)) + "\n")
-            count += 1
+    try:
+        with open(tmp, "w") as f:
+            for row in iter_rows(dist, args.limit):
+                f.write(json.dumps(normalize_row(row, source_url)) + "\n")
+                count += 1
+        os.replace(tmp, args.out)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
 
     print(f"Wrote {count} records to {args.out}")
 

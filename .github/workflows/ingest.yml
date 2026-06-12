@@ -9,11 +9,14 @@ on:
       year:
         description: "NADAC dataset year"
         required: false
-        default: "2025"
+        default: "2026"
       limit:
         description: "Max rows to ingest (blank = full dataset)"
         required: false
         default: "5000"
+
+permissions:
+  contents: read
 
 jobs:
   ingest:
@@ -25,7 +28,7 @@ jobs:
           python-version: "3.12"
       - name: Run NADAC ingestion
         run: |
-          YEAR="${{ github.event.inputs.year || '2025' }}"
+          YEAR="${{ github.event.inputs.year || '2026' }}"
           LIMIT="${{ github.event.inputs.limit || '5000' }}"
           ARGS="--out data/processed/nadac.jsonl --year $YEAR"
           if [ -n "$LIMIT" ]; then ARGS="$ARGS --limit $LIMIT"; fi
