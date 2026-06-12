@@ -1,0 +1,95 @@
+# Deploying the 0penRX backend
+
+The site (`0penrx.org`) is a static GitHub Pages app and works on its own for
+every **live** feature (RxNorm, openFDA, NADAC). A few features are **server-side
+by design** and only activate when a backend is hosted and the frontend is
+pointed at it:
+
+| Feature | Needs backend? | Why |
+|---|---|---|
+| Drug search, openFDA, NADAC, shortages/recalls/FAERS | No | client-side, CORS-open |
+| **Coupons & assistance** (`/coupons`) | **Yes** | served from `data/coupons.jsonl` |
+| **`/prices`** (NADAC via API) | Yes | optional proxy; needs ingested data |
+| **Server-side openFDA key** | Yes | keeps the key off the public bundle |
+| **GoodRx Partner API** (future) | Yes | HMAC, key-signed, not browser-safe |
+
+Deploying once unlocks all of them.
+
+---
+
+## Option A — Render (easiest, free tier, git-connected)
+
+1. Push this repo to GitHub (already done).
+2. Go to **render.com → New → Blueprint**, connect the repo. Render reads
+   [`render.yaml`](../render.yaml) and provisions a free **`openrx-api`** web
+   service (Python 3.12, `uvicorn`, health check `/health`).
+3. Click **Apply**. In ~2 min you get a URL like
+   `https://openrx-api.onrender.com`.
+
+That's it. No Dockerfile needed — Render uses the native Python runtime.
+
+> Free-tier note: the service sleeps after ~15 min idle and cold-starts on the
+> next request (a few seconds). Fine for this read-only API; upgrade the plan to
+> keep it warm.
+
+## Option B — Fly.io / Cloud Run / Railway (Dockerfile)
+
+Use the repo-root [`Dockerfile`](../Dockerfile) (portable, no platform lock-in):
+
+```bash
+# Fly.io
+fly launch --no-deploy        # accept the Dockerfile; pick a name/region
+fly deploy
+
+# Google Cloud Run
+gcloud run deploy openrx-api --source . --region us-central1 --allow-unauthenticated
+
+# Railway
+railway up                    # auto-detects the Dockerfile
+```
+
+---
+
+## Post-deploy (required to light up the site)
+
+### 1. Point the frontend at your backend
+The frontend reads `window.OPENRX_API`. Add one line to `index.html` **before**
+the module script (`<script type="module" src="assets/app.js">`):
+
+```html
+<script>window.OPENRX_API = 'https://openrx-api.onrender.com';</script>
+```
+
+Commit + push → GitHub Pages redeploys → the **Coupons & assistance** section
+goes live on every drug. (To test without committing, just open
+`https://0penrx.org/?api=https://openrx-api.onrender.com`.)
+
+### 2. Verify
+```bash
+curl https://openrx-api.onrender.com/health           # {"status":"ok"}
+curl "https://openrx-api.onrender.com/coupons?drug=ozempic" | jq .count   # >= 1
+```
+Then open a drug on the site — the coupons section should render with real
+BIN/PCN data.
+
+### 3. (Optional) openFDA key for the higher rate limit
+Get a key at <https://open.fda.gov/apis/authentication/>, set it as the
+`OPENFDA_KEY` env var **in the host dashboard** (never commit it). The backend
+will use it for its openFDA calls; the frontend can then route openFDA through
+the backend if you choose.
+
+### 4. (Optional) Real `/prices` data
+`/prices` serves a one-row in-memory sample until a NADAC file exists at
+`data/processed/nadac.jsonl` (or `$NADAC_DATA`). To populate it, run the
+ingestion in CI (`.github/workflows/ingest.yml` → "Run workflow") and bake the
+artifact into the deploy, or run `python data/ingest_nadac.py --out
+data/processed/nadac.jsonl` in your build step. Coupons do **not** need this.
+
+---
+
+## Security checklist after deploy
+- Keep `OPENRX_CORS_ORIGINS=https://0penrx.org` (the default in both config
+  files) so only the site can call the API. Use `*` only for local testing.
+- The API is **read-only** (GET only), holds **no user data**, and needs no
+  database. The only secret is the optional `OPENFDA_KEY` (and, later, GoodRx
+  credentials) — keep those in host env vars, never in the repo.
