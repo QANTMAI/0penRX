@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a bug or incorrect behavior in 0penRX
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce the issue?
+    validations:
+      required: true
+  - type: input
+    id: component
+    attributes:
+      label: Affected area
+      description: backend, frontend, data ingestion, docs, etc.
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser/OS or Python version, as relevant.
+    validations:
+      required: false
