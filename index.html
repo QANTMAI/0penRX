@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>0PENRX — Real drug prices, no runaround</title>
+<meta name="description" content="Find real cash-pay prescription prices from Cost Plus Drugs, GoodRx, Amazon Pharmacy, and the federal program. No insurance needed. 59 medications tracked.">
+<meta name="keywords" content="prescription drug prices, cost plus drugs, goodrx, cash pay pharmacy, uninsured medication, cheap prescriptions">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="0penRX — Real drug prices, no runaround">
+<meta property="og:description" content="59 medications. Zero middlemen. Open prices. Federal program, Cost Plus Drugs, GoodRx and Amazon Pharmacy in one place.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://0penrx.com">
+<meta property="og:site_name" content="0penRX">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="0penRX — Real drug prices, no runaround">
+<meta name="twitter:description" content="59 medications. Zero middlemen. Open prices.">
+<meta name="theme-color" content="#016b65">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23016b65'/><rect x='4' y='4' width='24' height='24' rx='12' fill='none' stroke='%23ffffff' stroke-width='4.5'/><text x='16' y='21' text-anchor='middle' font-family='system-ui,sans-serif' font-size='10' font-weight='800' fill='%23ffffff'>Rx</text></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23016b65'/><rect x='4' y='4' width='24' height='24' rx='12' fill='none' stroke='%23ffffff' stroke-width='4.5'/><text x='16' y='21' text-anchor='middle' font-family='system-ui,sans-serif' font-size='10' font-weight='800' fill='%23ffffff'>Rx</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ───────────────────────────────────────── */
+:root {
+  --bg:    #f6f5f2;
+  --surf:  #ffffff;
+  --surf2: #f0eeeb;
+  --div:   rgba(0,0,0,.07);
+  --bord:  rgba(0,0,0,.10);
+  --tx:    #1c1b18;
+  --txm:   #6b6a66;
+  --txf:   #b0afa9;
+  --txi:   #ffffff;
+  --pri:   #016b65;
+  --prih:  #015550;
+  --prihl: #edf5f4;
+  --suc:   #1a6e2e;
+  --suchl: #edf7ef;
+  --war:   #7a4400;
+  --warhl: #fef3e4;
+  --r:     .375rem;
+  --rl:    .625rem;
+  --rf:    9999px;
+  --f:     'Inter', system-ui, sans-serif;
+  --ease:  cubic-bezier(.16,1,.3,1);
+  --t:     140ms var(--ease);
+}
+[data-theme="dark"] {
+  --bg:    #111110;
+  --surf:  #191918;
+  --surf2: #212120;
+  --div:   rgba(255,255,255,.06);
+  --bord:  rgba(255,255,255,.09);
+  --tx:    #e6e5e1;
+  --txm:   #7a7975;
+  --txf:   #3e3d3a;
+  --txi:   #0d1f1e;
+  --pri:   #3ab8b0;
+  --prih:  #2da8a0;
+  --prihl: #131f1e;
+  --suc:   #4ab860;
+  --suchl: #0f2215;
+  --war:   #e0921e;
+  --warhl: #1d1200;
+}
+
+/* ── RESET ────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;scroll-behavior:smooth}
+body{min-height:100dvh;font-family:var(--f);font-size:1rem;line-height:1.55;color:var(--tx);background:var(--bg)}
+button,input,select{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--prihl);color:var(--tx)}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px;border-radius:2px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important}}
+
+/* ── LAYOUT ───────────────────────────────────────── */
+.wrap{max-width:1040px;margin:0 auto;padding:0 1.5rem}
+
+/* ── HEADER ───────────────────────────────────────── */
+.hdr{
+  position:sticky;top:0;z-index:100;
+  background:color-mix(in oklab,var(--surf) 85%,transparent);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--div);
+}
+.hdr-in{
+  max-width:1040px;margin:0 auto;padding:0 1.5rem;
+  height:52px;display:flex;align-items:center;gap:1rem;
+}
+/* SVG logo mark */
+.logo{display:flex;align-items:center;gap:.625rem;flex-shrink:0}
+.logo-word{font-size:.9375rem;font-weight:650;letter-spacing:-.025em;color:var(--tx)}
+.logo-tag{font-size:.75rem;color:var(--txm);font-weight:400;margin-left:.125rem}
+.nav{display:flex;gap:.125rem;margin-left:1rem}
+.ntab{
+  padding:.3125rem .6875rem;border-radius:var(--r);
+  font-size:.8125rem;font-weight:500;color:var(--txm);
+  transition:color var(--t),background var(--t);
+}
+.ntab:hover{color:var(--tx)}
+.ntab.on{color:var(--tx);background:var(--surf2)}
+.hdr-end{margin-left:auto;display:flex;align-items:center;gap:.25rem}
+.icon-btn{
+  width:30px;height:30px;border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--txm);transition:color var(--t),background var(--t);
+}
+.icon-btn:hover{color:var(--tx);background:var(--surf2)}
+
+/* ── HERO ─────────────────────────────────────────── */
+.hero{
+  padding:3rem 0 2rem;
+  border-bottom:1px solid var(--div);
+  margin-bottom:1.75rem;
+}
+.hero-label{
+  font-size:.6875rem;font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--pri);margin-bottom:.875rem;
+}
+.hero-h{
+  font-size:clamp(1.5rem,.4rem + 2.8vw,2.375rem);
+  font-weight:650;letter-spacing:-.03em;line-height:1.12;
+  margin-bottom:.75rem;max-width:20ch;
+}
+.hero-sub{
+  font-size:.9375rem;color:var(--txm);max-width:50ch;
+  line-height:1.65;margin-bottom:2rem;
+}
+.stats{display:flex;gap:2.5rem;flex-wrap:wrap}
+.stat-n{font-size:1.25rem;font-weight:660;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat-l{font-size:.78rem;color:var(--txm);margin-top:.125rem}
+
+/* ── SEARCH ───────────────────────────────────────── */
+.srch-wrap{position:relative;max-width:440px;margin-bottom:1.5rem}
+.srch{
+  width:100%;height:42px;
+  padding:0 1rem 0 2.5rem;
+  border:1px solid var(--bord);border-radius:var(--rl);
+  background:var(--surf);font-size:.9375rem;color:var(--tx);
+  transition:border-color var(--t),box-shadow var(--t);
+}
+.srch:focus{
+  outline:none;border-color:var(--pri);
+  box-shadow:0 0 0 3px color-mix(in oklab,var(--pri) 12%,transparent);
+}
+.srch::placeholder{color:var(--txf)}
+.srch-icon{
+  position:absolute;left:.7rem;top:50%;transform:translateY(-50%);
+  color:var(--txm);pointer-events:none;
+}
+.sugg{
+  position:absolute;top:calc(100% + .25rem);left:0;right:0;
+  background:var(--surf);border:1px solid var(--bord);border-radius:var(--rl);
+  box-shadow:0 8px 24px rgba(0,0,0,.09);z-index:50;
+  max-height:260px;overflow-y:auto;display:none;
+}
+.sugg.vis{display:block}
+.si{
+  padding:.5rem .875rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:.75rem;
+  border-bottom:1px solid var(--div);
+  transition:background var(--t);
+}
+.si:last-child{border-bottom:none}
+.si:hover,.si:focus{background:var(--surf2);outline:none}
+.si-name{font-size:.875rem;font-weight:600}
+.si-gen{font-size:.75rem;color:var(--txm)}
+.si-p{font-size:.9375rem;font-weight:660;color:var(--pri);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* ── TOOLBAR ──────────────────────────────────────── */
+.toolbar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:1.25rem;gap:.75rem;flex-wrap:wrap;
+}
+.filters{display:flex;gap:.25rem;flex-wrap:wrap}
+.fc{
+  padding:.25rem .625rem;border-radius:var(--rf);
+  font-size:.78rem;font-weight:500;
+  border:1px solid var(--div);color:var(--txm);
+  transition:all var(--t);white-space:nowrap;
+}
+.fc:hover{color:var(--tx);border-color:var(--bord)}
+.fc.on{background:var(--tx);border-color:var(--tx);color:var(--bg)}
+.tb-r{display:flex;align-items:center;gap:.625rem}
+.cnt{font-size:.78rem;color:var(--txm);font-variant-numeric:tabular-nums}
+.ssort{
+  padding:.25rem .625rem;border:1px solid var(--div);
+  border-radius:var(--r);font-size:.78rem;background:var(--surf);
+  color:var(--tx);transition:border-color var(--t);
+}
+.ssort:hover{border-color:var(--bord)}
+
+/* ── CARD GRID ────────────────────────────────────── */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(min(288px,100%),1fr));
+  gap:.625rem;margin-bottom:4rem;
+}
+
+/* ── CARD ─────────────────────────────────────────── */
+.card{
+  background:var(--surf);
+  border:1px solid var(--div);
+  border-radius:var(--rl);
+  padding:1rem 1rem .875rem;
+  cursor:pointer;display:flex;flex-direction:column;
+  transition:box-shadow var(--t),border-color var(--t);
+}
+.card:hover{
+  box-shadow:0 2px 8px rgba(0,0,0,.06),0 8px 24px rgba(0,0,0,.05);
+  border-color:var(--bord);
+}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.5rem;margin-bottom:.625rem}
+.card-name{font-size:.9rem;font-weight:640;line-height:1.25;color:var(--tx)}
+.card-gen{font-size:.72rem;color:var(--txm);margin-top:.1rem}
+.badge{
+  flex-shrink:0;font-size:.68rem;font-weight:600;
+  padding:.15rem .4rem;border-radius:var(--rf);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.b-hi{background:var(--suchl);color:var(--suc)}
+.b-md{background:var(--warhl);color:var(--war)}
+.b-lo{background:var(--surf2);color:var(--txm)}
+.card-price{display:flex;align-items:baseline;gap:.375rem;margin-bottom:.25rem}
+.price{font-size:1.3125rem;font-weight:660;color:var(--pri);line-height:1;font-variant-numeric:tabular-nums}
+.retail{font-size:.75rem;color:var(--txf);text-decoration:line-through;font-variant-numeric:tabular-nums}
+.card-note{font-size:.72rem;color:var(--txm);margin-bottom:.75rem}
+.card-hr{height:1px;background:var(--div);margin-bottom:.625rem}
+.card-acts{display:flex;gap:.3rem}
+.ca{
+  padding:.275rem .625rem;border-radius:var(--r);
+  font-size:.75rem;font-weight:600;
+  transition:all var(--t);
+}
+.ca-p{background:var(--pri);color:#fff}
+.ca-p:hover{background:var(--prih)}
+.ca-s{border:1px solid var(--div);color:var(--txm)}
+.ca-s:hover{border-color:var(--bord);color:var(--tx)}
+
+/* ── EMPTY STATE ──────────────────────────────────── */
+.empty{
+  text-align:center;padding:5rem 1.5rem;color:var(--txm);
+  display:none;
+}
+.empty svg{margin:0 auto .75rem;color:var(--txf)}
+.empty p{font-size:.9375rem}
+
+/* ── DETAIL OVERLAY ───────────────────────────────── */
+.ov{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.28);backdrop-filter:blur(3px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity .16s;
+}
+.ov.open{opacity:1;pointer-events:all}
+@media(min-width:560px){.ov{align-items:center}}
+.panel{
+  background:var(--surf);width:100%;max-width:480px;
+  max-height:90dvh;overflow-y:auto;
+  border-radius:1rem 1rem 0 0;
+  padding:1.5rem 1.5rem 2rem;
+  position:relative;
+  transform:translateY(20px);
+  transition:transform .22s var(--ease);
+}
+@media(min-width:560px){.panel{border-radius:1rem;transform:scale(.97) translateY(0)}}
+.ov.open .panel{transform:translateY(0) scale(1)}
+.pcl{
+  position:absolute;top:.875rem;right:.875rem;
+  width:24px;height:24px;border-radius:var(--rf);
+  background:var(--surf2);color:var(--txm);
+  display:flex;align-items:center;justify-content:center;
+  transition:all var(--t);
+}
+.pcl:hover{background:var(--bord);color:var(--tx)}
+.p-name{font-size:1.1875rem;font-weight:660;margin-bottom:.2rem;padding-right:2rem;line-height:1.2}
+.p-sub{font-size:.8125rem;color:var(--txm);margin-bottom:1.125rem}
+.p-price-row{
+  display:flex;align-items:center;gap:1.25rem;
+  padding:.875rem 1rem;border-radius:var(--r);
+  background:var(--prihl);margin-bottom:1.125rem;flex-wrap:wrap;
+}
+.p-big{font-size:1.875rem;font-weight:660;color:var(--pri);line-height:1;font-variant-numeric:tabular-nums}
+.p-big-lbl{font-size:.68rem;color:var(--pri);opacity:.7;margin-top:.2rem}
+.p-sav{font-size:1rem;font-weight:660;color:var(--suc)}
+.p-ret{font-size:.75rem;color:var(--txm);margin-top:.15rem}
+.sec-lbl{
+  font-size:.65rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--txf);margin:1rem 0 .375rem;
+}
+.row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem .75rem;border-radius:var(--r);
+  border:1px solid var(--div);margin-bottom:.3rem;
+  transition:border-color var(--t),background var(--t);
+}
+.row:hover{border-color:var(--bord);background:var(--surf2)}
+.row-l{display:flex;align-items:center;gap:.625rem}
+.row-tag{
+  font-size:.65rem;font-weight:700;letter-spacing:.04em;
+  padding:.15rem .375rem;border-radius:.25rem;
+  background:var(--surf2);color:var(--txm);white-space:nowrap;
+}
+.row-name{font-size:.875rem;font-weight:600}
+.row-note{font-size:.72rem;color:var(--txm)}
+.row-price{font-size:.9375rem;font-weight:660;color:var(--pri);font-variant-numeric:tabular-nums;flex-shrink:0}
+.coupon-block{
+  border:1px solid var(--div);border-radius:var(--r);
+  padding:.875rem 1rem;margin:1rem 0 .75rem;
+}
+.coupon-title{font-size:.75rem;font-weight:600;color:var(--txm);margin-bottom:.625rem;letter-spacing:.02em}
+.coupon-fields{display:grid;grid-template-columns:1fr 1fr;gap:.375rem .625rem;margin-bottom:.75rem}
+.cf{display:flex;flex-direction:column;gap:.1rem}
+.cf-l{font-size:.65rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txf)}
+.cf-v{font-size:.875rem;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.copy-btn{
+  font-size:.78rem;font-weight:600;color:var(--pri);
+  padding:.275rem .625rem;border:1px solid var(--pri);
+  border-radius:var(--r);transition:all var(--t);
+}
+.copy-btn:hover{background:var(--pri);color:#fff}
+.ext-btn{
+  display:inline-flex;align-items:center;gap:.3rem;
+  font-size:.8125rem;font-weight:600;color:var(--pri);
+  padding:.35rem .75rem;border:1px solid var(--pri);
+  border-radius:var(--r);transition:all var(--t);
+}
+.ext-btn:hover{background:var(--pri);color:#fff}
+.disc-note{
+  font-size:.72rem;color:var(--txm);
+  border-top:1px solid var(--div);padding-top:.75rem;
+  margin-top:.75rem;line-height:1.6;
+}
+.p-acts{display:flex;gap:.375rem;margin-top:.875rem;flex-wrap:wrap}
+.pa{
+  padding:.3125rem .75rem;border-radius:var(--r);
+  font-size:.78rem;font-weight:600;
+  transition:all var(--t);
+}
+.pa-p{background:var(--pri);color:#fff}
+.pa-p:hover{background:var(--prih)}
+.pa-s{border:1px solid var(--div);color:var(--txm)}
+.pa-s:hover{border-color:var(--bord);color:var(--tx)}
+
+/* ── COUPON PAGE ──────────────────────────────────── */
+.cpage{padding:2.5rem 0 4rem;max-width:600px}
+.cpage h2{font-size:1.375rem;font-weight:660;letter-spacing:-.025em;margin-bottom:.4rem}
+.cpage-sub{font-size:.875rem;color:var(--txm);line-height:1.65;margin-bottom:2rem;max-width:50ch}
+.cpi{
+  border:1px solid var(--div);border-radius:var(--rl);
+  padding:1.125rem 1.25rem;margin-bottom:.625rem;
+}
+.cpi-title{font-size:.9375rem;font-weight:640;margin-bottom:.2rem}
+.cpi-desc{font-size:.8125rem;color:var(--txm);margin-bottom:.875rem}
+.alert{
+  font-size:.8125rem;color:var(--txm);line-height:1.7;
+  background:var(--warhl);border:1px solid var(--div);
+  border-radius:var(--r);padding:.875rem 1rem;margin-top:1.25rem;
+}
+
+/* ── DATA SOURCES PAGE ────────────────────────────── */
+.apage{padding:2.5rem 0 4rem}
+.apage h2{font-size:1.375rem;font-weight:660;letter-spacing:-.025em;margin-bottom:.4rem}
+.apage-sub{font-size:.875rem;color:var(--txm);line-height:1.65;margin-bottom:2rem;max-width:50ch}
+.apage h3{font-size:.9375rem;font-weight:640;margin:1.75rem 0 .75rem}
+.ds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:.5rem;margin-bottom:1.5rem}
+.ds-card{
+  background:var(--surf);border:1px solid var(--div);
+  border-radius:var(--r);padding:.875rem 1rem;
+}
+.ds-name{font-size:.875rem;font-weight:640;display:flex;align-items:center;gap:.5rem;margin-bottom:.375rem}
+.ds-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ds-badge{font-size:.65rem;font-weight:700;padding:.15rem .375rem;border-radius:.25rem;display:inline-block;margin-bottom:.375rem;letter-spacing:.03em;text-transform:uppercase}
+.db-f{background:var(--suchl);color:var(--suc)}
+.db-k{background:var(--warhl);color:var(--war)}
+.db-a{background:var(--surf2);color:var(--txm)}
+.ds-desc{font-size:.78rem;color:var(--txm);line-height:1.6;margin-bottom:.375rem}
+.ds-url{font-size:.72rem;color:var(--pri);word-break:break-all}
+.tbl{width:100%;border-collapse:collapse;font-size:.8125rem}
+.tbl th{text-align:left;font-weight:600;font-size:.72rem;letter-spacing:.04em;text-transform:uppercase;color:var(--txm);padding:.5rem .75rem;border-bottom:1px solid var(--bord)}
+.tbl td{padding:.5rem .75rem;border-bottom:1px solid var(--div);vertical-align:top;line-height:1.5}
+.tbl tr:last-child td{border-bottom:none}
+.bin-block{
+  font-size:.78rem;line-height:2;color:var(--txm);
+  background:var(--surf2);border-radius:var(--r);padding:.875rem 1rem;
+  font-family:monospace;
+}
+.bin-block code{color:var(--tx);font-size:.8125rem}
+
+/* ── FOOTER ───────────────────────────────────────── */
+footer{border-top:1px solid var(--div);padding:1.75rem 0}
+.ft{max-width:1040px;margin:0 auto;padding:0 1.5rem}
+.ft-top{display:flex;align-items:baseline;gap:.75rem;margin-bottom:.5rem}
+.ft-name{font-size:.875rem;font-weight:660;letter-spacing:-.015em}
+.ft-tag{font-size:.78rem;color:var(--txm)}
+.ft-links{display:flex;gap:.875rem;flex-wrap:wrap;margin-bottom:.625rem}
+.ft-links a{font-size:.78rem;color:var(--txm);transition:color var(--t)}
+.ft-links a:hover{color:var(--tx)}
+.ft-disc{font-size:.7rem;color:var(--txf);max-width:60ch;line-height:1.7}
+
+/* ── RESPONSIVE ───────────────────────────────────── */
+@media(max-width:560px){
+  .hdr-in{padding:0 1rem}
+  .logo-tag{display:none}
+  .nav{display:none}
+  .wrap{padding:0 1rem}
+  .hero{padding:2rem 0 1.5rem}
+  .stats{gap:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr" role="banner">
+  <div class="hdr-in">
+    <a href="#" class="logo" onclick="showSec('browse');return false" aria-label="0PENRX home">
+      <!-- SVG pill mark -->
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <rect x="2" y="8" width="20" height="8" rx="4" fill="var(--pri)" opacity=".15"/>
+        <rect x="2" y="8" width="10" height="8" rx="4" fill="var(--pri)"/>
+        <line x1="12" y1="8" x2="12" y2="16" stroke="var(--surf)" stroke-width="1.5"/>
+      </svg>
+      <span class="logo-word">0PENRX</span>
+      <span class="logo-tag">Zero middlemen. Open prices.</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <button class="ntab on" onclick="showSec('browse')">Find Prices</button>
+      <button class="ntab" onclick="showSec('coupon')">Coupons</button>
+      <button class="ntab" onclick="showSec('api')">Data Sources</button>
+    </nav>
+    <div class="hdr-end">
+      <button class="icon-btn" data-theme-toggle aria-label="Toggle theme">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- BROWSE -->
+<div id="secBrowse">
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-label">Prescription Price Transparency</div>
+      <h1 class="hero-h">Your drug. The real price. No runaround.</h1>
+      <p class="hero-sub">Federal program prices, Cost Plus Drugs, GoodRx, and Amazon Pharmacy — all in one place. Cash-pay only. No insurance required.</p>
+
+      <div class="srch-wrap">
+        <svg class="srch-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="srch" type="search" id="hSearch" placeholder="Search by drug name or generic…" autocomplete="off" aria-label="Search medications">
+        <div class="sugg" id="hSugg" role="listbox"></div>
+      </div>
+
+      <div class="stats">
+        <div><div class="stat-n" id="kDrugs">—</div><div class="stat-l">Medications tracked</div></div>
+        <div><div class="stat-n">95%</div><div class="stat-l">Max savings found</div></div>
+        <div><div class="stat-n">6</div><div class="stat-l">Price sources</div></div>
+        <div><div class="stat-n">$0</div><div class="stat-l">Cost to search</div></div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="filters" role="group" aria-label="Filter by category">
+        <button class="fc on" data-cat="all">All</button>
+        <button class="fc" data-cat="GLP-1 / Weight Loss">GLP-1</button>
+        <button class="fc" data-cat="Insulin">Insulin</button>
+        <button class="fc" data-cat="Diabetes">Diabetes</button>
+        <button class="fc" data-cat="Autoimmune / Biologic">Biologic</button>
+        <button class="fc" data-cat="Respiratory">Respiratory</button>
+        <button class="fc" data-cat="Oncology / Specialty">Oncology</button>
+        <button class="fc" data-cat="Migraine">Migraine</button>
+        <button class="fc" data-cat="Hormone Therapy">Hormones</button>
+        <button class="fc" data-cat="Generic">Generic</button>
+      </div>
+      <div class="tb-r">
+        <span class="cnt" id="rCnt" aria-live="polite"></span>
+        <select class="ssort" id="sortSel" aria-label="Sort results">
+          <option value="savings">Highest savings</option>
+          <option value="plo">Price: low → high</option>
+          <option value="phi">Price: high → low</option>
+          <option value="az">A → Z</option>
+        </select>
+      </div>
+    </div>
+
+    <main id="main">
+      <div class="grid" id="dGrid" role="list"></div>
+      <div class="empty" id="empSt" role="status">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <p>No results — try a different search or filter.</p>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- COUPONS -->
+<div id="secCoupon" style="display:none">
+  <div class="wrap">
+    <div class="cpage">
+      <h2>Pharmacy Coupon Guide</h2>
+      <p class="cpage-sub">Show these codes at the pharmacy counter. Cash-pay only — never use alongside insurance.</p>
+
+      <div class="cpi">
+        <div class="cpi-title">Federal Program — GoodRx Network</div>
+        <div class="cpi-desc">70,000+ pharmacies · 600+ generic drugs · Average 70% off retail</div>
+        <div class="coupon-fields">
+          <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">015995</div></div>
+          <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">GDC</div></div>
+          <div class="cf"><div class="cf-l">Group</div><div class="cf-v">MAHA</div></div>
+          <div class="cf"><div class="cf-l">Member</div><div class="cf-v">RXFINDER</div></div>
+        </div>
+        <button class="copy-btn" onclick="doCopy('015995','GDC','MAHA','RXFINDER',this)">Copy to clipboard</button>
+      </div>
+
+      <div class="cpi">
+        <div class="cpi-title">AbbVie myAbbVie Assist</div>
+        <div class="cpi-desc">Humira® $950 · Combigan® $10 · Alphagan® $45</div>
+        <div class="coupon-fields">
+          <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">601341</div></div>
+          <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">OHCP</div></div>
+          <div class="cf"><div class="cf-l">Group</div><div class="cf-v">OH9013621</div></div>
+          <div class="cf"><div class="cf-l">Member</div><div class="cf-v">See label</div></div>
+        </div>
+        <button class="copy-btn" onclick="doCopy('601341','OHCP','OH9013621','N/A',this)">Copy to clipboard</button>
+      </div>
+
+      <div class="cpi">
+        <div class="cpi-title">EMD Serono Fertility</div>
+        <div class="cpi-desc">Gonal-F® $168 · Cetrotide® $22.50 · Ovidrel® $84</div>
+        <div class="coupon-fields">
+          <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">610020</div></div>
+          <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">PDMI</div></div>
+          <div class="cf"><div class="cf-l">Group</div><div class="cf-v">99996218</div></div>
+          <div class="cf"><div class="cf-l">Member</div><div class="cf-v">See label</div></div>
+        </div>
+        <button class="copy-btn" onclick="doCopy('610020','PDMI','99996218','N/A',this)">Copy to clipboard</button>
+      </div>
+
+      <div class="alert"><strong>Cash-pay only.</strong> Do not use with Medicare, Medicaid, TRICARE, VA, or any government health program. Out-of-pocket costs do not count toward Medicare Part D TrOOP. Always verify your insurance copay first — it may be lower.</div>
+    </div>
+  </div>
+</div>
+
+<!-- DATA SOURCES -->
+<div id="secApi" style="display:none">
+  <div class="wrap">
+    <div class="apage">
+      <h2>Data Sources &amp; APIs</h2>
+      <p class="apage-sub">Every price is sourced from public, open, or manufacturer-direct data. No black-box pricing.</p>
+      <div class="ds-grid" id="dsGrid"></div>
+
+      <h3>Pricing Methodology</h3>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead>
+            <tr><th>Source</th><th>Model</th><th>Best For</th><th>Limits</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Federal MFN</strong></td><td>Manufacturer coupon via GoodRx BIN 015995 / PCN GDC</td><td>Brand biologics, 88 drugs</td><td>Cash-pay only</td></tr>
+            <tr><td><strong>Cost Plus Drugs</strong></td><td>NADAC × 1.15 + $3 dispensing + $5 shipping</td><td>2,200+ generics</td><td>All 50 states</td></tr>
+            <tr><td><strong>GoodRx</strong></td><td>IngenioRx / CVS Caremark network</td><td>70K+ pharmacies</td><td>Some exclude CA &amp; MA</td></tr>
+            <tr><td><strong>Amazon Pharmacy</strong></td><td>Prime Rx benefit</td><td>Generic + Prime members</td><td>Prime required</td></tr>
+            <tr><td><strong>CMS NADAC</strong></td><td>Weekly CMS acquisition survey</td><td>Cost Plus baseline</td><td>Acquisition cost only</td></tr>
+            <tr><td><strong>WAC Reference</strong></td><td>Manufacturer list price</td><td>Savings % baseline</td><td>Not consumer price</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>BIN / PCN Adjudication Map</h3>
+      <div class="bin-block">
+        <code>BIN 015995 / PCN GDC / Group MAHA</code> — GoodRx Health LLC via IngenioRx (CVS Caremark) — 70,000+ pharmacies<br>
+        <code>BIN 601341 / PCN OHCP / Group OH9013621</code> — AbbVie myAbbVie Assist (Humira, Combigan, Alphagan)<br>
+        <code>BIN 610020 / PCN PDMI / Group 99996218</code> — EMD Serono (Gonal-F, Cetrotide, Ovidrel, Ngenla)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="ov" id="detOv" role="dialog" aria-modal="true" aria-label="Drug price details">
+  <div class="panel" id="detPanel"><div id="detCont"></div></div>
+</div>
+
+<footer>
+  <div class="ft">
+    <div class="ft-top">
+      <span class="ft-name">0PENRX</span>
+      <span class="ft-tag">Zero middlemen. Open prices. Your Rx.</span>
+    </div>
+    <div class="ft-links">
+      <a href="https://www.costplusdrugs.com" target="_blank" rel="noopener">Cost Plus Drugs</a>
+      <a href="https://www.goodrx.com" target="_blank" rel="noopener">GoodRx</a>
+      <a href="https://pharmacy.amazon.com" target="_blank" rel="noopener">Amazon Pharmacy</a>
+      <a href="https://rxgov.hhs.gov" target="_blank" rel="noopener">Federal Rx Program</a>
+    </div>
+    <div class="ft-disc">Cash-pay prices only. Not medical advice. Always verify with your pharmacist. Not affiliated with any manufacturer, PBM, or government agency. Prices subject to change.</div>
+  </div>
+</footer>
+
+<script>
+const DRUGS=[{"slug":"abrilada","name":"Abrilada\u00ae","price":207.6,"retail":519.0,"savings":60,"company":"Pfizer","generic":"adalimumab-afzb","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"","isGeneric":false},{"slug":"admelog","name":"Admelog\u00ae","price":35.0,"retail":98.07,"savings":64,"company":"Sanofi","generic":"insulin lispro","category":"Insulin","heroType":"ExternalLinkRouting","bin":"","partner":"Sanofi Patient Connection","isGeneric":false},{"slug":"aimovig","name":"Aimovig\u00ae","price":299.0,"retail":783.02,"savings":62,"company":"Amgen","generic":"erenumab-aooe","category":"Migraine","heroType":"GenericCashCoupon","bin":"015995","partner":"Amgen Assist360","isGeneric":false},{"slug":"airsupra","name":"Airsupra\u00ae","price":156.63,"retail":503.93,"savings":69,"company":"AstraZeneca","generic":"albuterol/budesonide","category":"Respiratory","heroType":"ExternalLinkRouting","bin":"","partner":"AstraZeneca Direct","isGeneric":false},{"slug":"alphagan","name":"Alphagan\u00ae P","price":45.0,"retail":194.44,"savings":77,"company":"AbbVie","generic":"brimonidine tartrate ophthalmic","category":"Other Brand","heroType":"GenericCashCoupon","bin":"600426","partner":"","isGeneric":false},{"slug":"amjevita","name":"Amjevita\u00ae","price":299.0,"retail":1484.16,"savings":80,"company":"Amgen","generic":"adalimumab-atto","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"Amgen Assist360","isGeneric":false},{"slug":"bevespi","name":"Bevespi\u00ae","price":50.65,"retail":458.05,"savings":89,"company":"AstraZeneca","generic":"glycopyrrolate/formoterol","category":"Respiratory","heroType":"ExternalLinkRouting","bin":"","partner":"AstraZeneca Direct","isGeneric":false},{"slug":"cetrotide","name":"Cetrotide\u00ae","price":22.5,"retail":316.12,"savings":93,"company":"EMD Serono","generic":"cetrorelix acetate","category":"Other Brand","heroType":"EmdSeronoCashCoupon","bin":"610020","partner":"EMD Serono Direct","isGeneric":false},{"slug":"combigan","name":"Combigan\u00ae","price":10.0,"retail":204.13,"savings":95,"company":"AbbVie","generic":"brimonidine/timolol ophthalmic","category":"Other Brand","heroType":"GenericCashCoupon","bin":"600426","partner":"","isGeneric":false},{"slug":"duavee","name":"Duavee\u00ae","price":30.3,"retail":202.0,"savings":85,"company":"Pfizer","generic":"conjugated estrogens/bazedoxifene","category":"Hormone Therapy","heroType":"GenericCashCoupon","bin":"015995","partner":"Pfizer RxPathways","isGeneric":false},{"slug":"emgality","name":"Emgality\u00ae","price":299.0,"retail":741.69,"savings":62,"company":"Eli Lilly","generic":"galcanezumab-gnlm","category":"Migraine","heroType":"ExternalLinkRouting","bin":"","partner":"Eli Lilly Direct","isGeneric":false},{"slug":"enbrel","name":"Enbrel\u00ae","price":3353.93,"retail":9177.3,"savings":63,"company":"Amgen","generic":"etanercept","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"Amgen Assist360","isGeneric":false},{"slug":"eucrisa","name":"Eucrisa\u00ae","price":158.48,"retail":792.4,"savings":80,"company":"Pfizer","generic":"crisaborole","category":"Other Brand","heroType":"GenericCashCoupon","bin":"015995","partner":"","isGeneric":false},{"slug":"farxiga","name":"Farxiga\u00ae","price":35.0,"retail":377.82,"savings":91,"company":"AstraZeneca","generic":"dapagliflozin","category":"Diabetes","heroType":"ExternalLinkRouting","bin":"","partner":"AstraZeneca Direct","isGeneric":false},{"slug":"foundayo","name":"Foundayo\u2122","price":149.0,"retail":649.0,"savings":77,"company":"Eli Lilly","generic":"orforglipron","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Eli Lilly Direct","isGeneric":false},{"slug":"gonal-f","name":"Gonal-F\u00ae","price":168.0,"retail":966.04,"savings":83,"company":"EMD Serono","generic":"follitropin alfa","category":"Other Brand","heroType":"EmdSeronoCashCoupon","bin":"610020","partner":"EMD Serono Direct","isGeneric":false},{"slug":"humira-pen","name":"Humira\u00ae Pen","price":950.0,"retail":6922.62,"savings":86,"company":"AbbVie","generic":"adalimumab","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"601341","partner":"","isGeneric":false},{"slug":"humira-syringe","name":"Humira\u00ae Prefilled Syringe","price":950.0,"retail":6922.62,"savings":86,"company":"AbbVie","generic":"adalimumab","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"601341","partner":"","isGeneric":false},{"slug":"januvia","name":"Januvia\u00ae","price":84.57,"retail":330.0,"savings":74,"company":"Merck","generic":"sitagliptin","category":"Diabetes","heroType":"ExternalLinkRouting","bin":"","partner":"","isGeneric":false},{"slug":"jentadueto","name":"Jentadueto\u00ae","price":55.0,"retail":525.08,"savings":90,"company":"Boehringer Ingelheim","generic":"linagliptin/metformin HCl","category":"Diabetes","heroType":"ExternalLinkRouting","bin":"","partner":"","isGeneric":false},{"slug":"lantus","name":"Lantus\u00ae","price":35.0,"retail":96.38,"savings":64,"company":"Sanofi","generic":"insulin glargine","category":"Insulin","heroType":"ExternalLinkRouting","bin":"","partner":"Sanofi Patient Connection","isGeneric":false},{"slug":"mayzent","name":"Mayzent\u00ae","price":1073.1,"retail":10687.0,"savings":90,"company":"Novartis","generic":"siponimod","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"Novartis Cares","isGeneric":false},{"slug":"mounjaro","name":"Mounjaro\u00ae","price":549.0,"retail":1069.08,"savings":49,"company":"Eli Lilly","generic":"tirzepatide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Eli Lilly Direct","isGeneric":false},{"slug":"mounjaro-compound","name":"Tirzepatide Compound","price":199.0,"retail":1069.08,"savings":81,"company":"Cost Plus Drugs","generic":"tirzepatide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"ngenla","name":"Ngenla\u00ae","price":168.0,"retail":966.04,"savings":83,"company":"EMD Serono","generic":"somatrogon-ghla","category":"Growth Hormone","heroType":"EmdSeronoCashCoupon","bin":"610020","partner":"EMD Serono Direct","isGeneric":false},{"slug":"novolog","name":"NovoLog\u00ae","price":35.0,"retail":162.49,"savings":78,"company":"Novo Nordisk","generic":"insulin aspart","category":"Insulin","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"otezla","name":"Otezla\u00ae","price":830.0,"retail":3803.37,"savings":78,"company":"Amgen","generic":"apremilast","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"Amgen Assist360","isGeneric":false},{"slug":"ovidrel","name":"Ovidrel\u00ae","price":84.0,"retail":313.0,"savings":73,"company":"EMD Serono","generic":"choriogonadotropin alfa","category":"Other Brand","heroType":"EmdSeronoCashCoupon","bin":"610020","partner":"EMD Serono Direct","isGeneric":false},{"slug":"ozempic","name":"Ozempic\u00ae","price":299.0,"retail":968.52,"savings":69,"company":"Novo Nordisk","generic":"semaglutide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"paxlovid","name":"Paxlovid\u00ae","price":129.0,"retail":1390.0,"savings":91,"company":"Pfizer","generic":"nirmatrelvir/ritonavir","category":"Antiviral","heroType":"GenericCashCoupon","bin":"015995","partner":"Pfizer RxPathways","isGeneric":false},{"slug":"prolia","name":"Prolia\u00ae","price":350.0,"retail":1340.0,"savings":74,"company":"Amgen","generic":"denosumab","category":"Bone Health","heroType":"GenericCashCoupon","bin":"015995","partner":"Amgen Assist360","isGeneric":false},{"slug":"rybelsus","name":"Rybelsus\u00ae","price":299.0,"retail":968.52,"savings":69,"company":"Novo Nordisk","generic":"semaglutide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"saxenda","name":"Saxenda\u00ae","price":299.0,"retail":1349.02,"savings":78,"company":"Novo Nordisk","generic":"liraglutide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"skyrizi","name":"Skyrizi\u00ae","price":2500.0,"retail":22000.0,"savings":89,"company":"AbbVie","generic":"risankizumab-rzaa","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"AbbVie myAbbVie Assist","isGeneric":false},{"slug":"stelara","name":"Stelara\u00ae","price":3200.0,"retail":24000.0,"savings":87,"company":"Johnson & Johnson","generic":"ustekinumab","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"","isGeneric":false},{"slug":"symbicort","name":"Symbicort\u00ae","price":99.0,"retail":396.0,"savings":75,"company":"AstraZeneca","generic":"budesonide/formoterol","category":"Respiratory","heroType":"ExternalLinkRouting","bin":"","partner":"AstraZeneca Direct","isGeneric":false},{"slug":"taltz","name":"Taltz\u00ae","price":740.0,"retail":6800.0,"savings":89,"company":"Eli Lilly","generic":"ixekizumab","category":"Autoimmune / Biologic","heroType":"ExternalLinkRouting","bin":"","partner":"Eli Lilly Direct","isGeneric":false},{"slug":"toujeo","name":"Toujeo\u00ae","price":35.0,"retail":126.33,"savings":72,"company":"Sanofi","generic":"insulin glargine U-300","category":"Insulin","heroType":"ExternalLinkRouting","bin":"","partner":"Sanofi Patient Connection","isGeneric":false},{"slug":"tremfya","name":"Tremfya\u00ae","price":2500.0,"retail":18000.0,"savings":86,"company":"Johnson & Johnson","generic":"guselkumab","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"","isGeneric":false},{"slug":"tresiba","name":"Tresiba\u00ae","price":35.0,"retail":131.74,"savings":73,"company":"Novo Nordisk","generic":"insulin degludec","category":"Insulin","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"trintellix","name":"Trintellix\u00ae","price":70.0,"retail":525.18,"savings":87,"company":"AstraZeneca/Takeda","generic":"vortioxetine","category":"Mental Health","heroType":"ExternalLinkRouting","bin":"","partner":"AstraZeneca Direct","isGeneric":false},{"slug":"trulicity","name":"Trulicity\u00ae","price":149.0,"retail":942.78,"savings":84,"company":"Eli Lilly","generic":"dulaglutide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Eli Lilly Direct","isGeneric":false},{"slug":"victoza","name":"Victoza\u00ae","price":149.0,"retail":702.52,"savings":79,"company":"Novo Nordisk","generic":"liraglutide","category":"Diabetes","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"wegovy","name":"Wegovy\u00ae","price":499.0,"retail":1349.02,"savings":63,"company":"Novo Nordisk","generic":"semaglutide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Novo Nordisk Savings Program","isGeneric":false},{"slug":"xeljanz","name":"Xeljanz\u00ae","price":648.25,"retail":4096.0,"savings":84,"company":"Pfizer","generic":"tofacitinib","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"Pfizer RxPathways","isGeneric":false},{"slug":"zymfentra","name":"Zymfentra\u00ae","price":2100.0,"retail":11000.0,"savings":81,"company":"Celltrion","generic":"infliximab-dyyb","category":"Autoimmune / Biologic","heroType":"GenericCashCoupon","bin":"015995","partner":"","isGeneric":false},{"slug":"atorvastatin","name":"Atorvastatin","price":8.75,"retail":55.0,"savings":84,"company":"Generic","generic":"atorvastatin calcium","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"imatinib","name":"Imatinib","price":47.0,"retail":1480.0,"savings":97,"company":"Generic","generic":"imatinib mesylate","category":"Oncology / Specialty","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"lisinopril","name":"Lisinopril","price":4.5,"retail":28.0,"savings":84,"company":"Generic","generic":"lisinopril","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"metformin","name":"Metformin HCl","price":4.0,"retail":22.0,"savings":82,"company":"Generic","generic":"metformin hydrochloride","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"omeprazole","name":"Omeprazole","price":5.5,"retail":34.0,"savings":84,"company":"Generic","generic":"omeprazole","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"sertraline","name":"Sertraline HCl","price":6.0,"retail":42.0,"savings":86,"company":"Generic","generic":"sertraline hydrochloride","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"sildenafil","name":"Sildenafil","price":12.0,"retail":120.0,"savings":90,"company":"Generic","generic":"sildenafil citrate","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"tamoxifen","name":"Tamoxifen","price":9.5,"retail":88.0,"savings":89,"company":"Generic","generic":"tamoxifen citrate","category":"Oncology / Specialty","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"topiramate","name":"Topiramate","price":6.5,"retail":52.0,"savings":88,"company":"Generic","generic":"topiramate","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"amlodipine","name":"Amlodipine","price":5.25,"retail":32.0,"savings":84,"company":"Generic","generic":"amlodipine besylate","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"levothyroxine","name":"Levothyroxine","price":5.0,"retail":38.0,"savings":87,"company":"Generic","generic":"levothyroxine sodium","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"montelukast","name":"Montelukast","price":6.75,"retail":48.0,"savings":86,"company":"Generic","generic":"montelukast sodium","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"ondansetron","name":"Ondansetron","price":7.5,"retail":58.0,"savings":87,"company":"Generic","generic":"ondansetron hydrochloride","category":"Generic","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true},{"slug":"ozempic-compound","name":"Semaglutide Compound","price":149.0,"retail":968.52,"savings":85,"company":"Cost Plus Drugs","generic":"semaglutide","category":"GLP-1 / Weight Loss","heroType":"ExternalLinkRouting","bin":"","partner":"Cost Plus Drugs","isGeneric":true}];
+
+const APIS=[
+  {n:"NLM RxNorm",c:"#016b65",b:"Free · No Key",s:"f",d:"Drug name normalization, RxCUI lookup, synonym resolution. Powers search autocomplete.",u:"https://rxnav.nlm.nih.gov/REST"},
+  {n:"openFDA Drug NDC",c:"#2563eb",b:"Free · No Key",s:"f",d:"NDC codes, labeler info, dosage forms, active ingredients. Real-time drug detail panel.",u:"https://api.fda.gov/drug/ndc.json"},
+  {n:"CMS NADAC Pricing",c:"#7c3aed",b:"Free · No Key",s:"f",d:"Weekly pharmacy acquisition cost survey. Baseline for Cost Plus Drugs price estimates.",u:"https://data.medicaid.gov/api/1/datastore/query"},
+  {n:"Cost Plus Drugs",c:"#dc2626",b:"Shopify API",s:"k",d:"Internal Shopify / Cloudflare-protected. MCP community server available at mcp.costplusdrugs.com.",u:"https://www.costplusdrugs.com"},
+  {n:"GoodRx Partner API",c:"#ea580c",b:"Approval Req.",s:"k",d:"Apply at developer.goodrx.com. Requires commercial agreement. Powers coupon adjudication.",u:"https://developer.goodrx.com"},
+  {n:"Federal Rx Program",c:"#0891b2",b:"Free · No Key",s:"f",d:"HHS public drug pricing pages. BIN/PCN coupon data sourced from federal fact sheets.",u:"https://rxgov.hhs.gov"}
+];
+
+let srchQ='',activeF='all';
+
+function renderGrid(){
+  const g=document.getElementById('dGrid'),e=document.getElementById('empSt');
+  const sort=document.getElementById('sortSel').value;
+  let list=DRUGS.filter(d=>{
+    const qs=srchQ.toLowerCase();
+    const mq=!qs||d.name.toLowerCase().includes(qs)||d.generic.toLowerCase().includes(qs)||d.company.toLowerCase().includes(qs);
+    const mf=activeF==='all'||d.category===activeF;
+    return mq&&mf;
+  });
+  if(sort==='savings')list.sort((a,b)=>b.savings-a.savings);
+  else if(sort==='plo')list.sort((a,b)=>a.price-b.price);
+  else if(sort==='phi')list.sort((a,b)=>b.price-a.price);
+  else list.sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('rCnt').textContent=list.length+' result'+(list.length!==1?'s':'');
+  if(!list.length){g.innerHTML='';e.style.display='block';return;}
+  e.style.display='none';
+  const bc=s=>s>=80?'b-hi':s>=60?'b-md':'b-lo';
+  g.innerHTML=list.map(d=>`
+<article class="card" role="listitem" tabindex="0" onclick="openD('${d.slug}')" aria-label="${d.name}, $${d.price.toFixed(2)}, ${d.savings}% savings">
+  <div class="card-top">
+    <div>
+      <div class="card-name">${d.name}</div>
+      <div class="card-gen">${d.generic}</div>
+    </div>
+    <span class="badge ${bc(d.savings)}">${d.savings}% off</span>
+  </div>
+  <div class="card-price">
+    <span class="price">$${d.price.toFixed(2)}</span>
+    ${d.retail>d.price?`<span class="retail">$${d.retail.toFixed(2)}</span>`:''}
+  </div>
+  <div class="card-note">${d.isGeneric?'Cost Plus Drugs':'Federal program'} · ${d.company}</div>
+  <div class="card-hr"></div>
+  <div class="card-acts">
+    <button class="ca ca-p" onclick="event.stopPropagation();openD('${d.slug}')">View prices</button>
+    <button class="ca ca-s" onclick="event.stopPropagation();showSec('coupon')">Coupon</button>
+  </div>
+</article>`).join('');
+  g.querySelectorAll('.card').forEach(c=>c.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.click();}}));
+}
+
+function renderDS(){
+  document.getElementById('dsGrid').innerHTML=APIS.map(a=>`
+<div class="ds-card">
+  <div class="ds-name"><span class="ds-dot" style="background:${a.c}"></span>${a.n}</div>
+  <span class="ds-badge ${a.s==='f'?'db-f':a.s==='k'?'db-k':'db-a'}">${a.b}</span>
+  <div class="ds-desc">${a.d}</div>
+  <a class="ds-url" href="${a.u}" target="_blank" rel="noopener">${a.u}</a>
+</div>`).join('');
+}
+
+function openD(slug){
+  const d=DRUGS.find(x=>x.slug===slug);if(!d)return;
+  const p='$'+d.price.toFixed(2),r=d.retail>0?'$'+d.retail.toFixed(2):'';
+  const bl=d.bin==='015995'?'GDC':d.bin==='601341'?'OHCP':d.bin==='610020'?'PDMI':'—';
+  const gl=d.bin==='015995'?'MAHA':d.bin==='601341'?'OH9013621':d.bin==='610020'?'99996218':'—';
+  const isExt=d.heroType==='ExternalLinkRouting';
+  const couponBlock=!isExt&&d.bin?`
+<div class="coupon-block">
+  <div class="coupon-title">Pharmacy coupon — cash-pay only</div>
+  <div class="coupon-fields">
+    <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${d.bin}</div></div>
+    <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${bl}</div></div>
+    <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${gl}</div></div>
+    <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${d.bin==='015995'?'RXFINDER':'See Rx'}</div></div>
+  </div>
+  <button class="copy-btn" onclick="doCopy('${d.bin}','${bl}','${gl}','${d.bin==='015995'?'RXFINDER':'N/A'}',this)">Copy coupon</button>
+</div>`:isExt&&d.partner?`
+<div class="coupon-block">
+  <div class="coupon-title">Manufacturer direct program</div>
+  <p style="font-size:.8125rem;color:var(--txm);margin-bottom:.625rem">${d.partner} manages this medication.</p>
+  <a href="https://rxgov.hhs.gov/p/${d.slug}" target="_blank" rel="noopener" class="ext-btn">Continue to ${d.partner} ↗</a>
+</div>`:'';
+
+  document.getElementById('detCont').innerHTML=`
+<button class="pcl" onclick="closeD()" aria-label="Close">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+</button>
+<div class="p-name">${d.name}</div>
+<div class="p-sub">${d.generic} &middot; ${d.company}</div>
+<div class="p-price-row">
+  <div><div class="p-big">${p}</div><div class="p-big-lbl">${isExt?'manufacturer direct':'federal program / cash-pay'}</div></div>
+  ${d.retail>d.price?`<div><div class="p-sav">${d.savings}% savings</div><div class="p-ret">vs ${r} retail</div></div>`:``}
+</div>
+<div class="sec-lbl">Where to fill</div>
+${!isExt?`<a class="row" href="https://rxgov.hhs.gov/p/${d.slug}" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag">MFN</span><div><div class="row-name">Federal Program</div><div class="row-note">GoodRx coupon · BIN ${d.bin||'015995'}</div></div></div><span class="row-price">${p}</span></a>`:''}
+${d.isGeneric?`
+<a class="row" href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(d.generic)}" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag">CPD</span><div><div class="row-name">Cost Plus Drugs</div><div class="row-note">NADAC × 1.15 + $3 dispensing</div></div></div><span class="row-price">$${d.price.toFixed(2)}</span></a>
+<a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify price</div></div></div><span class="row-price" style="color:var(--txm);font-size:.875rem">Check ↗</span></a>
+<a class="row" href="https://www.goodrx.com/${d.slug}" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag">GRX</span><div><div class="row-name">GoodRx</div><div class="row-note">70,000+ pharmacies</div></div></div><span class="row-price" style="color:var(--txm);font-size:.875rem">Check ↗</span></a>`:''}
+${couponBlock}
+<div class="disc-note">Cash-pay only. Do not use with Medicare, Medicaid, or any government health program.</div>
+<div class="p-acts">
+  <a href="https://rxgov.hhs.gov/p/${d.slug}" target="_blank" rel="noopener" class="pa pa-p">Official page ↗</a>
+  <a href="https://www.goodrx.com/${d.slug}" target="_blank" rel="noopener" class="pa pa-s">GoodRx ↗</a>
+  <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(d.generic)}" target="_blank" rel="noopener" class="pa pa-s">Cost Plus ↗</a>
+</div>`;
+  const ov=document.getElementById('detOv');
+  ov.classList.add('open');
+  ov.querySelector('.panel').scrollTop=0;
+  setTimeout(()=>ov.querySelector('.pcl').focus(),50);
+}
+function closeD(){document.getElementById('detOv').classList.remove('open');}
+
+function setupSearch(){
+  const inp=document.getElementById('hSearch'),box=document.getElementById('hSugg');
+  inp.addEventListener('input',()=>{
+    srchQ=inp.value.trim();renderGrid();
+    const q=srchQ.toLowerCase();
+    if(q.length<2){box.classList.remove('vis');return;}
+    const m=DRUGS.filter(d=>d.name.toLowerCase().includes(q)||d.generic.toLowerCase().includes(q)).slice(0,6);
+    if(!m.length){box.classList.remove('vis');return;}
+    box.innerHTML=m.map(d=>`<div class="si" onclick="pick('${d.slug}')" role="option" tabindex="0" onkeydown="if(event.key==='Enter')pick('${d.slug}')">
+<div><div class="si-name">${d.name}</div><div class="si-gen">${d.generic}</div></div>
+<span class="si-p">$${d.price.toFixed(2)}</span></div>`).join('');
+    box.classList.add('vis');
+  });
+  document.addEventListener('click',e=>{if(!inp.contains(e.target)&&!box.contains(e.target))box.classList.remove('vis');});
+  inp.addEventListener('keydown',e=>{if(e.key==='Escape'){srchQ='';inp.value='';box.classList.remove('vis');renderGrid();}});
+}
+function pick(slug){
+  const d=DRUGS.find(x=>x.slug===slug);if(!d)return;
+  document.getElementById('hSearch').value=d.name;
+  document.getElementById('hSugg').classList.remove('vis');
+  srchQ=d.name;renderGrid();openD(slug);
+}
+function doCopy(bin,pcn,grp,mem,btn){
+  const txt=`BIN: ${bin}\nPCN: ${pcn}\nGroup: ${grp}\nMember: ${mem}`;
+  const go=()=>{const t=btn.textContent;btn.textContent='Copied ✓';setTimeout(()=>btn.textContent=t,2200);};
+  navigator.clipboard?.writeText(txt).then(go).catch(()=>{
+    const ta=Object.assign(document.createElement('textarea'),{value:txt,style:'position:fixed;opacity:0'});
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();go();
+  });
+}
+function showSec(n){
+  ['Browse','Coupon','Api'].forEach(s=>{
+    const el=document.getElementById('sec'+s);
+    if(el)el.style.display=s.toLowerCase()===n?'':'none';
+  });
+  const map={'browse':'Find Prices','coupon':'Coupons','api':'Data Sources'};
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.toggle('on',t.textContent.trim()===map[n]));
+}
+document.querySelectorAll('.fc').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.fc').forEach(x=>x.classList.remove('on'));
+  c.classList.add('on');activeF=c.dataset.cat;renderGrid();
+}));
+document.getElementById('sortSel').addEventListener('change',renderGrid);
+document.getElementById('detOv').addEventListener('click',e=>{if(e.target===document.getElementById('detOv'))closeD();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD();});
+document.getElementById('kDrugs').textContent=DRUGS.length;
+(function(){
+  const t=document.querySelector('[data-theme-toggle]'),r=document.documentElement;
+  let d=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';
+  r.setAttribute('data-theme',d);
+  const SUN='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
+  const MOO='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+  if(t){t.innerHTML=d==='dark'?SUN:MOO;t.addEventListener('click',()=>{d=d==='dark'?'light':'dark';r.setAttribute('data-theme',d);t.innerHTML=d==='dark'?SUN:MOO;});}
+})();
+setupSearch();renderGrid();renderDS();
+</script>
+</body>
+</html>
