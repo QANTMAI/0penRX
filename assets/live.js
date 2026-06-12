@@ -203,6 +203,48 @@ export function nadacEstimate(perUnit, qty = 30) {
   return Math.round((perUnit * qty * 1.15 + 3) * 100) / 100;
 }
 
+// ---- openFDA drug shortages (FDA shortage database) ------------------------
+const OPENFDA_SHORTAGES = 'https://api.fda.gov/drug/shortages.json';
+export async function getDrugShortages(generic) {
+  const token = fdaToken(generic);
+  if (!token) return { records: [] };
+  try {
+    const url = `${OPENFDA_SHORTAGES}?search=generic_name:${token}&limit=10${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+    const data = await fetchJSON(url);
+    const records = (data?.results || []).map(r => ({
+      name: r.generic_name || r.proprietary_name || token,
+      status: r.status || '—',
+      updated: r.update_date || r.initial_posting_date || null,
+    }));
+    return { records, total: data?.meta?.results?.total || records.length,
+      sourceUrl: `${OPENFDA_SHORTAGES}?search=generic_name:${token}` };
+  } catch {
+    return { records: [] }; // openFDA returns 404 when there are no matches
+  }
+}
+
+// ---- openFDA recalls / enforcement -----------------------------------------
+const OPENFDA_ENFORCE = 'https://api.fda.gov/drug/enforcement.json';
+export async function getDrugRecalls(generic) {
+  const token = fdaToken(generic);
+  if (!token) return { records: [] };
+  try {
+    const url = `${OPENFDA_ENFORCE}?search=product_description:${token}&sort=recall_initiation_date:desc&limit=5${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+    const data = await fetchJSON(url);
+    const records = (data?.results || []).map(r => ({
+      classification: r.classification || '—',
+      status: r.status || '—',
+      reason: r.reason_for_recall || '',
+      firm: r.recalling_firm || '',
+      date: r.recall_initiation_date || null,
+    }));
+    return { records, total: data?.meta?.results?.total || records.length,
+      sourceUrl: `${OPENFDA_ENFORCE}?search=product_description:${token}&sort=recall_initiation_date:desc` };
+  } catch {
+    return { records: [] };
+  }
+}
+
 // ---- Source liveness (for the Data Sources page) ---------------------------
 // Only probes the three free APIs we actually call; others keep documented status.
 // Uses representative queries and one retry so transient throttling (openFDA rate-
