@@ -11,6 +11,7 @@ Usage:
 The default resource is the NADAC 2026 distribution. Pass --distribution to
 override with a different DKAN distribution id (see data.medicaid.gov).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -96,7 +97,9 @@ def main() -> None:
 
     dist = args.distribution or NADAC_DISTRIBUTIONS.get(args.year)
     if not dist:
-        raise SystemExit(f"No known NADAC distribution for year {args.year}; pass --distribution.")
+        raise SystemExit(
+            f"No known NADAC distribution for year {args.year}; pass --distribution."
+        )
 
     source_url = DATASTORE_QUERY.format(dist=dist)
     out_dir = os.path.dirname(args.out)
