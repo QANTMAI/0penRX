@@ -63,6 +63,35 @@ export async function getRxNorm(name) {
   };
 }
 
+// ---- RxTerms: drug-name autocomplete (any marketed drug) -------------------
+// NLM Clinical Table Search Service. Returns clean display names like
+// "metFORMIN (Oral Pill)". CORS-enabled. Used to search beyond the curated 88.
+const RXTERMS = 'https://clinicaltables.nlm.nih.gov/api/rxterms/v3/search';
+export async function rxTermsSearch(query, max = 6) {
+  const q = (query || '').trim();
+  if (q.length < 2) return [];
+  const url = `${RXTERMS}?terms=${encodeURIComponent(q)}&maxList=${max}`;
+  try {
+    const data = await fetchJSON(url, { timeout: 6000 });
+    const rows = Array.isArray(data) && Array.isArray(data[3]) ? data[3] : [];
+    const seen = new Set();
+    const out = [];
+    for (const r of rows) {
+      const display = Array.isArray(r) ? r[0] : String(r);
+      if (!display) continue;
+      // Strip the trailing "(Oral Pill)"-style form qualifier for lookups.
+      const clean = display.replace(/\s*\([^)]*\)\s*$/, '').trim();
+      const key = clean.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ display, clean });
+    }
+    return out;
+  } catch {
+    return [];
+  }
+}
+
 // Bare ingredient/brand token for openFDA (its generic_name is the bare moiety,
 // e.g. "atorvastatin" not "atorvastatin calcium"; brand "Ozempic® Pen" -> "ozempic").
 function fdaToken(s) {
