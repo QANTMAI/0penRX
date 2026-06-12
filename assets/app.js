@@ -106,17 +106,48 @@ function renderGrid() {
 }
 
 // ---- Autocomplete ----------------------------------------------------------
-function renderSuggest() {
-  const box = $('#sugg'), input = $('#search');
-  const q = state.q.toLowerCase();
-  if (q.length < 2) { box.classList.remove('vis'); input.setAttribute('aria-expanded', 'false'); return; }
-  const m = CATALOG.filter(d =>
-    d.name.toLowerCase().includes(q) || d.generic.toLowerCase().includes(q)).slice(0, 7);
-  if (!m.length) { box.classList.remove('vis'); input.setAttribute('aria-expanded', 'false'); return; }
-  box.innerHTML = m.map(d => `<div class="si" role="option" data-pick="${esc(d.slug)}">
+let liveSeq = 0, liveTimer = null;
+
+function catalogMatches(q) {
+  return CATALOG.filter(d =>
+    d.name.toLowerCase().includes(q) || d.generic.toLowerCase().includes(q)).slice(0, 6);
+}
+function suggestCatalog(d) {
+  return `<div class="si" role="option" data-pick="${esc(d.slug)}">
       <div class="si-main"><div class="si-name">${esc(d.name)}</div><div class="si-sub">${esc(d.generic)} · ${esc(d.company)}</div></div>
-      <span class="si-price">${money(d.price)}</span></div>`).join('');
-  box.classList.add('vis'); input.setAttribute('aria-expanded', 'true');
+      <span class="si-price">${money(d.price)}</span></div>`;
+}
+function suggestLive(x) {
+  return `<div class="si" role="option" data-live="${esc(x.display)}" data-clean="${esc(x.clean)}">
+      <div class="si-main"><div class="si-name">${esc(x.display)}</div><div class="si-sub">Live lookup · RxNorm / openFDA / NADAC</div></div>
+      <span class="sbadge gen">live</span></div>`;
+}
+function renderSuggestBox(cat, liveList) {
+  const box = $('#sugg'), input = $('#search');
+  let html = '';
+  if (cat.length) html += `<div class="sugg-head">In catalog</div>` + cat.map(suggestCatalog).join('');
+  if (liveList.length) html += `<div class="sugg-head">Any drug · live lookup</div>` + liveList.map(suggestLive).join('');
+  if (!html) { box.classList.remove('vis'); input.setAttribute('aria-expanded', 'false'); return; }
+  box.innerHTML = html; box.classList.add('vis'); input.setAttribute('aria-expanded', 'true');
+}
+function renderSuggest() {
+  const q = state.q.toLowerCase();
+  if (q.length < 2) {
+    $('#sugg').classList.remove('vis'); $('#search').setAttribute('aria-expanded', 'false');
+    clearTimeout(liveTimer); return;
+  }
+  renderSuggestBox(catalogMatches(q), []);  // instant catalog results
+  clearTimeout(liveTimer);
+  const seq = ++liveSeq;
+  liveTimer = setTimeout(async () => {
+    const results = await live.rxTermsSearch(state.q, 6);
+    if (seq !== liveSeq) return;            // a newer keystroke superseded this
+    const cat = catalogMatches(state.q.toLowerCase());
+    const catKeys = new Set(cat.flatMap(d =>
+      [d.name.toLowerCase(), d.generic.toLowerCase().split(/[\/,\s]+/)[0]]));
+    const fresh = results.filter(x => !catKeys.has(x.clean.toLowerCase())).slice(0, 6);
+    renderSuggestBox(cat, fresh);
+  }, 280);
 }
 
 // ---- Detail panel ----------------------------------------------------------
@@ -240,6 +271,34 @@ async function enrichLive(d, token) {
   });
 }
 
+// Detail panel for an off-catalog drug — no curated price, pure live data.
+function openLiveDetail(display, clean) {
+  const token = live.searchToken(clean) || clean.toUpperCase();
+  const gslug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  $('#panelBody').innerHTML = `
+    <button class="panel-close" data-close aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="p-name">${esc(display)}</div>
+    <div class="p-sub">Live lookup · RxNorm / openFDA / CMS NADAC</div>
+    <div class="p-hero" style="background:var(--surface-2)">
+      <div><div class="p-hero-sub" style="opacity:1;color:var(--text-2)">Not in the curated cash-pay catalog — showing sourced reference data below. Verify the final price at the pharmacy.</div></div>
+    </div>
+    <div class="label">Live drug data <span class="live-badge">live</span></div>
+    <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(clean)}</strong> in RxNorm &amp; openFDA…</span></div>
+    <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
+    <div class="p-acts">
+      <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener" class="btn btn-pri">GoodRx ↗</a>
+      <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(clean)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>
+    </div>
+    <div class="disclaimer-box">Cash-pay reference data from public sources — verify with the pharmacy before use. Not medical advice.</div>`;
+  const ov = $('#overlay');
+  ov.classList.add('open');
+  $('#panel').scrollTop = 0;
+  $('#panelBody [data-close]').focus();
+  enrichLive({ generic: clean, name: display }, token);
+}
+
 function closeDetail() { $('#overlay').classList.remove('open'); }
 
 // ---- Data Sources view -----------------------------------------------------
@@ -343,12 +402,14 @@ function init() {
   document.addEventListener('click', e => {
     const open = e.target.closest('[data-open]') || e.target.closest('.card');
     const pick = e.target.closest('[data-pick]');
+    const liveEl = e.target.closest('[data-live]');
     const nav = e.target.closest('[data-nav]');
     const copy = e.target.closest('[data-copy]');
     if (e.target.closest('[data-close]')) { closeDetail(); return; }
     if (copy) { copyCoupon(copy.dataset.copy, copy); return; }
     if (nav) { e.preventDefault(); setView(nav.dataset.nav); return; }
     if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); input.value = d.name; state.q = d.name; sugg.classList.remove('vis'); renderGrid(); openDetail(pick.dataset.pick); return; }
+    if (liveEl) { input.value = liveEl.dataset.live; state.q = liveEl.dataset.live; sugg.classList.remove('vis'); openLiveDetail(liveEl.dataset.live, liveEl.dataset.clean); return; }
     if (open) { const slug = open.dataset.open || open.dataset.slug; openDetail(slug); return; }
   });
   $('#grid').addEventListener('keydown', e => {
