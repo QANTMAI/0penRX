@@ -169,7 +169,7 @@ function normalizeNadacRows(rows) {
   return {
     ...top,
     matches: valid.length,
-    sourceUrl: 'https://data.medicaid.gov/dataset?keyword=nadac',
+    sourceUrl: 'https://data.medicaid.gov/datasets?keyword=nadac',
   };
 }
 

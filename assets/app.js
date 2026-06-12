@@ -45,8 +45,29 @@ function renderFilters() {
 
 // ---- Reference links (the old federal rxgov.hhs.gov portal is offline) ------
 // Per-drug authoritative reference: FDA DailyMed label search (verified live).
-const dailyMed = generic =>
-  `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(generic)}`;
+// Combination/verbose generics ("albuterol/budesonide", "levothyroxine sodium
+// tablets") return zero DailyMed results; the bare brand name always resolves to
+// the drug's own label — a single match 302-redirects straight to it, and a
+// multi-match shows a results page scoped to the brand. We query the first brand
+// token (strip ®/™ and any form/strength suffix). Verified ≥1 result for all 88.
+const dailyMedQuery = d => d.name.replace(/[®™]/g, '').trim().split(/[\s(]/)[0];
+const dailyMed = d =>
+  `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(dailyMedQuery(d))}`;
+
+// GoodRx slug override → GoodRx uses bare drug slugs, so a few of our dosage-form
+// slugs 404 there. Map only the slugs whose verified GoodRx page differs from ours
+// (most dosage-form slugs, e.g. anoro-ellipta / invokamet-xr / premarin-vaginal-cream,
+// DO exist on GoodRx and need no entry). Sources verified via web search, 2026-06.
+const GOODRX_SLUG = {
+  'humira-pen': 'humira',                  // goodrx.com/humira
+  'humira-syringe': 'humira',              // goodrx.com/humira
+  'orencia-sc': 'orencia',                 // goodrx.com/orencia
+  'ozempic-pill': 'rybelsus',              // oral semaglutide → goodrx.com/rybelsus
+  'premarin-vc': 'premarin-vaginal-cream', // goodrx.com/premarin-vaginal-cream
+  'wegovy-pill': 'wegovy',                 // oral semaglutide (Wegovy) → goodrx.com/wegovy
+  'zepbound-kwikpen': 'zepbound',          // goodrx.com/zepbound
+};
+const goodRxUrl = d => `https://www.goodrx.com/${GOODRX_SLUG[d.slug] || d.slug}`;
 
 // Manufacturer routing → each medication's OWN official manufacturer site, keyed
 // by slug. Every URL below was verified to resolve (HTTP 200, except a few real
@@ -91,7 +112,7 @@ const PARTNER_URL = {
   'Boehringer Ingelheim Cares': 'https://www.bicares.com',
   'LillyDirect®': 'https://lillydirect.com', 'Eli Lilly Direct': 'https://lillydirect.com',
 };
-const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d.generic);
+const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d);
 
 // ---- Browse grid -----------------------------------------------------------
 const savClass = s => s >= 70 ? 'hi' : s >= 40 ? 'md' : 'lo';
@@ -125,7 +146,7 @@ function cardHTML(d) {
     <div class="tags">${tagsFor(d)}</div>
     <div class="card-foot">
       <button class="btn btn-pri" data-open="${esc(d.slug)}">View details</button>
-      <a class="btn btn-sec" href="${esc(dailyMed(d.generic))}" target="_blank" rel="noopener">FDA label ↗</a>
+      <a class="btn btn-sec" href="${esc(dailyMed(d))}" target="_blank" rel="noopener">FDA label ↗</a>
     </div>
   </article>`;
 }
@@ -290,8 +311,8 @@ function openDetail(slug) {
     <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
 
     <div class="p-acts">
-      <a href="${esc(dailyMed(d.generic))}" target="_blank" rel="noopener" class="btn btn-pri">FDA label ↗</a>
-      <a href="https://www.goodrx.com/${esc(d.slug)}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
+      <a href="${esc(dailyMed(d))}" target="_blank" rel="noopener" class="btn btn-pri">FDA label ↗</a>
+      <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
       <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(d.generic)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>
     </div>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
