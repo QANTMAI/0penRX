@@ -24,6 +24,22 @@ export const API_BASE = (() => {
   } catch { return null; }
 })();
 
+// Optional openFDA API key for the elevated rate limit (240 req/min, 120k/day).
+// openFDA returns 100% real data WITHOUT a key (lower daily cap); a key only
+// raises limits. NOTE: a key placed here ships in the public bundle and is
+// visible to anyone — that exposes your quota. For production, prefer routing
+// openFDA through the FastAPI backend (API_BASE) so the key stays server-side.
+// Get a key: https://open.fda.gov/apis/authentication/
+export const OPENFDA_KEY = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get('openfda_key');
+    return q || window.OPENFDA_KEY || null;
+  } catch { return null; }
+})();
+function fdaUrl(qs) {
+  return `${OPENFDA}?${qs}${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+}
+
 const TIMEOUT = 9000;
 const cache = new Map();
 
@@ -107,7 +123,7 @@ export async function getOpenFda(generic, brand) {
   if (b) tries.push(`search=brand_name:${b}&limit=1`);
   for (const q of tries) {
     try {
-      const data = await fetchJSON(`${OPENFDA}?${q}`);
+      const data = await fetchJSON(fdaUrl(q));
       const r = data?.results?.[0];
       if (!r) continue;
       return {
@@ -193,7 +209,7 @@ export function nadacEstimate(perUnit, qty = 30) {
 // limits unkeyed bursts) doesn't show a false "down".
 const PROBES = {
   rxnorm: `${RXNORM}/version.json`,
-  openfda: `${OPENFDA}?search=generic_name:ibuprofen&limit=1`,
+  openfda: fdaUrl('search=generic_name:ibuprofen&limit=1'),
   nadac: `${NADAC_BASE}?limit=1`,
 };
 export async function checkSource(key) {
