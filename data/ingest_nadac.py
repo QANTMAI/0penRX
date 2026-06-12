@@ -89,7 +89,7 @@ def normalize_row(row: dict, source_url: str) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ingest NADAC into normalized JSONL.")
     parser.add_argument("--out", required=True, help="Output JSONL path")
-    parser.add_argument("--year", type=int, default=2026 help="NADAC dataset year")
+    parser.add_argument("--year", type=int, default=2026, help="NADAC dataset year")
     parser.add_argument("--distribution", help="Override DKAN distribution id")
     parser.add_argument("--limit", type=int, default=None, help="Max rows to ingest")
     args = parser.parse_args()
