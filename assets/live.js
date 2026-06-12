@@ -13,7 +13,10 @@
 
 const RXNORM = 'https://rxnav.nlm.nih.gov/REST';
 const OPENFDA = 'https://api.fda.gov/drug/ndc.json';
-const NADAC_DIST = 'fbb83258-11c7-47f5-8b18-5f8e79f7e704'; // CMS NADAC 2026 distribution
+// CMS NADAC 2026 distribution. MAINTENANCE: CMS publishes a new yearly
+// distribution id each year — update this (and data/ingest_nadac.py's
+// NADAC_DISTRIBUTIONS map) at the year rollover or NADAC lookups go stale.
+const NADAC_DIST = 'fbb83258-11c7-47f5-8b18-5f8e79f7e704';
 const NADAC_BASE = `https://data.medicaid.gov/api/1/datastore/query/${NADAC_DIST}/0`;
 
 // Optional backend base (connects the FastAPI /prices endpoint when hosted).
@@ -190,10 +193,16 @@ export async function getNadac(generic) {
   params.append('conditions[0][operator]', 'like');
   params.append('conditions[0][value]', `${token}%`);
   params.append('limit', '60');
-  const data = await fetchJSON(`${NADAC_BASE}?${params.toString()}`, { timeout: 12000 });
-  const out = normalizeNadacRows(data?.results || []);
-  if (out) out.via = 'cms';
-  return out;
+  try {
+    const data = await fetchJSON(`${NADAC_BASE}?${params.toString()}`, { timeout: 12000 });
+    const out = normalizeNadacRows(data?.results || []);
+    if (out) out.via = 'cms';
+    return out;
+  } catch {
+    // Network/timeout/5xx — fail soft so the caller shows "unavailable",
+    // never an unhandled rejection or a spinner that hangs forever.
+    return null;
+  }
 }
 
 // Cost Plus Drugs-style estimate from a REAL NADAC per-unit cost:
