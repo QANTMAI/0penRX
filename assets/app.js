@@ -16,8 +16,8 @@ const state = { q: '', cat: 'all', sort: 'savings', view: 'browse', sourcesInit:
 function renderStats() {
   const maxSav = Math.max(...CATALOG.map(d => d.savings));
   const stats = [
-    [CATALOG.length, 'Medications tracked'],
-    [maxSav + '%', 'Max savings found'],
+    [CATALOG.length, 'With curated cash prices'],
+    ['Any', 'Drug searchable · live'],
     [API_SOURCES.length, 'Data sources'],
     ['$0', 'Cost to search'],
   ];
@@ -171,7 +171,17 @@ function renderGrid() {
   const list = filteredList();
   $('#count').textContent = `${list.length} medication${list.length !== 1 ? 's' : ''}`;
   const grid = $('#grid'), empty = $('#empty');
-  if (!list.length) { grid.innerHTML = ''; empty.hidden = false; return; }
+  if (!list.length) {
+    grid.innerHTML = '';
+    if (state.q) {
+      $('#emptyTitle').textContent = `“${state.q}” isn't in the cash-price catalog`;
+      $('#emptyMsg').innerHTML = `Only our ${CATALOG.length} featured drugs carry curated cash prices — but <strong>${esc(state.q)}</strong> is still searchable. Pick it under <em>“Any drug · live lookup”</em> in the search box above for live FDA data (NDC, real cost, shortages, recalls).`;
+    } else {
+      $('#emptyTitle').textContent = 'No results';
+      $('#emptyMsg').textContent = 'Try a different filter.';
+    }
+    empty.hidden = false; return;
+  }
   empty.hidden = true;
   grid.innerHTML = list.map(cardHTML).join('');
 }

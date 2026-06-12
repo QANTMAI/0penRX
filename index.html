@@ -57,7 +57,7 @@
 <!-- ===== Hero + search ===== -->
 <section class="hero">
   <h1>Find your <em>lowest price</em> prescription</h1>
-  <p>Compare cash-pay prices across the federal program, GoodRx, Cost Plus Drugs &amp; Amazon Pharmacy — with live drug data from RxNorm, openFDA &amp; CMS NADAC.</p>
+  <p>Search <strong>any</strong> drug for live FDA data — identity, NDC, real acquisition cost, shortages &amp; recalls from RxNorm, openFDA &amp; CMS NADAC. Our <strong>88 featured medications</strong> also carry curated cash-pay prices &amp; coupons.</p>
   <div class="search">
     <svg class="search-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
     <input class="search-in" type="search" id="search" placeholder="Search drug name, generic, or condition…" autocomplete="off" aria-label="Search medications" role="combobox" aria-expanded="false" aria-controls="sugg">
@@ -93,7 +93,7 @@
     <div class="grid" id="grid" role="list"></div>
     <div class="state" id="empty" hidden>
       <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/></svg>
-      <h3>No results</h3><p>Try a different search term or filter.</p>
+      <h3 id="emptyTitle">No results</h3><p id="emptyMsg">Try a different search term or filter.</p>
     </div>
   </section>
 
