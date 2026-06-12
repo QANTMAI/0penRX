@@ -8,7 +8,7 @@ Usage:
     python data/ingest_nadac.py --out data/processed/nadac.jsonl
     python data/ingest_nadac.py --out out.jsonl --year 2025 --limit 5000
 
-The default resource is the NADAC 2025 distribution. Pass --distribution to
+The default resource is the NADAC 2026 distribution. Pass --distribution to
 override with a different DKAN distribution id (see data.medicaid.gov).
 """
 from __future__ import annotations
@@ -24,6 +24,7 @@ from datetime import datetime, timezone
 # Update yearly; see https://data.medicaid.gov/datasets?keyword=nadac
 NADAC_DISTRIBUTIONS = {
     2025: "f38d0706-1239-442c-a3cc-40ef1b686ac0",
+    2026: "fbb83258-11c7-47f5-8b18-5f8e79f7e704",
 }
 
 DATASTORE_QUERY = "https://data.medicaid.gov/api/1/datastore/query/{dist}/0"
@@ -88,7 +89,7 @@ def normalize_row(row: dict, source_url: str) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ingest NADAC into normalized JSONL.")
     parser.add_argument("--out", required=True, help="Output JSONL path")
-    parser.add_argument("--year", type=int, default=2025, help="NADAC dataset year")
+    parser.add_argument("--year", type=int, default=2026 help="NADAC dataset year")
     parser.add_argument("--distribution", help="Override DKAN distribution id")
     parser.add_argument("--limit", type=int, default=None, help="Max rows to ingest")
     args = parser.parse_args()
