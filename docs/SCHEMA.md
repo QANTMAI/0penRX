@@ -12,7 +12,7 @@ different sources are directly comparable.
 | dose | string | Strength + form, e.g. "10 mg tablet" |
 | quantity | number | Units the price refers to (e.g. 30) |
 | price_usd | number | Cash/list price in USD for the given quantity |
-| unit | string | Pricing unit, e.g. "EA", "ML", "GM" 
+| unit | string | Pricing unit, e.g. "EA", "ML", "GM"
 | pharmacy_name | string | Pharmacy or program name |
 | pharmacy_npi | string | NPI of the pharmacy, when known |
 | zip | string | 5-digit ZIP for the price point, when location-specific |
