@@ -1,0 +1,23 @@
+# Render.com Blueprint for the 0penRX backend (FastAPI).
+# One-click: in Render, New → Blueprint → connect this repo. Or see docs/DEPLOY.md.
+services:
+  - type: web
+    name: openrx-api
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r backend/requirements.txt
+    # CWD is the repo root, so the app's relative data paths (data/coupons.jsonl)
+    # resolve; --app-dir backend puts app.py on the import path.
+    startCommand: uvicorn app:app --app-dir backend --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      # Lock CORS to the production site (override to "*" only for testing).
+      - key: OPENRX_CORS_ORIGINS
+        value: https://0penrx.org
+      # Optional: paste an openFDA key in the Render dashboard for the higher
+      # rate limit. NEVER commit it. (Leave unset to use the keyless limit.)
+      # - key: OPENFDA_KEY
+      #   sync: false
