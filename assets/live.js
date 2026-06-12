@@ -24,6 +24,22 @@ export const API_BASE = (() => {
   } catch { return null; }
 })();
 
+// Optional openFDA API key for the elevated rate limit (240 req/min, 120k/day).
+// openFDA returns 100% real data WITHOUT a key (lower daily cap); a key only
+// raises limits. NOTE: a key placed here ships in the public bundle and is
+// visible to anyone — that exposes your quota. For production, prefer routing
+// openFDA through the FastAPI backend (API_BASE) so the key stays server-side.
+// Get a key: https://open.fda.gov/apis/authentication/
+export const OPENFDA_KEY = (() => {
+  try {
+    const q = new URLSearchParams(location.search).get('openfda_key');
+    return q || window.OPENFDA_KEY || null;
+  } catch { return null; }
+})();
+function fdaUrl(qs) {
+  return `${OPENFDA}?${qs}${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+}
+
 const TIMEOUT = 9000;
 const cache = new Map();
 
@@ -107,7 +123,7 @@ export async function getOpenFda(generic, brand) {
   if (b) tries.push(`search=brand_name:${b}&limit=1`);
   for (const q of tries) {
     try {
-      const data = await fetchJSON(`${OPENFDA}?${q}`);
+      const data = await fetchJSON(fdaUrl(q));
       const r = data?.results?.[0];
       if (!r) continue;
       return {
@@ -187,13 +203,55 @@ export function nadacEstimate(perUnit, qty = 30) {
   return Math.round((perUnit * qty * 1.15 + 3) * 100) / 100;
 }
 
+// ---- openFDA drug shortages (FDA shortage database) ------------------------
+const OPENFDA_SHORTAGES = 'https://api.fda.gov/drug/shortages.json';
+export async function getDrugShortages(generic) {
+  const token = fdaToken(generic);
+  if (!token) return { records: [] };
+  try {
+    const url = `${OPENFDA_SHORTAGES}?search=generic_name:${token}&limit=10${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+    const data = await fetchJSON(url);
+    const records = (data?.results || []).map(r => ({
+      name: r.generic_name || r.proprietary_name || token,
+      status: r.status || '—',
+      updated: r.update_date || r.initial_posting_date || null,
+    }));
+    return { records, total: data?.meta?.results?.total || records.length,
+      sourceUrl: `${OPENFDA_SHORTAGES}?search=generic_name:${token}` };
+  } catch {
+    return { records: [] }; // openFDA returns 404 when there are no matches
+  }
+}
+
+// ---- openFDA recalls / enforcement -----------------------------------------
+const OPENFDA_ENFORCE = 'https://api.fda.gov/drug/enforcement.json';
+export async function getDrugRecalls(generic) {
+  const token = fdaToken(generic);
+  if (!token) return { records: [] };
+  try {
+    const url = `${OPENFDA_ENFORCE}?search=product_description:${token}&sort=recall_initiation_date:desc&limit=5${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
+    const data = await fetchJSON(url);
+    const records = (data?.results || []).map(r => ({
+      classification: r.classification || '—',
+      status: r.status || '—',
+      reason: r.reason_for_recall || '',
+      firm: r.recalling_firm || '',
+      date: r.recall_initiation_date || null,
+    }));
+    return { records, total: data?.meta?.results?.total || records.length,
+      sourceUrl: `${OPENFDA_ENFORCE}?search=product_description:${token}&sort=recall_initiation_date:desc` };
+  } catch {
+    return { records: [] };
+  }
+}
+
 // ---- Source liveness (for the Data Sources page) ---------------------------
 // Only probes the three free APIs we actually call; others keep documented status.
 // Uses representative queries and one retry so transient throttling (openFDA rate-
 // limits unkeyed bursts) doesn't show a false "down".
 const PROBES = {
   rxnorm: `${RXNORM}/version.json`,
-  openfda: `${OPENFDA}?search=generic_name:ibuprofen&limit=1`,
+  openfda: fdaUrl('search=generic_name:ibuprofen&limit=1'),
   nadac: `${NADAC_BASE}?limit=1`,
 };
 export async function checkSource(key) {

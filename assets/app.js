@@ -208,6 +208,9 @@ function openDetail(slug) {
     <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(token || d.generic)}</strong> in RxNorm &amp; openFDA…</span></div>
     <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
 
+    <div class="label">Safety &amp; supply <span class="live-badge">FDA</span></div>
+    <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
+
     <div class="p-acts">
       <a href="https://rxgov.hhs.gov/p/${esc(d.slug)}" target="_blank" rel="noopener" class="btn btn-pri">Official page ↗</a>
       <a href="https://www.goodrx.com/${esc(d.slug)}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
@@ -269,6 +272,34 @@ async function enrichLive(d, token) {
       </dl>
       <a class="src-link" href="${esc(n.sourceUrl)}" target="_blank" rel="noopener">Source: CMS NADAC${n.via === 'backend' ? ' (via API)' : ''} ↗</a>`;
   });
+
+  // FDA shortages + recalls (openFDA drug/shortages + drug/enforcement).
+  Promise.allSettled([live.getDrugShortages(d.generic), live.getDrugRecalls(d.generic)])
+    .then(([shRes, rcRes]) => {
+      const el = $('#liveSafety'); if (!el) return;
+      const sh = shRes.status === 'fulfilled' ? shRes.value : { records: [] };
+      const rc = rcRes.status === 'fulfilled' ? rcRes.value : { records: [] };
+      const fmtDate = s => s && /^\d{8}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : (s || '—');
+
+      let html = '<div class="label" style="margin:0 0 .55rem">FDA shortages</div>';
+      if (sh.records.length) {
+        html += sh.records.slice(0, 3).map(r =>
+          `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">⚠️ ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
+        html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA drug shortages ↗</a>`;
+      } else {
+        html += `<div class="live-note">No active FDA shortage reported for “${esc(token)}.”</div>`;
+      }
+
+      html += '<div class="label" style="margin:1rem 0 .55rem">Recent recalls</div>';
+      if (rc.records.length) {
+        html += rc.records.slice(0, 3).map(r =>
+          `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${esc(r.classification)} · ${esc(r.status)} <span style="color:var(--text-2);font-weight:400">(${fmtDate(r.date)})</span></div><div class="row-note">${esc((r.reason || '').slice(0, 120))}${(r.reason || '').length > 120 ? '…' : ''}${r.firm ? ` — ${esc(r.firm)}` : ''}</div></div></div></div>`).join('');
+        html += `<a class="src-link" href="${esc(rc.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA enforcement · ${rc.total} total ↗</a>`;
+      } else {
+        html += `<div class="live-note">No FDA recall records found for “${esc(token)}.”</div>`;
+      }
+      el.innerHTML = html;
+    });
 }
 
 // Detail panel for an off-catalog drug — no curated price, pure live data.
@@ -287,6 +318,8 @@ function openLiveDetail(display, clean) {
     <div class="label">Live drug data <span class="live-badge">live</span></div>
     <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(clean)}</strong> in RxNorm &amp; openFDA…</span></div>
     <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
+    <div class="label">Safety &amp; supply <span class="live-badge">FDA</span></div>
+    <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
     <div class="p-acts">
       <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener" class="btn btn-pri">GoodRx ↗</a>
       <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(clean)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>
