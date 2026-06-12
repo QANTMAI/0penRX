@@ -43,6 +43,27 @@ function renderFilters() {
   cats.forEach(c => mk(c, c));
 }
 
+// ---- Reference links (the old federal rxgov.hhs.gov portal is offline) ------
+// Per-drug authoritative reference: FDA DailyMed label search (verified live).
+const dailyMed = generic =>
+  `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(generic)}`;
+// Manufacturer-direct programs — only URLs verified to resolve are hard-linked;
+// the rest fall back to a web search that reliably lands on the real program.
+const PARTNER_URL = {
+  'Pfizer RxPathways': 'https://www.pfizerrxpathways.com',
+  'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
+  'AstraZeneca Direct': 'https://www.azandmeapp.com',
+  'Amgen Assist360': 'https://www.amgenassist360.com',
+  'Novo Nordisk Savings Program': 'https://www.novocare.com',
+  'GSK For You': 'https://www.gskforyou.com',
+  'J&J Direct': 'https://www.jnjwithme.com',
+  'Boehringer Ingelheim Cares': 'https://www.bicares.com',
+  'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com',
+  'Cost Plus Drugs': 'https://www.costplusdrugs.com',
+};
+const partnerUrl = p =>
+  PARTNER_URL[p] || `https://duckduckgo.com/?q=${encodeURIComponent(p + ' patient savings program')}`;
+
 // ---- Browse grid -----------------------------------------------------------
 const savClass = s => s >= 70 ? 'hi' : s >= 40 ? 'md' : 'lo';
 
@@ -75,7 +96,7 @@ function cardHTML(d) {
     <div class="tags">${tagsFor(d)}</div>
     <div class="card-foot">
       <button class="btn btn-pri" data-open="${esc(d.slug)}">View details</button>
-      <a class="btn btn-sec" href="https://rxgov.hhs.gov/p/${esc(d.slug)}" target="_blank" rel="noopener">Official ↗</a>
+      <a class="btn btn-sec" href="${esc(dailyMed(d.generic))}" target="_blank" rel="noopener">FDA label ↗</a>
     </div>
   </article>`;
 }
@@ -173,7 +194,7 @@ function couponBlock(d) {
     return `<div class="coupon">
       <div class="coupon-t">Manufacturer direct program</div>
       <p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(d.partner)} manages this medication directly — eligibility and checkout on their site.</p>
-      <a href="https://rxgov.hhs.gov/p/${esc(d.slug)}" target="_blank" rel="noopener" class="copy-btn" style="display:block;text-align:center;text-decoration:none">Continue to ${esc(d.partner)} →</a>
+      <a href="${esc(partnerUrl(d.partner))}" target="_blank" rel="noopener" class="copy-btn" style="display:block;text-align:center;text-decoration:none">Continue to ${esc(d.partner)} →</a>
     </div>`;
   }
   return '';
@@ -212,7 +233,7 @@ function openDetail(slug) {
     <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
 
     <div class="p-acts">
-      <a href="https://rxgov.hhs.gov/p/${esc(d.slug)}" target="_blank" rel="noopener" class="btn btn-pri">Official page ↗</a>
+      <a href="${esc(dailyMed(d.generic))}" target="_blank" rel="noopener" class="btn btn-pri">FDA label ↗</a>
       <a href="https://www.goodrx.com/${esc(d.slug)}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
       <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(d.generic)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>
     </div>

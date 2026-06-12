@@ -9,7 +9,7 @@ export const API_SOURCES = [
   {n:"CMS NADAC",c:"#0050a0",s:"f",b:"FREE · No Key",d:"National Avg Drug Acquisition Cost — weekly CMS data. Base for Cost Plus Drugs pricing formula.",u:"https://data.medicaid.gov/resource/a4y5-998d.json"},
   {n:"GoodRx API (BIN 015995)",c:"#00467f",s:"a",b:"Partner Approval",d:"Adjudication via IngenioRx/CVS Caremark. PCN: GDC, Group: MAHA. Negotiated coupon rates at 70K+ pharmacies.",u:"https://developer.goodrx.com"},
   {n:"Cost Plus Drugs (GraphQL)",c:"#007a72",s:"k",b:"Cloudflare-Gated",d:"Shopify storefront GraphQL — Cloudflare protected. 2,200+ drugs at NADAC×1.15+$3+$5 model. Community MCP server available.",u:"https://www.costplusdrugs.com"},
-  {n:"Federal MFN Program",c:"#6000b0",s:"f",b:"Public · No Key",d:"RSC payloads on 840 drug pages. WAC reference prices + manufacturer coupon BINs. Built by National Design Studio.",u:"https://rxgov.hhs.gov"},
+  {n:"Federal MFN Program",c:"#6000b0",s:"a",b:"Reference · portal offline",d:"Basis for the curated brand / MFN reference prices and coupon BINs. The original federal pricing portal is offline, so these values are labeled reference — verify before use.",u:"https://www.medicare.gov/drug-coverage-part-d"},
   {n:"LillyDirect API",c:"#d04000",s:"a",b:"Manufacturer",d:"Eli Lilly direct-pay for Zepbound & Mounjaro. Eligibility verification at go.lilly.com.",u:"https://www.lillydirect.com"},
   {n:"Amazon Pharmacy",c:"#232f3e",s:"a",b:"Partner Program",d:"PillPack/Amazon Health pricing API. Prime Rx benefit. Competitive generic and brand pricing.",u:"https://pharmacy.amazon.com"},
   {n:"Sanofi Patient Connection",c:"#c00020",s:"a",b:"Manufacturer",d:"Lantus, Admelog, Toujeo, Trulicity direct pricing. $35 insulin cap.",u:"https://www.sanofipatientconnection.com"},
