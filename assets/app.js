@@ -305,7 +305,7 @@ function openDetail(slug) {
 
     ${couponBlock(d)}
 
-    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs…</span></div>` : ''}
+    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
 
     <div class="label">Live drug data <span class="live-badge">live</span></div>
     <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(token || d.generic)}</strong> in RxNorm &amp; openFDA…</span></div>
@@ -469,7 +469,7 @@ function openLiveDetail(display, clean) {
     <div class="p-hero" style="background:var(--surface-2)">
       <div><div class="p-hero-sub" style="opacity:1;color:var(--text-2)">Not in the curated cash-pay catalog — showing sourced reference data below. Verify the final price at the pharmacy.</div></div>
     </div>
-    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs…</span></div>` : ''}
+    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
     <div class="label">Live drug data <span class="live-badge">live</span></div>
     <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(clean)}</strong> in RxNorm &amp; openFDA…</span></div>
     <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
