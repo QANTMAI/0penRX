@@ -100,6 +100,8 @@ const BRAND_URL = {
   'insulin-glargine': 'https://www.toujeo.com', merilog: 'https://www.merilog.com',
   // Boehringer Ingelheim
   'striverdi-respimat': 'https://www.striverdi.com',
+  // AbbVie
+  synthroid: 'https://www.synthroid.com',
 };
 // Verified manufacturer-program fallback (only if a slug is ever unmapped),
 // then DailyMed as a last resort — never a government site or a web search.
@@ -122,6 +124,7 @@ function tagsFor(d) {
   if (d.bin === '015995') t.push(['grx', 'GoodRx']);
   else if (d.bin === '601341') t.push(['grx', 'AbbVie Assist']);
   else if (d.bin === '610020') t.push(['grx', 'EMD Serono']);
+  else if (d.bin === '600426') t.push(['grx', 'Allergan AYS']);
   if (d.heroType === 'ExternalLinkRouting' && d.partner) t.push(['mfr', d.partner]);
   if (d.isGeneric) { t.push(['cpd', 'Cost Plus']); t.push(['amz', 'Amazon Rx']); }
   else t.push(['mfn', 'MFN price']);
@@ -232,7 +235,7 @@ function renderSuggest() {
 }
 
 // ---- Detail panel ----------------------------------------------------------
-function pcnFor(bin) { return bin === '015995' ? 'GDC' : bin === '601341' ? 'OHCP' : bin === '610020' ? 'PDMI' : '—'; }
+function pcnFor(bin) { return bin === '015995' ? 'GDC' : bin === '601341' ? 'OHCP' : bin === '610020' ? 'PDMI' : bin === '600426' ? '54' : '—'; }
 function grpFor(bin) { return bin === '015995' ? 'MAHA' : bin === '601341' ? 'OH9013621' : bin === '610020' ? '99996218' : '—'; }
 
 // Backend-sourced coupon / patient-assistance card (live data; backend only).
@@ -519,7 +522,8 @@ function renderSources() {
 // ---- Coupon Guide view -----------------------------------------------------
 const COUPONS = [
   { t: 'Federal Program — GoodRx Network', d: '70,000+ pharmacies · 600+ generics · avg ~70% off retail', bin: '015995', pcn: 'GDC', grp: 'MAHA', mem: 'RXFINDER' },
-  { t: 'AbbVie myAbbVie Assist', d: 'Humira® $950 · Combigan® $10 · Alphagan® $45', bin: '601341', pcn: 'OHCP', grp: 'OH9013621', mem: 'See Rx label' },
+  { t: 'AbbVie myAbbVie Assist', d: 'Humira® $950 (pen / prefilled syringe)', bin: '601341', pcn: 'OHCP', grp: 'OH9013621', mem: 'See Rx label' },
+  { t: 'Allergan "At Your Service" (eye care)', d: 'Combigan® $10 · Alphagan® P $45', bin: '600426', pcn: '54', grp: 'See Rx label', mem: 'See Rx label' },
   { t: 'EMD Serono Fertility', d: 'Gonal-F® $168 · Cetrotide® $22.50 · Ovidrel® $84', bin: '610020', pcn: 'PDMI', grp: '99996218', mem: 'See Rx label' },
 ];
 function renderCoupons() {

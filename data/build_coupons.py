@@ -38,7 +38,10 @@ BIN_MAP: dict[str, tuple[str | None, str | None, str | None]] = {
     "015995": ("GDC", "MAHA", "RXFINDER"),
     "601341": ("OHCP", "OH9013621", None),
     "610020": ("PDMI", "99996218", None),
-    "600426": (None, None, None),
+    # Allergan "At Your Service" eye-care card (Alphagan P / Combigan). PCN 54
+    # confirmed from the official savewithays.com card PDF; Group/Member vary by
+    # print run and are left null rather than hard-coded from an unverifiable source.
+    "600426": ("54", None, None),
 }
 
 # Verified manufacturer-program landing pages keyed by partner name.
