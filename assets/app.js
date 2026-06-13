@@ -68,6 +68,12 @@ const GOODRX_SLUG = {
   'zepbound-kwikpen': 'zepbound',          // goodrx.com/zepbound
 };
 const goodRxUrl = d => `https://www.goodrx.com/${GOODRX_SLUG[d.slug] || d.slug}`;
+// Cost Plus Drugs has no URL-param search and no derivable per-product slug
+// (products live at package-specific paths like /medications/<drug>-<strength>-
+// <pack>-NN/). A `?search=` query is silently ignored — verified in-browser
+// 2026-06 — so we link to the working medications search page rather than a
+// param the site drops on the floor.
+const COSTPLUS_URL = 'https://www.costplusdrugs.com/medications/';
 
 // Manufacturer routing → each medication's OWN official manufacturer site, keyed
 // by slug. Every URL below was verified to resolve (HTTP 200, except a few real
@@ -326,7 +332,7 @@ function openDetail(slug) {
     <div class="p-acts">
       <a href="${esc(dailyMed(d))}" target="_blank" rel="noopener" class="btn btn-pri">FDA label ↗</a>
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
-      <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(d.generic)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>
+      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
     </div>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
 
@@ -484,7 +490,7 @@ function openLiveDetail(display, clean) {
     <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
     <div class="p-acts">
       <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener" class="btn btn-pri">GoodRx ↗</a>
-      <a href="https://www.costplusdrugs.com/medications/?search=${encodeURIComponent(clean)}" target="_blank" rel="noopener" class="btn btn-sec">Cost Plus ↗</a>
+      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus ↗</a>
     </div>
     <div class="disclaimer-box">Cash-pay reference data from public sources — verify with the pharmacy before use. Not medical advice.</div>`;
   const ov = $('#overlay');
