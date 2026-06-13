@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Content-Security-Policy (GitHub Pages can't set HTTP headers; meta is the achievable subset). -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://rxnav.nlm.nih.gov https://api.fda.gov https://data.medicaid.gov https://clinicaltables.nlm.nih.gov https://openrx-api.onrender.com; base-uri 'self'; object-src 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>0PENRX — Find your lowest prescription price</title>
 <meta name="description" content="Compare real cash-pay prescription prices across the federal program, GoodRx, Cost Plus Drugs, and Amazon Pharmacy. Live drug identity, NDC, and acquisition-cost data from RxNorm, openFDA, and CMS NADAC. Reference prices — verify before use.">
 <meta name="keywords" content="prescription drug prices, cost plus drugs, goodrx, cash pay pharmacy, uninsured medication, cheap prescriptions, federal drug program, NADAC">
@@ -177,7 +180,7 @@
 </footer>
 
 <!-- Hosted backend (FastAPI on Render): activates the Coupons & assistance feature. -->
-<script>window.OPENRX_API = 'https://openrx-api.onrender.com';</script>
+<script src="assets/config.js"></script>
 <script type="module" src="assets/app.js"></script>
 </body>
 </html>
