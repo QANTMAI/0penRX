@@ -111,6 +111,8 @@ const BRAND_URL = {
 };
 // Verified manufacturer-program fallback (only if a slug is ever unmapped),
 // then DailyMed as a last resort — never a government site or a web search.
+// Keep in lockstep with data/build_coupons.py PARTNER_URL so the static site
+// and the generated coupon dataset resolve a partner to the same destination.
 const PARTNER_URL = {
   'AstraZeneca Direct': 'https://www.azandmeapp.com',
   'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
@@ -119,6 +121,12 @@ const PARTNER_URL = {
   'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com',
   'Boehringer Ingelheim Cares': 'https://www.bicares.com',
   'LillyDirect®': 'https://lillydirect.com', 'Eli Lilly Direct': 'https://lillydirect.com',
+  'Pfizer RxPathways': 'https://www.pfizerrxpathways.com',
+  'Amgen Assist360': 'https://www.amgenassist360.com',
+  'Novo Nordisk Savings Program': 'https://www.novocare.com',
+  'EMD Serono Direct': 'https://www.emdserono.com',
+  'Novartis Direct': 'https://www.us.novartis.com',
+  'AbbVie Synthroid Savings': 'https://www.synthroid.com',
 };
 const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d);
 
@@ -127,10 +135,7 @@ const savClass = s => s >= 70 ? 'hi' : s >= 40 ? 'md' : 'lo';
 
 function tagsFor(d) {
   const t = [];
-  if (d.bin === '015995') t.push(['grx', 'GoodRx']);
-  else if (d.bin === '601341') t.push(['grx', 'AbbVie Assist']);
-  else if (d.bin === '610020') t.push(['grx', 'EMD Serono']);
-  else if (d.bin === '600426') t.push(['grx', 'Allergan AYS']);
+  if (d.bin && binInfo(d.bin).tag) t.push(['grx', binInfo(d.bin).tag]);
   if (d.heroType === 'ExternalLinkRouting' && d.partner) t.push(['mfr', d.partner]);
   if (d.isGeneric) { t.push(['cpd', 'Cost Plus']); t.push(['amz', 'Amazon Rx']); }
   else t.push(['mfn', 'MFN price']);
@@ -241,13 +246,24 @@ function renderSuggest() {
 }
 
 // ---- Detail panel ----------------------------------------------------------
-function pcnFor(bin) { return bin === '015995' ? 'GDC' : bin === '601341' ? 'OHCP' : bin === '610020' ? 'PDMI' : bin === '600426' ? '54' : '—'; }
-function grpFor(bin) { return bin === '015995' ? 'MAHA' : bin === '601341' ? 'OH9013621' : bin === '610020' ? '99996218' : '—'; }
+// Single source of truth for the four cash-pay adjudication cards. Values must
+// stay in lockstep with data/build_coupons.py BIN_MAP (the backend's copy);
+// pcnFor/grpFor, couponBlock, tagsFor and the Coupon Guide all derive from here
+// so the same BIN can never show different codes on different surfaces.
+const BIN_INFO = {
+  '015995': { pcn: 'GDC',  group: 'MAHA',      member: 'RXFINDER', tag: 'GoodRx',       program: 'Federal MFN Program' },
+  '601341': { pcn: 'OHCP', group: 'OH9013621', member: 'See Rx',   tag: 'AbbVie Assist', program: 'AbbVie myAbbVie Assist' },
+  '610020': { pcn: 'PDMI', group: '99996218',  member: 'See Rx',   tag: 'EMD Serono',    program: 'EMD Serono Fertility' },
+  '600426': { pcn: '54',   group: '—',         member: 'See Rx',   tag: 'Allergan AYS',  program: 'Allergan At Your Service' },
+};
+const binInfo = bin => BIN_INFO[bin] || { pcn: '—', group: '—', member: 'See Rx', tag: '', program: 'Federal MFN Program' };
+function pcnFor(bin) { return binInfo(bin).pcn; }
+function grpFor(bin) { return binInfo(bin).group; }
 
 // Backend-sourced coupon / patient-assistance card (live data; backend only).
 function couponCardHTML(c) {
   const hasCard = !!c.bin;
-  const pcn = c.pcn || '—', grp = c.group || '—', mem = c.member_id || 'N/A';
+  const pcn = c.pcn || '—', grp = c.group || '—', mem = c.member_id || 'See Rx';
   return `<div class="coupon" style="margin-top:0">
     <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="row-tag mfr">${esc(c.program_type)}</span>` : ''}</div>
     ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
@@ -267,16 +283,16 @@ function couponCardHTML(c) {
 function couponBlock(d) {
   const ext = d.heroType === 'ExternalLinkRouting';
   if (!ext && d.bin) {
-    const pcn = pcnFor(d.bin), grp = grpFor(d.bin), mem = d.bin === '015995' ? 'RXFINDER' : 'See Rx';
+    const { pcn, group, member } = binInfo(d.bin);
     return `<div class="coupon">
       <div class="coupon-t">Pharmacy coupon — cash-pay only, verify before use</div>
       <div class="cfields">
         <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${esc(d.bin)}</div></div>
         <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(pcn)}</div></div>
-        <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(grp)}</div></div>
-        <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(mem)}</div></div>
+        <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(group)}</div></div>
+        <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(member)}</div></div>
       </div>
-      <button class="copy-btn" data-copy="${esc(d.bin)}|${esc(pcn)}|${esc(grp)}|${esc(d.bin === '015995' ? 'RXFINDER' : 'N/A')}">📋 Copy coupon</button>
+      <button class="copy-btn" data-copy="${esc(d.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">📋 Copy coupon</button>
     </div>`;
   }
   if (ext && d.partner) {
@@ -307,7 +323,7 @@ function openDetail(slug) {
     </div>
 
     <div class="label">Where to fill</div>
-    ${!ext ? `<div class="row"><div class="row-l"><span class="row-tag mfn">MFN</span><div><div class="row-name">Federal MFN Program</div><div class="row-note">GoodRx coupon · BIN ${esc(d.bin || '015995')}</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}
+    ${!ext ? (() => { const b = d.bin || '015995', fed = b === '015995'; return `<div class="row"><div class="row-l"><span class="row-tag mfn">${fed ? 'MFN' : 'CARD'}</span><div><div class="row-name">${esc(binInfo(b).program)}</div><div class="row-note">${fed ? 'GoodRx coupon' : 'manufacturer copay card'} · BIN ${esc(b)}</div></div></div><span class="row-price">${money(d.price)}</span></div>`; })() : ''}
     ${d.isGeneric ? `
       <div class="row"><div class="row-l"><span class="row-tag cpd">CPD</span><div><div class="row-name">Cost Plus Drugs</div><div class="row-note">NADAC × 1.15 + $3</div></div></div><span class="row-price">${money(d.price)}</span></div>
       <a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag amz">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify</div></div></div><span class="row-price" style="color:var(--text-2)">Check ↗</span></a>` : ''}
@@ -526,23 +542,28 @@ function renderSources() {
 }
 
 // ---- Coupon Guide view -----------------------------------------------------
+// Codes (pcn/group/member) are derived from BIN_INFO at render time, so this
+// guide can never drift from what the per-drug detail panel shows.
 const COUPONS = [
-  { t: 'Federal Program — GoodRx Network', d: '70,000+ pharmacies · 600+ generics · avg ~70% off retail', bin: '015995', pcn: 'GDC', grp: 'MAHA', mem: 'RXFINDER' },
-  { t: 'AbbVie myAbbVie Assist', d: 'Humira® $950 (pen / prefilled syringe)', bin: '601341', pcn: 'OHCP', grp: 'OH9013621', mem: 'See Rx label' },
-  { t: 'Allergan "At Your Service" (eye care)', d: 'Combigan® $10 · Alphagan® P $45', bin: '600426', pcn: '54', grp: 'See Rx label', mem: 'See Rx label' },
-  { t: 'EMD Serono Fertility', d: 'Gonal-F® $168 · Cetrotide® $22.50 · Ovidrel® $84', bin: '610020', pcn: 'PDMI', grp: '99996218', mem: 'See Rx label' },
+  { t: 'Federal Program — GoodRx Network', d: '70,000+ pharmacies · 600+ generics · avg ~70% off retail', bin: '015995' },
+  { t: 'AbbVie myAbbVie Assist', d: 'Humira® $950 (pen / prefilled syringe)', bin: '601341' },
+  { t: 'Allergan "At Your Service" (eye care)', d: 'Combigan® $10 · Alphagan® P $45', bin: '600426' },
+  { t: 'EMD Serono Fertility', d: 'Gonal-F® $168 · Cetrotide® $22.50 · Ovidrel® $84', bin: '610020' },
 ];
 function renderCoupons() {
-  $('#couponList').innerHTML = COUPONS.map(c => `<div class="coupon" style="margin-top:0">
+  $('#couponList').innerHTML = COUPONS.map(c => {
+    const { pcn, group, member } = binInfo(c.bin);
+    return `<div class="coupon" style="margin-top:0">
     <div class="coupon-t">${esc(c.t)} — ${esc(c.d)}</div>
     <div class="cfields">
       <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${esc(c.bin)}</div></div>
-      <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(c.pcn)}</div></div>
-      <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(c.grp)}</div></div>
-      <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(c.mem)}</div></div>
+      <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(pcn)}</div></div>
+      <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(group)}</div></div>
+      <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(member)}</div></div>
     </div>
-    <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(c.pcn)}|${esc(c.grp)}|${esc(c.mem)}">📋 Copy to clipboard</button>
-  </div>`).join('');
+    <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">📋 Copy to clipboard</button>
+  </div>`;
+  }).join('');
 }
 
 async function copyCoupon(spec, btn) {

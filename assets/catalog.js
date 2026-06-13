@@ -13,5 +13,5 @@ export const API_SOURCES = [
   {n:"LillyDirect API",c:"#d04000",s:"a",b:"Manufacturer",d:"Eli Lilly direct-pay for Zepbound & Mounjaro. Eligibility verification at go.lilly.com.",u:"https://www.lillydirect.com"},
   {n:"Amazon Pharmacy",c:"#232f3e",s:"a",b:"Partner Program",d:"PillPack/Amazon Health pricing API. Prime Rx benefit. Competitive generic and brand pricing.",u:"https://pharmacy.amazon.com"},
   {n:"Sanofi Patient Connection",c:"#c00020",s:"a",b:"Manufacturer",d:"Lantus, Admelog, Toujeo, Trulicity direct pricing. $35 insulin cap.",u:"https://www.sanofipatientconnection.com"},
-  {n:"AstraZeneca Direct",c:"#003087",s:"a",b:"Manufacturer",d:"Farxiga, Xigduo XR, Bevespi, Airsupra — via BIN 600426 OptumRx network.",u:"https://www.azandmeapp.com"},
+  {n:"AstraZeneca Direct",c:"#003087",s:"a",b:"Manufacturer",d:"Farxiga, Xigduo XR, Bevespi, Airsupra — manufacturer-direct via AZ&Me savings; no pharmacy BIN.",u:"https://www.azandmeapp.com"},
 ];
