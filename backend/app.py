@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from datetime import date
 
 from fastapi import FastAPI, Query
@@ -145,23 +146,56 @@ def prices(
     return {"drug": drug, "count": len(results), "results": results[:limit]}
 
 
+def _word_match(needle: str, hay: str) -> bool:
+    """True when `needle` appears in `hay` bounded by non-alphanumeric edges,
+    so 'metformin' matches 'metformin HCl' but not 'metforminish'."""
+    return re.search(rf"(?<![a-z0-9]){re.escape(needle)}(?![a-z0-9])", hay) is not None
+
+
+def _coupon_matches(needle: str, r: dict) -> bool:
+    """Match a coupon to a query on identity, not on a sub-ingredient.
+
+    A plain ingredient search (e.g. 'metformin') must NOT surface a combination
+    product whose name merely contains that ingredient (Invokamet =
+    canagliflozin/metformin, Xigduo = dapagliflozin/metformin). We match the
+    drug_slug exactly (incl. dosage-form variants like ozempic -> ozempic-pill),
+    a word-boundary hit in the brand, or a word-boundary hit in drug_name — but
+    for a combination product (ingredients joined by '/' or '+') only when the
+    needle is the *primary* (first) ingredient or the full combined name.
+    """
+    slug = (r.get("drug_slug") or "").lower()
+    if needle == slug or slug.startswith(f"{needle}-"):
+        return True
+    brand = (r.get("brand") or "").lower()
+    if brand and _word_match(needle, brand):
+        return True
+    name = (r.get("drug_name") or "").lower()
+    if name and _word_match(needle, name):
+        ingredients = [p.strip() for p in re.split(r"[/+]", name) if p.strip()]
+        if len(ingredients) > 1:
+            return needle == name or _word_match(needle, ingredients[0])
+        return True
+    return False
+
+
 @app.get("/coupons")
 def coupons(
-    drug: str = Query(..., description="Drug name/brand/slug substring to match"),
+    drug: str = Query(
+        ..., description="Drug name/brand/slug to match (identity, not sub-ingredient)"
+    ),
     type: str | None = Query(
         None, description="Exact program_type filter (copay-card|manufacturer-direct)"
     ),
     limit: int = Query(25, ge=1, le=200, description="Max results to return"),
 ):
     """Return matching coupon records, excluding any that have expired."""
-    needle = drug.lower()
+    needle = drug.lower().strip()
     # ISO dates sort lexically, so a string compare is correct for expiry.
     today = date.today().isoformat()
 
     results = []
     for r in _COUPONS:
-        haystacks = (r.get("drug_name"), r.get("brand"), r.get("drug_slug"))
-        if not any(h and needle in h.lower() for h in haystacks):
+        if not _coupon_matches(needle, r):
             continue
         if type is not None and r.get("program_type") != type:
             continue

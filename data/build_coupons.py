@@ -59,6 +59,7 @@ PARTNER_URL: dict[str, str] = {
     "Eli Lilly Direct": "https://lillydirect.com",
     "EMD Serono Direct": "https://www.emdserono.com",
     "Novartis Direct": "https://www.us.novartis.com",
+    "AbbVie Synthroid Savings": "https://www.synthroid.com",
 }
 
 
