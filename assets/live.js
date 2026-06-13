@@ -219,7 +219,9 @@ export async function getCoupons(query) {
   const q = (query || '').replace(/[®™]/g, '').trim();
   if (!q) return null;
   try {
-    const data = await fetchJSON(`${API_BASE.replace(/\/$/, '')}/coupons?drug=${encodeURIComponent(q)}&limit=25`);
+    // 35s timeout tolerates a free-tier backend cold start (it can sleep after
+    // idle and take ~30s to wake) so the first visitor still gets coupons.
+    const data = await fetchJSON(`${API_BASE.replace(/\/$/, '')}/coupons?drug=${encodeURIComponent(q)}&limit=25`, { timeout: 35000 });
     return data?.results || [];
   } catch { return null; }                     // fail soft like getNadac
 }

@@ -87,6 +87,28 @@ data/processed/nadac.jsonl` in your build step. Coupons do **not** need this.
 
 ---
 
+## Keeping the backend warm (cold starts)
+
+Render's free tier **sleeps after ~15 min idle** and cold-starts in ~30s, so the
+first visitor after a quiet period waits for it to wake. Two layers handle this:
+
+1. **Built in (already done):** the coupons fetch uses a **35s timeout**, so a
+   cold start still resolves and the visitor sees coupons (just a few seconds
+   slower) instead of nothing.
+2. **To eliminate the wait — an external uptime monitor (recommended, free):**
+   point a free pinger at `https://openrx-api.onrender.com/health` every ~10 min.
+   - [cron-job.org](https://cron-job.org) or [UptimeRobot](https://uptimerobot.com):
+     add a monitor, URL = the `/health` endpoint, interval 5–10 min. Done.
+
+   > Why not a GitHub Actions cron? On a **private** repo a 10-min ping would run
+   > ~4,300 min/month — well over the 2,000 free Actions minutes — and Actions
+   > `schedule` triggers drift 5–15 min on free runners, which is too loose to
+   > reliably beat a 15-min sleep. A purpose-built uptime monitor is free and
+   > precise. (Making the repo public would make Actions minutes free, if you
+   > prefer that route.)
+
+   Upgrading to Render's paid always-on plan removes sleeping entirely.
+
 ## Security checklist after deploy
 - Keep `OPENRX_CORS_ORIGINS=https://0penrx.org` (the default in both config
   files) so only the site can call the API. Use `*` only for local testing.
