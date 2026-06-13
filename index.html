@@ -28,8 +28,8 @@
 <meta name="twitter:image" content="https://0penrx.org/assets/og-image.png">
 <meta name="twitter:image:alt" content="0PENRX — Real prescription prices, zero middlemen.">
 <meta name="theme-color" content="#017a72">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23017a72'/><rect x='4' y='4' width='24' height='24' rx='12' fill='none' stroke='%23ffffff' stroke-width='4.5'/><text x='16' y='21' text-anchor='middle' font-family='system-ui,sans-serif' font-size='10' font-weight='800' fill='%23ffffff'>Rx</text></svg>">
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23017a72'/><rect x='4' y='4' width='24' height='24' rx='12' fill='none' stroke='%23ffffff' stroke-width='4.5'/><text x='16' y='21' text-anchor='middle' font-family='system-ui,sans-serif' font-size='10' font-weight='800' fill='%23ffffff'>Rx</text></svg>">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/styles.css">
 <script type="application/ld+json">
 {
@@ -149,7 +149,7 @@
       <div class="src-grid" id="srcGrid"></div>
     </div>
 
-    <div class="sec-head"><h2 style="font-size:var(--t-lg)">Pricing methodology</h2></div>
+    <div class="sec-head sub-head"><h2>Pricing methodology</h2></div>
     <div class="table-wrap">
       <table class="t">
         <thead><tr><th>Source</th><th>Model</th><th>Best for</th><th>Limits</th></tr></thead>
@@ -172,7 +172,7 @@
       <code>BIN 610020 / PCN PDMI / Group 99996218</code> — EMD Serono (Gonal-F, Cetrotide, Ovidrel)
     </div>
 
-    <div class="sec-head" style="margin-top:2rem"><h2 style="font-size:var(--t-lg)">Manufacturer coupon &amp; assistance data</h2></div>
+    <div class="sec-head sub-head mt-section"><h2>Manufacturer coupon &amp; assistance data</h2></div>
     <p class="sub" style="margin:-.5rem 0 1rem">There is <strong>no free, open, CORS-accessible API</strong> for manufacturer copay-card BIN/PCN data, so 0penRX's coupon fields are hand-curated <em>reference</em> values. The landscape below is documented for transparency; surfacing it live would require a hosted backend (see roadmap).</p>
     <div class="table-wrap">
       <table class="t">
@@ -212,12 +212,23 @@
 <!-- ===== Footer ===== -->
 <footer>
   <div class="foot">
-    Live data: <a href="https://rxnav.nlm.nih.gov" target="_blank" rel="noopener">NLM RxNorm</a> ·
-    <a href="https://open.fda.gov" target="_blank" rel="noopener">openFDA</a> ·
-    <a href="https://data.medicaid.gov/datasets?keyword=nadac" target="_blank" rel="noopener">CMS NADAC</a><br>
-    <p class="ft-disc">0penRX is provided for informational purposes only and does not constitute medical, legal, insurance, pharmacy, or pricing advice. Pricing, coupon, availability, and program information may change at any time and should always be verified directly with the pharmacy, manufacturer, or official program source before use. Cash-pay prices only.</p>
-    <p class="ft-disc">0penRX is an independent information service and is not affiliated with, endorsed by, or sponsored by any pharmaceutical manufacturer, pharmacy benefit manager, pharmacy, insurer, trade association, industry group, coupon network, or government agency.</p>
-    <p class="ft-disc"><strong>0PENRX</strong> — Zero middlemen. Open prices. Your Rx. <span class="foot-sep">·</span> &copy; 2026 QANTM AI. All rights reserved.</p>
+    <div class="foot-top">
+      <div class="foot-brand">
+        <span class="foot-logo">0PENRX</span>
+        <span class="foot-tag">Zero middlemen. Open prices. Your Rx.</span>
+      </div>
+      <nav class="foot-links" aria-label="Live data sources">
+        <span class="foot-links-l">Live data</span>
+        <a href="https://rxnav.nlm.nih.gov" target="_blank" rel="noopener">NLM RxNorm</a>
+        <a href="https://open.fda.gov" target="_blank" rel="noopener">openFDA</a>
+        <a href="https://data.medicaid.gov/datasets?keyword=nadac" target="_blank" rel="noopener">CMS NADAC</a>
+      </nav>
+    </div>
+    <div class="foot-legal">
+      <p>0penRX is provided for informational purposes only and does not constitute medical, legal, insurance, pharmacy, or pricing advice. Pricing, coupon, availability, and program information may change at any time and should always be verified directly with the pharmacy, manufacturer, or official program source before use. Cash-pay prices only.</p>
+      <p>0penRX is an independent information service and is not affiliated with, endorsed by, or sponsored by any pharmaceutical manufacturer, pharmacy benefit manager, pharmacy, insurer, trade association, industry group, coupon network, or government agency.</p>
+    </div>
+    <div class="foot-copy">&copy; 2026 QANTM AI. All rights reserved.</div>
   </div>
 </footer>
 
