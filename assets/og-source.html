@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!-- Source for assets/og-image.png. Rendered to PNG at 1200x630 via headless Chrome:
+     "/Applications/Google Chrome.app/.../Google Chrome" --headless \
+       --screenshot=assets/og-image.png --window-size=1200,630 \
+       --hide-scrollbars file://$PWD/assets/og-source.html
+     Edit here, then re-render. Not linked from the site. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face { font-family:'Instrument Serif'; font-style:italic; font-weight:400;
+    src:url('fonts/instrument-serif-italic-latin.woff2') format('woff2'); }
+  @font-face { font-family:'Instrument Serif'; font-style:normal; font-weight:400;
+    src:url('fonts/instrument-serif-latin.woff2') format('woff2'); }
+  @font-face { font-family:'DM Sans'; font-style:normal; font-weight:300 700;
+    src:url('fonts/dm-sans-latin.woff2') format('woff2'); }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1200px; height:630px; }
+  body {
+    font-family:'DM Sans', system-ui, sans-serif;
+    background:
+      radial-gradient(1100px 520px at 82% -12%, #06958b 0%, rgba(6,149,139,0) 60%),
+      linear-gradient(150deg, #017a72 0%, #015e57 58%, #013c38 100%);
+    color:#fff; padding:74px 80px; position:relative; overflow:hidden;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  /* faint Rx watermark ring */
+  .ring { position:absolute; right:-120px; top:-120px; width:520px; height:520px;
+    border:46px solid rgba(255,255,255,.06); border-radius:50%; }
+  .brand { display:flex; align-items:center; gap:22px; }
+  .mark { width:84px; height:84px; border-radius:20px; background:rgba(255,255,255,.12);
+    border:1px solid rgba(255,255,255,.28); display:flex; align-items:center;
+    justify-content:center; }
+  .mark svg { width:52px; height:52px; }
+  .word { font-weight:700; font-size:62px; letter-spacing:-1.5px; }
+  .word b { font-weight:700; }
+  h1 { font-size:78px; line-height:1.02; font-weight:600; letter-spacing:-2px; max-width:980px; }
+  h1 em { font-family:'Instrument Serif', Georgia, serif; font-style:italic;
+    font-weight:400; color:#ffd9c4; letter-spacing:0; }
+  .sub { font-size:30px; color:rgba(255,255,255,.86); margin-top:20px; font-weight:300; max-width:900px; line-height:1.4; }
+  .foot { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .chip { font-size:24px; font-weight:500; padding:11px 20px; border-radius:999px;
+    background:rgba(255,255,255,.13); border:1px solid rgba(255,255,255,.22); }
+  .stat { font-size:24px; color:rgba(255,255,255,.78); font-weight:300; }
+  .stat b { font-weight:600; color:#fff; }
+</style>
+</head>
+<body>
+  <div class="ring"></div>
+  <div class="brand">
+    <div class="mark">
+      <svg viewBox="0 0 26 26" fill="none">
+        <path d="M7 6h6.5a3.5 3.5 0 0 1 0 7H7V6zm0 7h3.5l4.5 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="19" cy="19" r="1.8" fill="#fff" opacity=".7"/>
+      </svg>
+    </div>
+    <div class="word"><b>0PENRX</b></div>
+  </div>
+
+  <div>
+    <h1>Real prescription prices.<br><em>Zero middlemen.</em></h1>
+    <div class="sub">Compare cash-pay drug prices across the federal program, GoodRx, Cost Plus Drugs &amp; Amazon Pharmacy — with live, sourced data. No insurance needed.</div>
+  </div>
+
+  <div class="foot">
+    <span class="chip">Cost Plus Drugs</span>
+    <span class="chip">GoodRx</span>
+    <span class="chip">Amazon Pharmacy</span>
+    <span class="chip">Federal NADAC</span>
+    <span class="stat">&nbsp;·&nbsp; <b>88</b> medications · live, sourced data</span>
+  </div>
+</body>
+</html>

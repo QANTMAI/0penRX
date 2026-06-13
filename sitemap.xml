@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 0penRX is a single-page app: Browse / Data Sources / Coupon Guide are
+     client-side views of one document, and drug detail is a panel, not a
+     separate URL. The one canonical, indexable URL is the root. -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://0penrx.org/</loc>
+    <lastmod>2026-06-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>
