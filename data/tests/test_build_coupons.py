@@ -105,9 +105,22 @@ def test_state_restrictions_empty_for_generic():
 
 def test_savings_card_fallback_name():
     # Copay BIN with no partner falls back to "<manufacturer> Savings Card".
-    drug = dict(COPAY_DRUG, partner="", bin="600426")
+    # Uses a BIN intentionally absent from BIN_MAP so the all-None
+    # adjudication-code fallback is exercised independently of any real BIN.
+    drug = dict(COPAY_DRUG, partner="", bin="999999")
     record = build_coupons.build_record(drug, _NOW)
     assert record["program_name"] == "Amgen Savings Card"
     assert record["pcn"] is None
+    assert record["group"] is None
+    assert record["member_id"] is None
+
+
+def test_bin_600426_resolves_pcn_54():
+    # Allergan "At Your Service" eye-care BIN carries PCN 54 (verified from the
+    # official card); Group/Member are deliberately left null pending a primary
+    # source rather than fabricated.
+    drug = dict(COPAY_DRUG, partner="", bin="600426")
+    record = build_coupons.build_record(drug, _NOW)
+    assert record["pcn"] == "54"
     assert record["group"] is None
     assert record["member_id"] is None
