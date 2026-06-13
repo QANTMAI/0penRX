@@ -1,0 +1,5 @@
+# 0penRX — public, read-only drug-price reference. Everything is crawlable.
+User-agent: *
+Allow: /
+
+Sitemap: https://0penrx.org/sitemap.xml
