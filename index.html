@@ -30,6 +30,12 @@
 <meta name="theme-color" content="#017a72">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<!-- Warm the connections we use first: the backend (cold-starts) and openFDA (heaviest payloads). -->
+<link rel="preconnect" href="https://openrx-api.onrender.com" crossorigin>
+<link rel="preconnect" href="https://api.fda.gov" crossorigin>
+<!-- Preload above-the-fold fonts so they fetch in parallel with the stylesheet. -->
+<link rel="preload" href="assets/fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="assets/styles.css">
 <script type="application/ld+json">
 {
