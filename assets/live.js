@@ -44,21 +44,21 @@ function fdaUrl(qs) {
 }
 
 const TIMEOUT = 9000;
-const cache = new Map();
+const cache = new Map(); // url -> Promise<data> (the in-flight or settled request)
 
-async function fetchJSON(url, { timeout = TIMEOUT } = {}) {
-  if (cache.has(url)) return cache.get(url);
+function fetchJSON(url, { timeout = TIMEOUT } = {}) {
+  const hit = cache.get(url);
+  if (hit) return hit;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeout);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    cache.set(url, data);
-    return data;
-  } finally {
-    clearTimeout(timer);
-  }
+  const p = fetch(url, { signal: ctrl.signal, headers: { Accept: 'application/json' } })
+    .then(res => { if (!res.ok) throw new Error(`HTTP ${res.status}`); return res.json(); })
+    .finally(() => clearTimeout(timer));
+  // Cache the PROMISE so concurrent identical requests share one network call;
+  // drop it on failure so a transient error doesn't poison later lookups.
+  cache.set(url, p);
+  p.catch(() => cache.delete(url));
+  return p;
 }
 
 // Active moiety used to match NADAC's generic descriptions, e.g.
@@ -177,21 +177,25 @@ export async function getNadac(generic) {
   const token = searchToken(generic);
   if (!token) return null;
 
-  // Route through the FastAPI backend when configured.
+  // Start the optional backend lookup concurrently and capture its result
+  // off the critical path — we never await it directly, so a cold/empty
+  // free-tier backend can't delay the authoritative CMS result below.
+  let backendResult = null;
   if (API_BASE) {
-    try {
-      const data = await fetchJSON(`${API_BASE.replace(/\/$/, '')}/prices?drug=${encodeURIComponent(token)}&limit=50`);
-      const rows = (data?.results || []).map(r => ({
-        ndc_description: r.drug_name, nadac_per_unit: r.price_usd,
-        pricing_unit: r.unit, ndc: r.ndc, effective_date: r.effective_date,
-      }));
-      const out = normalizeNadacRows(rows);
-      // Only use the backend result if it actually has data; otherwise fall
-      // through to CMS direct (the backend /prices may be sample-only).
-      if (out) { out.via = 'backend'; return out; }
-    } catch { /* fall through to CMS direct */ }
+    fetchJSON(`${API_BASE.replace(/\/$/, '')}/prices?drug=${encodeURIComponent(token)}&limit=50`)
+      .then(data => {
+        const rows = (data?.results || []).map(r => ({
+          ndc_description: r.drug_name, nadac_per_unit: r.price_usd,
+          pricing_unit: r.unit, ndc: r.ndc, effective_date: r.effective_date,
+        }));
+        const out = normalizeNadacRows(rows);
+        if (out) { out.via = 'backend'; backendResult = out; }
+      })
+      .catch(() => { /* backend optional; CMS is authoritative */ });
   }
 
+  // CMS NADAC is the authoritative, CORS-open source; query it directly.
+  let cmsResult = null;
   const params = new URLSearchParams();
   params.append('conditions[0][property]', 'ndc_description');
   params.append('conditions[0][operator]', 'like');
@@ -199,14 +203,16 @@ export async function getNadac(generic) {
   params.append('limit', '60');
   try {
     const data = await fetchJSON(`${NADAC_BASE}?${params.toString()}`, { timeout: 12000 });
-    const out = normalizeNadacRows(data?.results || []);
-    if (out) out.via = 'cms';
-    return out;
+    cmsResult = normalizeNadacRows(data?.results || []);
+    if (cmsResult) cmsResult.via = 'cms';
   } catch {
     // Network/timeout/5xx — fail soft so the caller shows "unavailable",
     // never an unhandled rejection or a spinner that hangs forever.
-    return null;
   }
+
+  // Prefer the backend only if it already returned data by the time CMS
+  // settled (i.e. it was warm and useful — zero added latency either way).
+  return backendResult || cmsResult;
 }
 
 // ---- Coupons / patient-assistance programs (backend only) ------------------
