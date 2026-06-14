@@ -297,6 +297,7 @@ ul { list-style: none; }
 .cf { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: .5rem .75rem; }
 .cf-l { font-size: var(--t-xs); color: var(--text-3); margin-bottom: .12rem; }
 .cf-v { font-weight: 700; font-size: var(--t-sm); letter-spacing: .03em; font-family: var(--font-m); }
+.cf-v.na { font-family: var(--font-b); font-weight: 400; font-style: italic; letter-spacing: 0; font-size: var(--t-xs); color: var(--text-3); }
 .copy-btn { margin-top: .65rem; width: 100%; padding: .55rem; border-radius: var(--r-md); background: var(--primary); color: #fff; font-weight: 600; font-size: var(--t-sm); transition: background var(--tr); }
 .copy-btn:hover { background: var(--primary-h); }
 .p-acts { display: flex; gap: .4rem; margin-top: .9rem; flex-wrap: wrap; }
