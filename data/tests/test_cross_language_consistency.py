@@ -22,12 +22,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 APP_JS = REPO / "assets" / "app.js"
 
-# Placeholder the frontend is allowed to show where the backend value is None.
-# Any other value in that slot is treated as fabricated data and fails the test.
-_PCN_PLACEHOLDER = "—"  # em dash
-_GROUP_PLACEHOLDER = "—"
-_MEMBER_PLACEHOLDER = "See Rx"
-
 
 def _load_build_coupons():
     path = REPO / "data" / "build_coupons.py"
@@ -44,12 +38,23 @@ def _js_object_block(js: str, name: str) -> str:
     return m.group(1)
 
 
-def _parse_bin_info(js: str) -> dict[str, dict[str, str]]:
+def _extract_unavailable(js: str) -> str:
+    """The single honest string the frontend shows for any unverified field."""
+    m = re.search(r"const UNAVAILABLE\s*=\s*'([^']*)'", js)
+    assert m, "Could not find `const UNAVAILABLE = '...'` in app.js"
+    return m.group(1)
+
+
+def _parse_bin_info(js: str, unavailable: str) -> dict[str, dict[str, str]]:
     block = _js_object_block(js, "BIN_INFO")
     info: dict[str, dict[str, str]] = {}
     for entry in re.finditer(r"'(\d{6})'\s*:\s*\{([^}]*)\}", block):
         bin_value, inner = entry.group(1), entry.group(2)
-        info[bin_value] = dict(re.findall(r"(\w+)\s*:\s*'([^']*)'", inner))
+        fields: dict[str, str] = {}
+        # A field value is either a quoted literal or the bareword UNAVAILABLE.
+        for fm in re.finditer(r"(\w+)\s*:\s*(?:'([^']*)'|(UNAVAILABLE))", inner):
+            fields[fm.group(1)] = unavailable if fm.group(3) else fm.group(2)
+        info[bin_value] = fields
     assert info, "Parsed no entries out of BIN_INFO — has its format changed?"
     return info
 
@@ -61,16 +66,15 @@ def _parse_js_partner_url(js: str) -> dict[str, str]:
     return pairs
 
 
-def _expected_js(py_value, placeholder):
-    """The value the frontend must show for a given authoritative backend value."""
-    return placeholder if py_value is None else py_value
-
-
 def test_bin_codes_match_backend():
-    """BIN_INFO (frontend) must agree with BIN_MAP (backend) on every BIN, with
-    backend None mapped to the allowed frontend placeholder — never a real code."""
+    """BIN_INFO (frontend) must agree with BIN_MAP (backend) on every BIN. Where
+    the backend has no verified value (None), the frontend must show the single
+    honest 'unavailable' string — never a real code and never a different
+    placeholder."""
+    js_text = APP_JS.read_text(encoding="utf-8")
+    unavailable = _extract_unavailable(js_text)
     bc = _load_build_coupons()
-    bin_info = _parse_bin_info(APP_JS.read_text(encoding="utf-8"))
+    bin_info = _parse_bin_info(js_text, unavailable)
 
     assert set(bin_info) == set(bc.BIN_MAP), (
         "Frontend BIN_INFO and backend BIN_MAP cover different BINs: "
@@ -80,12 +84,8 @@ def test_bin_codes_match_backend():
 
     for bin_value, (pcn, group, member) in bc.BIN_MAP.items():
         js = bin_info[bin_value]
-        for field, py_value, placeholder in (
-            ("pcn", pcn, _PCN_PLACEHOLDER),
-            ("group", group, _GROUP_PLACEHOLDER),
-            ("member", member, _MEMBER_PLACEHOLDER),
-        ):
-            expected = _expected_js(py_value, placeholder)
+        for field, py_value in (("pcn", pcn), ("group", group), ("member", member)):
+            expected = unavailable if py_value is None else py_value
             assert js[field] == expected, (
                 f"BIN {bin_value} field '{field}' has drifted: "
                 f"app.js BIN_INFO shows {js[field]!r} but build_coupons.py "

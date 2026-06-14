@@ -240,29 +240,32 @@ function renderSuggest() {
 // if the two drift or if a real code appears here where the backend has none.
 // pcnFor/grpFor, couponBlock, tagsFor and the Coupon Guide all derive from here
 // so the same BIN can never show different codes on different surfaces.
+// Shown verbatim wherever we have no verified value for an adjudication field —
+// an honest "we don't have this" rather than a cryptic dash or invented code.
+const UNAVAILABLE = 'None available at this time';
 const BIN_INFO = {
-  '015995': { pcn: 'GDC',  group: 'MAHA',      member: 'RXFINDER', tag: 'GoodRx',       program: 'Federal MFN Program' },
-  '601341': { pcn: 'OHCP', group: 'OH9013621', member: 'See Rx',   tag: 'AbbVie Assist', program: 'AbbVie myAbbVie Assist' },
-  '610020': { pcn: 'PDMI', group: '99996218',  member: 'See Rx',   tag: 'EMD Serono',    program: 'EMD Serono Fertility' },
-  '600426': { pcn: '54',   group: '—',         member: 'See Rx',   tag: 'Allergan AYS',  program: 'Allergan At Your Service' },
+  '015995': { pcn: 'GDC',  group: 'MAHA',      member: 'RXFINDER',  tag: 'GoodRx',        program: 'Federal MFN Program' },
+  '601341': { pcn: 'OHCP', group: 'OH9013621', member: UNAVAILABLE, tag: 'AbbVie Assist', program: 'AbbVie myAbbVie Assist' },
+  '610020': { pcn: 'PDMI', group: '99996218',  member: UNAVAILABLE, tag: 'EMD Serono',    program: 'EMD Serono Fertility' },
+  '600426': { pcn: '54',   group: UNAVAILABLE, member: UNAVAILABLE, tag: 'Allergan AYS',  program: 'Allergan At Your Service' },
 };
-const binInfo = bin => BIN_INFO[bin] || { pcn: '—', group: '—', member: 'See Rx', tag: '', program: 'Federal MFN Program' };
+const binInfo = bin => BIN_INFO[bin] || { pcn: UNAVAILABLE, group: UNAVAILABLE, member: UNAVAILABLE, tag: '', program: 'Federal MFN Program' };
 function pcnFor(bin) { return binInfo(bin).pcn; }
 function grpFor(bin) { return binInfo(bin).group; }
+
+// One coupon BIN/PCN/Group/Member grid renderer for all three call sites; an
+// unavailable value is styled (and never reads as a real code).
+const cfieldsHTML = pairs => `<div class="cfields">${pairs.map(([l, v]) =>
+  `<div class="cf"><div class="cf-l">${l}</div><div class="cf-v${v === UNAVAILABLE ? ' na' : ''}">${esc(v)}</div></div>`).join('')}</div>`;
 
 // Backend-sourced coupon / patient-assistance card (live data; backend only).
 function couponCardHTML(c) {
   const hasCard = !!c.bin;
-  const pcn = c.pcn || '—', grp = c.group || '—', mem = c.member_id || 'See Rx';
+  const pcn = c.pcn || UNAVAILABLE, grp = c.group || UNAVAILABLE, mem = c.member_id || UNAVAILABLE;
   return `<div class="coupon" style="margin-top:0">
     <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="row-tag mfr">${esc(c.program_type)}</span>` : ''}</div>
     ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
-    ${hasCard ? `<div class="cfields">
-        <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${esc(c.bin)}</div></div>
-        <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(pcn)}</div></div>
-        <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(grp)}</div></div>
-        <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(mem)}</div></div>
-      </div>
+    ${hasCard ? `${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', grp], ['Member', mem]])}
       <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">📋 Copy coupon</button>` : ''}
     ${c.url ? `<a class="btn btn-sec" href="${esc(c.url)}" target="_blank" rel="noopener">Program site ↗</a>` : ''}
     ${c.state_restrictions?.length ? `<div class="live-note">Restricted in: ${esc(c.state_restrictions.join(', '))}</div>` : ''}
@@ -276,12 +279,7 @@ function couponBlock(d) {
     const { pcn, group, member } = binInfo(d.bin);
     return `<div class="coupon">
       <div class="coupon-t">Pharmacy coupon — cash-pay only, verify before use</div>
-      <div class="cfields">
-        <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${esc(d.bin)}</div></div>
-        <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(pcn)}</div></div>
-        <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(group)}</div></div>
-        <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(member)}</div></div>
-      </div>
+      ${cfieldsHTML([['BIN', d.bin], ['PCN', pcn], ['Group', group], ['Member', member]])}
       <button class="copy-btn" data-copy="${esc(d.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">📋 Copy coupon</button>
     </div>`;
   }
@@ -545,12 +543,7 @@ function renderCoupons() {
     const { pcn, group, member } = binInfo(c.bin);
     return `<div class="coupon" style="margin-top:0">
     <div class="coupon-t">${esc(c.t)} — ${esc(c.d)}</div>
-    <div class="cfields">
-      <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">${esc(c.bin)}</div></div>
-      <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">${esc(pcn)}</div></div>
-      <div class="cf"><div class="cf-l">Group</div><div class="cf-v">${esc(group)}</div></div>
-      <div class="cf"><div class="cf-l">Member</div><div class="cf-v">${esc(member)}</div></div>
-    </div>
+    ${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', group], ['Member', member]])}
     <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">📋 Copy to clipboard</button>
   </div>`;
   }).join('');
