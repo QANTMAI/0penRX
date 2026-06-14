@@ -33,7 +33,9 @@ CATALOG_PATH = os.path.join(_REPO_ROOT, "assets", "catalog.js")
 _CATALOG_RE = re.compile(r"CATALOG\s*=\s*(\[.*?\]);", re.S)
 
 # BIN -> (pcn, group, member_id) for the copay-card networks 0penRX routes to.
-# Any BIN not listed resolves to all-None.
+# Any BIN not listed resolves to all-None. Authoritative copy: the frontend
+# BIN_INFO in assets/app.js must mirror this, enforced in CI by
+# data/tests/test_cross_language_consistency.py.
 BIN_MAP: dict[str, tuple[str | None, str | None, str | None]] = {
     "015995": ("GDC", "MAHA", "RXFINDER"),
     "601341": ("OHCP", "OH9013621", None),
