@@ -112,7 +112,8 @@ const BRAND_URL = {
 // Verified manufacturer-program fallback (only if a slug is ever unmapped),
 // then DailyMed as a last resort — never a government site or a web search.
 // Keep in lockstep with data/build_coupons.py PARTNER_URL so the static site
-// and the generated coupon dataset resolve a partner to the same destination.
+// and the generated coupon dataset resolve a partner to the same destination
+// (enforced in CI by data/tests/test_cross_language_consistency.py).
 const PARTNER_URL = {
   'AstraZeneca Direct': 'https://www.azandmeapp.com',
   'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
@@ -247,7 +248,9 @@ function renderSuggest() {
 
 // ---- Detail panel ----------------------------------------------------------
 // Single source of truth for the four cash-pay adjudication cards. Values must
-// stay in lockstep with data/build_coupons.py BIN_MAP (the backend's copy);
+// stay in lockstep with data/build_coupons.py BIN_MAP (the backend's copy) —
+// enforced in CI by data/tests/test_cross_language_consistency.py, which fails
+// if the two drift or if a real code appears here where the backend has none.
 // pcnFor/grpFor, couponBlock, tagsFor and the Coupon Guide all derive from here
 // so the same BIN can never show different codes on different surfaces.
 const BIN_INFO = {
