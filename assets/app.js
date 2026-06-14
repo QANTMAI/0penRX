@@ -12,19 +12,6 @@ const money = n => '$' + Number(n).toFixed(2);
 
 const state = { q: '', cat: 'all', sort: 'savings', view: 'browse', sourcesInit: false };
 
-// ---- Stat strip (derived from real catalog data) ---------------------------
-function renderStats() {
-  const maxSav = Math.max(...CATALOG.map(d => d.savings));
-  const stats = [
-    [CATALOG.length, 'With curated cash prices'],
-    ['Any', 'Drug searchable · live'],
-    [API_SOURCES.length, 'Data sources'],
-    ['$0', 'Cost to search'],
-  ];
-  $('#stats').innerHTML = stats.map(([n, l]) =>
-    `<div class="stat"><span class="stat-n">${esc(n)}</span><span class="stat-l">${esc(l)}</span></div>`).join('');
-}
-
 // ---- Filter chips (distinct categories, by frequency) ----------------------
 function renderFilters() {
   const counts = {};
@@ -607,7 +594,6 @@ function initTheme() {
 
 // ---- Wiring ----------------------------------------------------------------
 function init() {
-  renderStats();
   renderFilters();
   renderGrid();
   initTheme();
