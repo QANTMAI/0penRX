@@ -1,0 +1,19 @@
+{
+  "name": "0penRX — Prescription price transparency",
+  "short_name": "0penRX",
+  "description": "Compare real cash-pay prescription prices with live, sourced drug data from RxNorm, openFDA, and CMS NADAC. Zero middlemen.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f4f9f8",
+  "theme_color": "#017a72",
+  "categories": ["health", "medical", "shopping"],
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/assets/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
