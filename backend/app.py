@@ -33,7 +33,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins or ["*"],
     allow_methods=["GET"],
-    allow_headers=["*"],
+    allow_headers=["Accept", "Content-Type"],
 )
 
 DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")

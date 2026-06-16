@@ -20,24 +20,18 @@ const NADAC_DIST = 'fbb83258-11c7-47f5-8b18-5f8e79f7e704';
 const NADAC_BASE = `https://data.medicaid.gov/api/1/datastore/query/${NADAC_DIST}/0`;
 
 // Optional backend base (connects the FastAPI /prices endpoint when hosted).
+// Set window.OPENRX_API in assets/config.js — never override via URL param
+// (that would let a crafted link point the site at an attacker-controlled host).
 export const API_BASE = (() => {
-  try {
-    const q = new URLSearchParams(location.search).get('api');
-    return q || window.OPENRX_API || null;
-  } catch { return null; }
+  try { return window.OPENRX_API || null; } catch { return null; }
 })();
 
 // Optional openFDA API key for the elevated rate limit (240 req/min, 120k/day).
 // openFDA returns 100% real data WITHOUT a key (lower daily cap); a key only
-// raises limits. NOTE: a key placed here ships in the public bundle and is
-// visible to anyone — that exposes your quota. For production, prefer routing
-// openFDA through the FastAPI backend (API_BASE) so the key stays server-side.
-// Get a key: https://open.fda.gov/apis/authentication/
+// raises limits. Set window.OPENFDA_KEY in assets/config.js so it stays out of
+// browser history and referrer headers. Never set it via a URL parameter.
 export const OPENFDA_KEY = (() => {
-  try {
-    const q = new URLSearchParams(location.search).get('openfda_key');
-    return q || window.OPENFDA_KEY || null;
-  } catch { return null; }
+  try { return window.OPENFDA_KEY || null; } catch { return null; }
 })();
 function fdaUrl(qs) {
   return `${OPENFDA}?${qs}${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
