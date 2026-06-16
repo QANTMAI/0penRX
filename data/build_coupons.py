@@ -37,13 +37,12 @@ _CATALOG_RE = re.compile(r"CATALOG\s*=\s*(\[.*?\]);", re.S)
 # BIN_INFO in assets/app.js must mirror this, enforced in CI by
 # data/tests/test_cross_language_consistency.py.
 BIN_MAP: dict[str, tuple[str | None, str | None, str | None]] = {
+    # The universal GoodRx cash-discount network is the only pharmacy card a
+    # cash-paying / uninsured person can use as-is. Manufacturer copay/assistance
+    # programs are commercial-insurance or per-patient enrollment, so they are
+    # routed to their program page (ExternalLinkRouting) rather than shown as a
+    # cash coupon. Keep this in lockstep with assets/app.js BIN_INFO.
     "015995": ("GDC", "MAHA", "RXFINDER"),
-    "601341": ("OHCP", "OH9013621", None),
-    "610020": ("PDMI", "99996218", None),
-    # Allergan "At Your Service" eye-care card (Alphagan P / Combigan). PCN 54
-    # confirmed from the official savewithays.com card PDF; Group/Member vary by
-    # print run and are left null rather than hard-coded from an unverifiable source.
-    "600426": ("54", None, None),
 }
 
 # Verified manufacturer-program landing pages keyed by partner name.
@@ -59,9 +58,12 @@ PARTNER_URL: dict[str, str] = {
     "Bristol Myers Squibb": "https://www.bmsaccesssupport.com",
     "LillyDirect®": "https://lillydirect.com",
     "Eli Lilly Direct": "https://lillydirect.com",
-    "EMD Serono Direct": "https://www.emdserono.com",
     "Novartis Direct": "https://www.us.novartis.com",
     "AbbVie Synthroid Savings": "https://www.synthroid.com",
+    # Manufacturer programs for drugs whose cards are NOT cash-pay coupons.
+    "AbbVie At Your Service": "https://www.savewithays.com",
+    "myAbbVie Assist": "https://www.abbvie.com/patients/patient-support/patient-assistance.html",
+    "EMD Serono Fertility Savings": "https://www.fertilityinstantsavings.com",
 }
 
 

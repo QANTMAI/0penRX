@@ -112,9 +112,12 @@ const PARTNER_URL = {
   'Pfizer RxPathways': 'https://www.pfizerrxpathways.com',
   'Amgen Assist360': 'https://www.amgenassist360.com',
   'Novo Nordisk Savings Program': 'https://www.novocare.com',
-  'EMD Serono Direct': 'https://www.emdserono.com',
   'Novartis Direct': 'https://www.us.novartis.com',
   'AbbVie Synthroid Savings': 'https://www.synthroid.com',
+  // Manufacturer programs for drugs whose cards are NOT cash-pay coupons (see BIN_INFO).
+  'AbbVie At Your Service': 'https://www.savewithays.com',
+  'myAbbVie Assist': 'https://www.abbvie.com/patients/patient-support/patient-assistance.html',
+  'EMD Serono Fertility Savings': 'https://www.fertilityinstantsavings.com',
 };
 const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d);
 
@@ -234,24 +237,21 @@ function renderSuggest() {
 }
 
 // ---- Detail panel ----------------------------------------------------------
-// Single source of truth for the four cash-pay adjudication cards. Values must
-// stay in lockstep with data/build_coupons.py BIN_MAP (the backend's copy) —
-// enforced in CI by data/tests/test_cross_language_consistency.py, which fails
-// if the two drift or if a real code appears here where the backend has none.
-// pcnFor/grpFor, couponBlock, tagsFor and the Coupon Guide all derive from here
-// so the same BIN can never show different codes on different surfaces.
-// Shown verbatim wherever we have no verified value for an adjudication field —
-// an honest "we don't have this" rather than a cryptic dash or invented code.
+// The ONLY pharmacy card we present as a cash-pay coupon: the universal GoodRx
+// discount network, which any cash-paying / uninsured person can use with the
+// same published BIN/PCN/Group/Member. Manufacturer programs (AbbVie "At Your
+// Service" and Humira Complete are commercial-INSURANCE copay cards that
+// exclude cash-payers; EMD Serono fertility is self-pay but per-patient) are
+// NOT cash coupons — those drugs route to their official program page instead.
+// Stays in lockstep with data/build_coupons.py BIN_MAP, enforced in CI by
+// data/tests/test_cross_language_consistency.py. couponBlock, tagsFor and the
+// Coupon Guide all derive from here.
+// UNAVAILABLE is the honest fallback shown wherever a field has no verified value.
 const UNAVAILABLE = 'None available at this time';
 const BIN_INFO = {
-  '015995': { pcn: 'GDC',  group: 'MAHA',      member: 'RXFINDER',  tag: 'GoodRx',        program: 'Federal MFN Program' },
-  '601341': { pcn: 'OHCP', group: 'OH9013621', member: UNAVAILABLE, tag: 'AbbVie Assist', program: 'AbbVie myAbbVie Assist' },
-  '610020': { pcn: 'PDMI', group: '99996218',  member: UNAVAILABLE, tag: 'EMD Serono',    program: 'EMD Serono Fertility' },
-  '600426': { pcn: '54',   group: UNAVAILABLE, member: UNAVAILABLE, tag: 'Allergan AYS',  program: 'Allergan At Your Service' },
+  '015995': { pcn: 'GDC', group: 'MAHA', member: 'RXFINDER', tag: 'GoodRx' },
 };
-const binInfo = bin => BIN_INFO[bin] || { pcn: UNAVAILABLE, group: UNAVAILABLE, member: UNAVAILABLE, tag: '', program: 'Federal MFN Program' };
-function pcnFor(bin) { return binInfo(bin).pcn; }
-function grpFor(bin) { return binInfo(bin).group; }
+const binInfo = bin => BIN_INFO[bin] || { pcn: UNAVAILABLE, group: UNAVAILABLE, member: UNAVAILABLE, tag: '' };
 
 // One coupon BIN/PCN/Group/Member grid renderer for all three call sites; an
 // unavailable value is styled (and never reads as a real code).
@@ -311,7 +311,7 @@ function openDetail(slug) {
     </div>
 
     <div class="label">Where to fill</div>
-    ${!ext ? (() => { const b = d.bin || '015995', fed = b === '015995'; return `<div class="row"><div class="row-l"><span class="row-tag mfn">${fed ? 'MFN' : 'CARD'}</span><div><div class="row-name">${esc(binInfo(b).program)}</div><div class="row-note">${fed ? 'GoodRx coupon' : 'manufacturer copay card'} · BIN ${esc(b)}</div></div></div><span class="row-price">${money(d.price)}</span></div>`; })() : ''}
+    ${(!ext && d.bin === '015995') ? `<div class="row"><div class="row-l"><span class="row-tag grx">RX</span><div><div class="row-name">GoodRx cash-discount network</div><div class="row-note">cash coupon · BIN 015995</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}
     ${d.isGeneric ? `
       <div class="row"><div class="row-l"><span class="row-tag cpd">CPD</span><div><div class="row-name">Cost Plus Drugs</div><div class="row-note">NADAC × 1.15 + $3</div></div></div><span class="row-price">${money(d.price)}</span></div>
       <a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag amz">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify</div></div></div><span class="row-price" style="color:var(--text-2)">Check ↗</span></a>` : ''}
@@ -553,10 +553,7 @@ function renderSources() {
 // Codes (pcn/group/member) are derived from BIN_INFO at render time, so this
 // guide can never drift from what the per-drug detail panel shows.
 const COUPONS = [
-  { t: 'Federal Program — GoodRx Network', d: '70,000+ pharmacies · 600+ generics · avg ~70% off retail', bin: '015995' },
-  { t: 'AbbVie myAbbVie Assist', d: 'Humira® $950 (pen / prefilled syringe)', bin: '601341' },
-  { t: 'Allergan "At Your Service" (eye care)', d: 'Combigan® $10 · Alphagan® P $45', bin: '600426' },
-  { t: 'EMD Serono Fertility', d: 'Gonal-F® $168 · Cetrotide® $22.50 · Ovidrel® $84', bin: '610020' },
+  { t: 'Cash-Pay Discount — GoodRx Network', d: 'No insurance needed · 70,000+ pharmacies · 600+ generics · avg ~70% off retail', bin: '015995' },
 ];
 function renderCoupons() {
   $('#couponList').innerHTML = COUPONS.map(c => {
