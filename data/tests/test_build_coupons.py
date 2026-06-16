@@ -113,14 +113,3 @@ def test_savings_card_fallback_name():
     assert record["pcn"] is None
     assert record["group"] is None
     assert record["member_id"] is None
-
-
-def test_bin_600426_resolves_pcn_54():
-    # Allergan "At Your Service" eye-care BIN carries PCN 54 (verified from the
-    # official card); Group/Member are deliberately left null pending a primary
-    # source rather than fabricated.
-    drug = dict(COPAY_DRUG, partner="", bin="600426")
-    record = build_coupons.build_record(drug, _NOW)
-    assert record["pcn"] == "54"
-    assert record["group"] is None
-    assert record["member_id"] is None

@@ -160,7 +160,6 @@
       <table class="t">
         <thead><tr><th>Source</th><th>Model</th><th>Best for</th><th>Limits</th></tr></thead>
         <tbody>
-          <tr><td><strong>Federal MFN Program</strong></td><td>Manufacturer MFN coupon via GoodRx BIN 015995</td><td>Brand biologics, specialty drugs</td><td>Cash-pay only, no gov't insurance</td></tr>
           <tr><td><strong>Cost Plus Drugs</strong></td><td>NADAC × 1.15 + $3 dispensing (+ shipping)</td><td>2,200+ generics</td><td>All 50 states</td></tr>
           <tr><td><strong>GoodRx (BIN 015995)</strong></td><td>PBM-negotiated via IngenioRx / CVS network</td><td>Generics + brand coupons</td><td>Some programs exclude CA &amp; MA</td></tr>
           <tr><td><strong>Amazon Pharmacy</strong></td><td>Prime Rx benefit</td><td>Generic + Prime members</td><td>Prime required for best price</td></tr>
@@ -170,16 +169,14 @@
       </table>
     </div>
 
-    <p class="sub" style="margin:1rem 0">Program routing fields below are reference values collected from public or program materials and should be confirmed on the official source page before pharmacy use.</p>
+    <p class="sub" style="margin:1rem 0">Only one pharmacy card is a true cash-pay coupon — the universal GoodRx discount network, usable by any uninsured patient with the published codes below. Manufacturer copay/assistance programs require commercial insurance or per-patient enrollment, so they are <strong>not</strong> shown as cash coupons; each routes to its official program page on the drug's detail view.</p>
     <div class="bin-map">
-      <strong>BIN / PCN adjudication map</strong><br>
-      <code>BIN 015995 / PCN GDC / Group MAHA</code> — GoodRx Health LLC (IngenioRx / CVS Caremark, 70,000+ pharmacies)<br>
-      <code>BIN 601341 / PCN OHCP</code> — AbbVie myAbbVie Assist (Humira, Combigan, Alphagan)<br>
-      <code>BIN 610020 / PCN PDMI / Group 99996218</code> — EMD Serono (Gonal-F, Cetrotide, Ovidrel)
+      <strong>Cash-pay discount card</strong><br>
+      <code>BIN 015995 / PCN GDC / Group MAHA / Member RXFINDER</code> — GoodRx Health LLC (IngenioRx / CVS Caremark, 70,000+ pharmacies)
     </div>
 
     <div class="sec-head sub-head mt-section"><h2>Manufacturer coupon &amp; assistance data</h2></div>
-    <p class="sub" style="margin:-.5rem 0 1rem">There is <strong>no free, open, CORS-accessible API</strong> for manufacturer copay-card BIN/PCN data, so 0penRX's coupon fields are hand-curated <em>reference</em> values. The landscape below is documented for transparency; surfacing it live would require a hosted backend (see roadmap).</p>
+    <p class="sub" style="margin:-.5rem 0 1rem">There is <strong>no free, open, CORS-accessible API</strong> for live manufacturer-program or retail-price data, so the universal GoodRx discount card is the one cash coupon shown directly; manufacturer copay/assistance programs link to their official pages. The landscape below is documented for transparency; surfacing it live would require a hosted backend (see roadmap).</p>
     <div class="table-wrap">
       <table class="t">
         <thead><tr><th>Source</th><th>Coverage</th><th>Access</th><th>Status for a static site</th></tr></thead>
@@ -200,7 +197,7 @@
   <section id="view-coupons" hidden>
     <div class="sec-head">
       <h2>Coupon guide</h2>
-      <p class="sub">Reference coupon fields shown below are for cash-pay programs and should be verified against the official program page before use. Never use alongside insurance.</p>
+      <p class="sub">The universal GoodRx-network discount card below is the one pharmacy coupon any cash-paying or uninsured person can use as-is. Manufacturer copay/assistance programs (which require commercial insurance or per-patient enrollment) aren't cash coupons — they're linked on each drug's detail page instead. Verify any program before use; never use alongside insurance.</p>
     </div>
     <div class="coupon-list" id="couponList"></div>
     <div class="disclaimer-box">
