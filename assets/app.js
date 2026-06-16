@@ -349,6 +349,26 @@ function openDetail(slug) {
 }
 
 // Fetch + inject the real RxNorm / openFDA / NADAC data.
+// Intent prefetch: on press/focus of a card, warm the exact live calls the
+// detail panel will make so opening it feels instant. Fire-and-forget — these
+// live.* helpers fail soft (never reject) and fetchJSON dedups the in-flight
+// promises, so the click handler reuses them at zero extra network cost.
+const prefetched = new Set();
+function prefetchDrug(slug) {
+  if (prefetched.has(slug)) return;
+  const d = CATALOG.find(x => x.slug === slug);
+  if (!d) return;
+  prefetched.add(slug);
+  live.getRxNorm(d.generic);
+  live.getOpenFda(d.generic, d.name);
+  live.getNadac(d.generic);
+  live.getDrugShortages(d.generic);
+  live.getDrugRecalls(d.generic);
+  live.getAdverseEvents(d.generic);
+  live.getLabelInteractions(d.generic, d.name);
+  live.getCoupons(d.slug || d.generic);
+}
+
 async function enrichLive(d, token) {
   // Identity: RxNorm + openFDA in parallel.
   Promise.allSettled([live.getRxNorm(d.generic), live.getOpenFda(d.generic, d.name)])
@@ -622,6 +642,24 @@ function init() {
   });
   $('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeDetail(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+
+  // Warm a card's live data the instant the user signals intent (press or
+  // keyboard focus), so the detail panel is already loading by the time it opens.
+  document.addEventListener('pointerdown', e => {
+    const card = e.target.closest?.('.card[data-slug]');
+    if (card) prefetchDrug(card.dataset.slug);
+  }, { passive: true });
+  document.addEventListener('focusin', e => {
+    const card = e.target.closest?.('.card[data-slug]');
+    if (card) prefetchDrug(card.dataset.slug);
+  });
+
+  // Progressive Web App: instant repeat loads + offline shell + installable.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => { /* SW is an enhancement */ });
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', init);
