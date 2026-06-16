@@ -2,78 +2,74 @@
 
 **Prescription Price Transparency — Zero middlemen. Open prices. Your Rx.**
 
-0penRX is an open platform for surfacing real, comparable prescription drug prices across pharmacies — without the opaque PBM (Pharmacy Benefit Manager) layers that hide the true cost of medication. The goal is simple: let anyone look up what a drug actually costs, where, and why.
+0penRX is a free, public tool for finding real cash-pay prescription prices without going through a pharmacy benefit manager. Users enter no personal data, create no account, and pay nothing.
+
+Live at [0penrx.org](https://0penrx.org).
 
 ---
 
-## Why
+## What it is
 
-Drug pricing in the US is intentionally opaque. The same prescription can vary 10x in price across pharmacies in the same ZIP code, and the spread is driven by middlemen (PBMs, rebates, spread pricing) rather than the cost of the drug itself. 0penRX aggregates open and public pricing data into a single, transparent, queryable source.
-
-## Goals
-
-- **Transparent pricing** — normalized cash prices by drug, dose, and pharmacy.
-- **No middlemen** — surface direct/cash prices, not PBM-negotiated noise.
-- **Open data** — pricing schema and sources are public and reproducible.
-- **Fast lookup** — search by drug name + ZIP, get ranked results.
+- **88 curated brand and generic medications** with cash-pay prices, manufacturer programs, and GoodRx coupon codes.
+- **Live drug data** — identity, NDC, active ingredients, shortage alerts, and recalls via RxNorm, openFDA, and CMS NADAC, fetched at runtime.
+- **GoodRx BIN 015995** (PCN GDC / Group MAHA / Member RXFINDER) is the only cash coupon shown directly — verified as a true cash-pay card usable by any uninsured patient at 70,000+ pharmacies. All manufacturer copay/assistance programs (which require commercial insurance or per-patient enrollment) route to their official program pages.
+- Prices are **reference values** — always verify at the pharmacy before use.
 
 ## Architecture
 
 ```
-0penRX/
-  index.html    # Drug price lookup UI — single-file static page, no build step
-  backend/      # Price lookup + normalization API (FastAPI)
-  data/         # NADAC ingestion + normalization to the common schema
-  docs/         # Schema and data-source documentation
-  frontend/     # Frontend notes (the UI itself is index.html at the repo root)
-  .github/      # CI + ingestion workflows, issue templates
+index.html          Static frontend — GitHub Pages (0penrx.org)
+assets/
+  app.js            Main app: drug cards, detail panel, live data display
+  catalog.js        Curated drug catalog (single source of truth for prices/programs)
+  live.js           Live data fetchers: RxNorm, openFDA, CMS NADAC
+  styles.css        Design system
+  config.js         Runtime config (API_BASE — not committed; set per deployment)
+backend/
+  app.py            FastAPI backend — /coupons, /prices, /health
+data/
+  build_coupons.py  Derives coupons.jsonl from catalog.js (CI-rebuilt monthly)
+  ingest_nadac.py   CMS NADAC ingestion pipeline
+  coupons.jsonl     Committed coupon dataset (88 records)
+docs/               Platform rules, schema, provenance, deploy guide
+.github/workflows/  CI, NADAC ingest, coupon rebuild, CodeQL, pre-commit
+sw.js               Service worker — PWA shell cache (never caches API responses)
 ```
-
-The user-facing UI is the static [`index.html`](index.html) at the repo root,
-deployed via GitHub Pages to [`0penrx.org`](https://0penrx.org). The `backend/`
-API and the static UI are **not yet wired together** — see the roadmap below.
-
-### Data flow
-
-```
-Public sources  ->  Ingestion (data/)  ->  Normalized JSONL  ->  API (backend/)  ->  UI (index.html)
-```
-
-## Requirements
-
-- **Python 3.12+** for the backend and ingestion scripts (CI runs on 3.12).
-- The frontend needs no toolchain — open `index.html` in any browser, or serve
-  the repo root with any static file server.
 
 ## Data sources
 
-Implemented:
+| Source | What it provides | Access |
+|---|---|---|
+| NLM RxNorm | Drug identity, RxCUI, synonyms | Free, no key |
+| openFDA Drug NDC | NDC codes, ingredients, labeler | Free, no key |
+| CMS NADAC | Weekly acquisition cost (base for Cost Plus formula) | Free, no key |
+| GoodRx (BIN 015995) | Cash coupon at 70K+ pharmacies | BIN in catalog |
+| Manufacturer programs | 15+ copay/assistance programs | Links to official pages |
 
-- **NADAC** (National Average Drug Acquisition Cost) — CMS public dataset,
-  ingested by [`data/ingest_nadac.py`](data/ingest_nadac.py).
+## Running locally
 
-Candidate / planned:
+```bash
+# Frontend — no build step needed
+python -m http.server 8080
+# open http://localhost:8080
 
-- State Medicaid pharmacy reimbursement rates
-- NPI Registry (pharmacy identity/location)
-- Public cash-price disclosures
+# Backend
+pip install -r backend/requirements.txt
+uvicorn app:app --reload --app-dir backend
 
-## Roadmap
+# Tests
+pytest -q
+ruff check .
+```
 
-- [x] Define normalized pricing schema (drug, NDC, dose, pharmacy, price, source, date)
-- [x] Add CI + tests
-- [ ] Ingest NADAC dataset into a committed/normalized store (script exists; output not yet published)
-- [ ] Build price lookup API (search by drug + location) — initial `/prices` endpoint exists
-- [ ] Wire the search UI to the `/prices` API (currently uses a static in-page dataset)
-- [ ] Add pharmacy geolocation + ranking
+## CI
 
-## Status
+Every push runs: ruff lint, Python compilation check, cross-language consistency test (BIN_INFO JS ↔ BIN_MAP Python), coupon record validation, backend unit tests, and gitleaks secret scan. Pre-commit hooks SHA-pinned.
 
-Active scaffolding: schema, ingestion, a `/prices` API, CI, and a deployed
-static UI exist; the UI and API are not yet connected. Contributions and issue
-reports welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Security and
-data-integrity reports: see [SECURITY.md](SECURITY.md).
+## Platform rules
+
+See [docs/PLATFORM_RULES.md](docs/PLATFORM_RULES.md). Key invariants: no fabricated data, secrets in host env vars only, BIN 015995 is the only cash coupon, service worker never caches API responses.
 
 ## License
 
-See LICENSE.
+See [LICENSE](LICENSE).

@@ -22,7 +22,7 @@ The static 0penRX frontend (GitHub Pages) cannot be the aggregator on its own:
   terms requires a controlled server tier, not arbitrary client code.
 
 Therefore the **deployed FastAPI backend is a hard prerequisite**. The frontend
-talks to it through the existing `API_BASE` / `?api=` hook: when an API base is
+reads `API_BASE` from `config.js` (set server-side): when an API base is
 configured, the detail view fetches sourced data at runtime; when it is unset,
 the coupon features **degrade to nothing** (the site still renders the curated
 reference catalog, but surfaces no live coupon data). There is no client-only
@@ -32,8 +32,8 @@ fallback that calls third-party APIs directly, by design.
 
 ### Phase 0 — Deploy the backend (prerequisite)
 
-Stand up `backend/app.py` (FastAPI) at a stable origin and point the frontend's
-`API_BASE` / `?api=` at it. Until this is live, every later phase is inert,
+Stand up `backend/app.py` (FastAPI) at a stable origin and set `API_BASE` in
+`config.js`. Until this is live, every later phase is inert,
 because the frontend has nothing to call. This is infrastructure, not a feature.
 
 ### Phase 1 — Catalog-derived coupons + `/coupons` API + gated frontend — **DONE**
@@ -43,7 +43,7 @@ Shipped in this MVP:
 - `data/build_coupons.py` deterministically derives one coupon record per
   eligible catalog drug from `assets/catalog.js` and writes `data/coupons.jsonl`.
 - `backend/app.py` serves `GET /coupons` from that committed dataset.
-- The frontend consumes it through the `API_BASE` / `?api=` hook and degrades
+- The frontend consumes it through `API_BASE` (from `config.js`) and degrades
   gracefully when no API base is configured.
 - Compliance defaults are baked into every record: `medicare_medicaid_excluded`
   is `true`, brand-with-generic drugs carry `["MA","CA"]` state restrictions, and
