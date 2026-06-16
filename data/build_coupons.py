@@ -60,6 +60,7 @@ PARTNER_URL: dict[str, str] = {
     "Eli Lilly Direct": "https://lillydirect.com",
     "Novartis Direct": "https://www.us.novartis.com",
     "AbbVie Synthroid Savings": "https://www.synthroid.com",
+    "Merck Patient Assistance": "https://www.merckhelps.com",
     # Manufacturer programs for drugs whose cards are NOT cash-pay coupons.
     "AbbVie At Your Service": "https://www.savewithays.com",
     "myAbbVie Assist": "https://www.abbvie.com/patients/patient-support/patient-assistance.html",

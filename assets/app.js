@@ -114,6 +114,7 @@ const PARTNER_URL = {
   'Novo Nordisk Savings Program': 'https://www.novocare.com',
   'Novartis Direct': 'https://www.us.novartis.com',
   'AbbVie Synthroid Savings': 'https://www.synthroid.com',
+  'Merck Patient Assistance': 'https://www.merckhelps.com',
   // Manufacturer programs for drugs whose cards are NOT cash-pay coupons (see BIN_INFO).
   'AbbVie At Your Service': 'https://www.savewithays.com',
   'myAbbVie Assist': 'https://www.abbvie.com/patients/patient-support/patient-assistance.html',
@@ -129,7 +130,6 @@ function tagsFor(d) {
   if (d.bin && binInfo(d.bin).tag) t.push(['grx', binInfo(d.bin).tag]);
   if (d.heroType === 'ExternalLinkRouting' && d.partner) t.push(['mfr', d.partner]);
   if (d.isGeneric) { t.push(['cpd', 'Cost Plus']); t.push(['amz', 'Amazon Rx']); }
-  else t.push(['mfn', 'MFN price']);
   return t.map(([c, l]) => `<span class="tag ${c}">${esc(l)}</span>`).join('');
 }
 
@@ -146,12 +146,12 @@ function cardHTML(d) {
     </div>
     <div>
       <div class="price-row"><span class="price">${money(d.price)}</span>${d.retail > d.price ? `<span class="price-was">${money(d.retail)}</span>` : ''}</div>
-      <div class="price-lbl">${d.isGeneric ? 'est. cash-pay' : 'federal program price'} · reference</div>
+      <div class="price-lbl">${d.isGeneric ? 'est. cash-pay' : d.heroType === 'ExternalLinkRouting' ? 'manufacturer program' : 'GoodRx cash'} · reference</div>
     </div>
     <div class="tags">${tagsFor(d)}</div>
     <div class="card-foot">
       <button class="btn btn-pri" data-open="${esc(d.slug)}">View details</button>
-      <a class="btn btn-sec" href="${esc(dailyMed(d))}" target="_blank" rel="noopener">FDA label ↗</a>
+      <a class="btn btn-sec" href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer">FDA label ↗</a>
     </div>
   </article>`;
 }
@@ -267,7 +267,7 @@ function couponCardHTML(c) {
     ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
     ${hasCard ? `${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', grp], ['Member', mem]])}
       <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">📋 Copy coupon</button>` : ''}
-    ${c.url ? `<a class="btn btn-sec" href="${esc(c.url)}" target="_blank" rel="noopener">Program site ↗</a>` : ''}
+    ${c.url ? `<a class="btn btn-sec" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Program site ↗</a>` : ''}
     ${c.state_restrictions?.length ? `<div class="live-note">Restricted in: ${esc(c.state_restrictions.join(', '))}</div>` : ''}
     ${c.expiration_date ? `<div class="row-note" style="margin-top:.4rem">Expires ${esc(c.expiration_date)}</div>` : ''}
   </div>`;
@@ -287,7 +287,7 @@ function couponBlock(d) {
     return `<div class="coupon">
       <div class="coupon-t">Manufacturer direct program</div>
       <p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(d.partner)} manages this medication directly — eligibility and checkout on their site.</p>
-      <a href="${esc(manufacturerUrl(d))}" target="_blank" rel="noopener" class="copy-btn" style="display:block;text-align:center;text-decoration:none">Continue to ${esc(d.partner)} →</a>
+      <a href="${esc(manufacturerUrl(d))}" target="_blank" rel="noopener noreferrer" class="copy-btn" style="display:block;text-align:center;text-decoration:none">Continue to ${esc(d.partner)} →</a>
     </div>`;
   }
   return '';
@@ -310,11 +310,11 @@ function openDetail(slug) {
       ${d.retail > d.price ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${d.savings}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
     </div>
 
-    <div class="label">Where to fill</div>
+    ${((!ext && d.bin === '015995') || d.isGeneric) ? `<div class="label">Where to fill</div>` : ''}
     ${(!ext && d.bin === '015995') ? `<div class="row"><div class="row-l"><span class="row-tag grx">RX</span><div><div class="row-name">GoodRx cash-discount network</div><div class="row-note">cash coupon · BIN 015995</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}
     ${d.isGeneric ? `
       <div class="row"><div class="row-l"><span class="row-tag cpd">CPD</span><div><div class="row-name">Cost Plus Drugs</div><div class="row-note">NADAC × 1.15 + $3</div></div></div><span class="row-price">${money(d.price)}</span></div>
-      <a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener"><div class="row-l"><span class="row-tag amz">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify</div></div></div><span class="row-price" style="color:var(--text-2)">Check ↗</span></a>` : ''}
+      <a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer"><div class="row-l"><span class="row-tag amz">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify</div></div></div><span class="row-price" style="color:var(--text-2)">Check ↗</span></a>` : ''}
 
     ${couponBlock(d)}
 
@@ -334,9 +334,9 @@ function openDetail(slug) {
     <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
 
     <div class="p-acts">
-      <a href="${esc(dailyMed(d))}" target="_blank" rel="noopener" class="btn btn-pri">FDA label ↗</a>
-      <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener" class="btn btn-sec">GoodRx ↗</a>
-      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
+      <a href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
+      <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
+      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
     </div>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
 
@@ -392,7 +392,7 @@ async function enrichLive(d, token) {
       const src = fv?.sourceUrl || rxv?.sourceUrl;
       el.innerHTML =
         `<dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
-         <a class="src-link" href="${esc(src)}" target="_blank" rel="noopener">Source: ${fv ? 'openFDA NDC' : 'RxNorm'} ↗</a>`;
+         <a class="src-link" href="${esc(src)}" target="_blank" rel="noopener noreferrer">Source: ${fv ? 'openFDA NDC' : 'RxNorm'} ↗</a>`;
     })
     .catch(() => { const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
 
@@ -413,7 +413,7 @@ async function enrichLive(d, token) {
         <dt>Effective</dt><dd>${esc(n.effectiveDate || '—')}</dd>
         <dt>NDC</dt><dd><span class="mono">${esc(n.ndc)}</span> · ${n.matches} match${n.matches !== 1 ? 'es' : ''}</dd>
       </dl>
-      <a class="src-link" href="${esc(n.sourceUrl)}" target="_blank" rel="noopener">Source: CMS NADAC${n.via === 'backend' ? ' (via API)' : ''} ↗</a>`;
+      <a class="src-link" href="${esc(n.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: CMS NADAC${n.via === 'backend' ? ' (via API)' : ''} ↗</a>`;
   })
     .catch(() => { const el = $('#liveNadac'); if (el) el.innerHTML = `<div class="live-err">NADAC lookup unavailable.</div>`; });
 
@@ -429,7 +429,7 @@ async function enrichLive(d, token) {
       if (sh.records.length) {
         html += sh.records.slice(0, 3).map(r =>
           `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">⚠️ ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
-        html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA drug shortages ↗</a>`;
+        html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA drug shortages ↗</a>`;
       } else {
         html += `<div class="live-note">No active FDA shortage reported for “${esc(token)}.”</div>`;
       }
@@ -438,7 +438,7 @@ async function enrichLive(d, token) {
       if (rc.records.length) {
         html += rc.records.slice(0, 3).map(r =>
           `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${esc(r.classification)} · ${esc(r.status)} <span style="color:var(--text-2);font-weight:400">(${fmtDate(r.date)})</span></div><div class="row-note">${esc((r.reason || '').slice(0, 120))}${(r.reason || '').length > 120 ? '…' : ''}${r.firm ? ` — ${esc(r.firm)}` : ''}</div></div></div></div>`).join('');
-        html += `<a class="src-link" href="${esc(rc.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA enforcement · ${rc.total} total ↗</a>`;
+        html += `<a class="src-link" href="${esc(rc.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA enforcement · ${rc.total} total ↗</a>`;
       } else {
         html += `<div class="live-note">No FDA recall records found for “${esc(token)}.”</div>`;
       }
@@ -460,7 +460,7 @@ async function enrichLive(d, token) {
            <div style="height:4px;border-radius:2px;background:var(--surface-3);margin-top:.3rem"><div style="height:100%;border-radius:2px;background:var(--primary);width:${Math.round((e.count / max) * 100)}%"></div></div></div></div>
          <span class="row-price" style="color:var(--text-2);font-weight:600">${e.count.toLocaleString()}</span></div>`).join('') +
       `<div class="live-note"><strong>Spontaneous FDA FAERS reports</strong> — counts reflect reporting volume and drug popularity, <strong>not incidence and not causation</strong>. Not medical advice.</div>` +
-      `<a class="src-link" href="${esc(ae.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA FAERS ↗</a>`;
+      `<a class="src-link" href="${esc(ae.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA FAERS ↗</a>`;
   }).catch(() => { const el = $('#liveFaers'); if (el) el.innerHTML = `<div class="live-err">Adverse-event lookup unavailable.</div>`; });
 
   // FDA label drug-interaction narrative (NOT a checked drug-pair result).
@@ -474,7 +474,7 @@ async function enrichLive(d, token) {
     el.innerHTML =
       `<p style="font-size:var(--t-sm);line-height:1.55">${esc(short)}</p>
        <div class="live-note">From the <strong>FDA label</strong> — narrative text, <strong>not a checked drug-pair interaction</strong>. Verify with a pharmacist.</div>
-       <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener">Source: openFDA label ↗</a>`;
+       <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA label ↗</a>`;
   }).catch(() => { const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
 
   // Coupons / patient-assistance programs (backend only; getCoupons returns null
@@ -513,8 +513,8 @@ function openLiveDetail(display, clean) {
     <div class="label">Interactions <span class="live-badge">FDA label</span></div>
     <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
     <div class="p-acts">
-      <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener" class="btn btn-pri">GoodRx ↗</a>
-      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus ↗</a>
+      <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx ↗</a>
+      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus ↗</a>
     </div>
     <div class="disclaimer-box">Cash-pay reference data from public sources — verify with the pharmacy before use. Not medical advice.</div>`;
   const ov = $('#overlay');
@@ -538,7 +538,7 @@ function renderSources() {
       <span class="src-status ${statusCls}">${esc(s.b)}</span>
       <div class="src-desc">${esc(s.d)}</div>
       ${probe ? `<div class="src-live checking" data-probe="${probe}"><span class="spinner"></span> checking…</div>` : ''}
-      <a class="src-url" href="${esc(s.u)}" target="_blank" rel="noopener">${esc(s.u)}</a>
+      <a class="src-url" href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.u)}</a>
     </div>`;
   }).join('');
   // Live reachability probes for the three APIs we actually call.
@@ -656,6 +656,13 @@ function init() {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => { /* SW is an enhancement */ });
     });
+  }
+
+  // Warm the Render backend so the first coupon lookup doesn't hit a cold start.
+  // Fire-and-forget: the /health response is ignored; this just prevents the
+  // free-tier container from being asleep when a user opens their first drug.
+  if (live.API_BASE) {
+    fetch(`${live.API_BASE.replace(/\/$/, '')}/health`, { mode: 'cors' }).catch(() => {});
   }
 }
 
