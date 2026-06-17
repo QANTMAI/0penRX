@@ -49,9 +49,7 @@ const GOODRX_SLUG = {
   'humira-pen': 'humira',                  // goodrx.com/humira
   'humira-syringe': 'humira',              // goodrx.com/humira
   'orencia-sc': 'orencia',                 // goodrx.com/orencia
-  'ozempic-pill': 'rybelsus',              // oral semaglutide → goodrx.com/rybelsus
   'premarin-vc': 'premarin-vaginal-cream', // goodrx.com/premarin-vaginal-cream
-  'wegovy-pill': 'wegovy',                 // oral semaglutide (Wegovy) → goodrx.com/wegovy
   'zepbound-kwikpen': 'zepbound',          // goodrx.com/zepbound
 };
 const goodRxUrl = d => `https://www.goodrx.com/${GOODRX_SLUG[d.slug] || d.slug}`;
