@@ -108,7 +108,7 @@ const PARTNER_URL = {
   'J&J Direct': 'https://www.jnjwithme.com',
   'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com',
   'Boehringer Ingelheim Cares': 'https://www.bicares.com',
-  'LillyDirect®': 'https://lillydirect.com', 'Eli Lilly Direct': 'https://lillydirect.com',
+  'LillyDirect®': 'https://lillydirect.com',
   'Pfizer RxPathways': 'https://www.pfizerrxpathways.com',
   'Amgen Assist360': 'https://www.amgenassist360.com',
   'Novo Nordisk Savings Program': 'https://www.novocare.com',

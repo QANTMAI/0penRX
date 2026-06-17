@@ -1,6 +1,7 @@
 """Unit tests for the catalog -> coupon record transform."""
 
 import importlib.util
+import json
 import os
 from datetime import datetime, timezone
 
@@ -35,10 +36,10 @@ DIRECT_DRUG = {
 }
 
 SKIP_DRUG = {
-    "slug": "januvia",
-    "name": "Januvia®",
-    "company": "Merck",
-    "generic": "sitagliptin",
+    "slug": "zz-nonexistent-test-drug",
+    "name": "TestDrug®",
+    "company": "Test Pharma",
+    "generic": "testdrug",
     "bin": "",
     "partner": "",
     "isGeneric": False,
@@ -115,3 +116,49 @@ def test_savings_card_fallback_name():
     assert record["pcn"] is None
     assert record["group"] is None
     assert record["member_id"] is None
+
+
+def test_catalog_to_jsonl_round_trip():
+    """Every catalog drug that has a BIN or partner must appear in coupons.jsonl,
+    and every record in coupons.jsonl must correspond to a catalog drug.
+
+    This is the highest-value bench-day invariant: it catches any drift between
+    the catalog source of truth and the committed coupon dataset (e.g. a drug
+    added/removed from catalog.js without rebuilding, or a build script bug that
+    silently drops records)."""
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    catalog_path = os.path.join(repo_root, "assets", "catalog.js")
+    jsonl_path = os.path.join(repo_root, "data", "coupons.jsonl")
+
+    assert os.path.exists(jsonl_path), (
+        "data/coupons.jsonl is missing — run: python data/build_coupons.py --out data/coupons.jsonl"
+    )
+
+    catalog = build_coupons.load_catalog(catalog_path)
+
+    # Catalog slugs that should have coupon records (have bin or partner).
+    expected_slugs = {
+        d["slug"] for d in catalog if (d.get("bin") or d.get("partner"))
+    }
+
+    # Slugs present in coupons.jsonl.
+    jsonl_slugs: set[str] = set()
+    with open(jsonl_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            record = json.loads(line)
+            jsonl_slugs.add(record["drug_slug"])
+
+    missing = expected_slugs - jsonl_slugs
+    extra = jsonl_slugs - expected_slugs
+
+    assert not missing, (
+        f"Catalog drugs with coupon data missing from coupons.jsonl "
+        f"(rebuild with build_coupons.py): {sorted(missing)}"
+    )
+    assert not extra, (
+        f"coupons.jsonl contains slugs not in catalog "
+        f"(stale records — rebuild with build_coupons.py): {sorted(extra)}"
+    )

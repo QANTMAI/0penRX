@@ -35,6 +35,11 @@ _origins = [
     for o in os.environ.get("OPENRX_CORS_ORIGINS", "https://0penrx.org").split(",")
     if o.strip()
 ]
+# Guard: an empty env var (OPENRX_CORS_ORIGINS=) produces an empty list, which
+# silently blocks all cross-origin requests with no server-side error. Fall back
+# to the production origin so a misconfigured Render env var can't kill the site.
+if not _origins:
+    _origins = ["https://0penrx.org"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
@@ -265,51 +270,47 @@ async def coupons_goodrx(
 
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
+            # Step 1: price compare — cheapest GoodRx offer for this drug + quantity.
             r1 = await client.get(
                 f"{_GOODRX_API_BASE}/v2/price/compare",
                 params=compare_params,
             )
-    except httpx.TimeoutException:
-        raise HTTPException(502, "GoodRx price-compare timed out")
-    except httpx.HTTPError as exc:
-        raise HTTPException(502, f"GoodRx price-compare failed: {exc}")
+            if r1.status_code != 200:
+                raise HTTPException(502, f"GoodRx price-compare returned {r1.status_code}")
 
-    if r1.status_code != 200:
-        raise HTTPException(502, f"GoodRx price-compare returned {r1.status_code}")
+            prices = r1.json().get("data", {}).get("prices", [])
+            if not prices:
+                return {"drug": drug, "enabled": True, "results": []}
 
-    prices = r1.json().get("data", {}).get("prices", [])
-    if not prices:
-        return {"drug": drug, "enabled": True, "results": []}
+            best = min(prices, key=lambda o: o.get("display", {}).get("price", 9999))
+            pharmacy = best.get("pharmacy", {})
 
-    best = min(prices, key=lambda o: o.get("display", {}).get("price", 9999))
-    pharmacy = best.get("pharmacy", {})
+            # Step 2: coupon — adjudication codes (BIN/PCN/Group/Member) for the best offer.
+            body_fields: dict[str, str] = {
+                "ndc": str(best.get("ndc", "")),
+                "quantity": str(quantity),
+                "pharmacy_id": str(pharmacy.get("id", "")),
+            }
+            post_body = urlencode(sorted(body_fields.items()))
+            # POST signing: only api_key in query string, full body appended, no separator.
+            coupon_query: dict[str, str] = {"api_key": _GOODRX_API_KEY}
+            coupon_query["sig"] = _goodrx_sign(coupon_query, post_body)
 
-    # Step 2: coupon — adjudication codes (BIN/PCN/Group/Member) for the best offer.
-    body_fields: dict[str, str] = {
-        "ndc": str(best.get("ndc", "")),
-        "quantity": str(quantity),
-        "pharmacy_id": str(pharmacy.get("id", "")),
-    }
-    post_body = urlencode(sorted(body_fields.items()))
-    # POST signing: only api_key in query string, full body appended, no separator.
-    coupon_query: dict[str, str] = {"api_key": _GOODRX_API_KEY}
-    coupon_query["sig"] = _goodrx_sign(coupon_query, post_body)
-
-    try:
-        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
             r2 = await client.post(
                 f"{_GOODRX_API_BASE}/v2/coupon",
                 params=coupon_query,
                 content=post_body,
                 headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
-    except httpx.TimeoutException:
-        raise HTTPException(502, "GoodRx coupon timed out")
-    except httpx.HTTPError as exc:
-        raise HTTPException(502, f"GoodRx coupon failed: {exc}")
+            if r2.status_code != 200:
+                raise HTTPException(502, f"GoodRx coupon returned {r2.status_code}")
 
-    if r2.status_code != 200:
-        raise HTTPException(502, f"GoodRx coupon returned {r2.status_code}")
+    except HTTPException:
+        raise
+    except httpx.TimeoutException as exc:
+        raise HTTPException(502, f"GoodRx request timed out: {exc}")
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, f"GoodRx request failed: {exc}")
 
     c = r2.json().get("data", {})
     result = {

@@ -7,8 +7,8 @@
 //   openFDA (FDA)  — NDC, manufacturer (labeler), dosage form, route
 //   NADAC   (CMS)  — real per-unit acquisition cost + effective date
 //
-// Optional: set window.OPENRX_API (or ?api=<base>) to route NADAC
-// lookups through the repo's FastAPI /prices endpoint instead of CMS.
+// Optional: set window.OPENRX_API to route NADAC lookups through the repo's
+// FastAPI /prices endpoint instead of CMS.
 // ============================================================
 
 const RXNORM = 'https://rxnav.nlm.nih.gov/REST';

@@ -57,7 +57,6 @@ PARTNER_URL: dict[str, str] = {
     "Boehringer Ingelheim Cares": "https://www.bicares.com",
     "Bristol Myers Squibb": "https://www.bmsaccesssupport.com",
     "LillyDirect®": "https://lillydirect.com",
-    "Eli Lilly Direct": "https://lillydirect.com",
     "Novartis Direct": "https://www.us.novartis.com",
     "AbbVie Synthroid Savings": "https://www.synthroid.com",
     "Merck Patient Assistance": "https://www.merckhelps.com",
