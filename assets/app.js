@@ -198,8 +198,14 @@ function renderGrid() {
 let liveSeq = 0, liveTimer = null;
 
 function catalogMatches(q) {
-  return CATALOG.filter(d =>
-    d.name.toLowerCase().includes(q) || d.generic.toLowerCase().includes(q)).slice(0, 6);
+  // Word-boundary match first: a token in the name or generic must START WITH q.
+  // This prevents mid-word suffix hits (e.g. "lip" matching "El-lip-ta").
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const wordRe = new RegExp('(?:^|[\\s®™/,\\-])' + safe, 'i');
+  const wordHits = CATALOG.filter(d => wordRe.test(d.name) || wordRe.test(d.generic));
+  // Put name-match entries before generic-only matches
+  wordHits.sort((a, b) => (wordRe.test(a.name) ? 0 : 1) - (wordRe.test(b.name) ? 0 : 1));
+  return wordHits.slice(0, 6);
 }
 function suggestCatalog(d) {
   return `<div class="si" role="option" data-pick="${esc(d.slug)}">
