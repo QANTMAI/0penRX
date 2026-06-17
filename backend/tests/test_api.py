@@ -18,6 +18,7 @@ def test_health():
     assert body["status"] == "ok"
     assert isinstance(body["prices_loaded"], bool)
     assert isinstance(body["coupons_loaded"], bool)
+    assert isinstance(body["goodrx_enabled"], bool)
 
 
 def test_prices_returns_match():
@@ -109,6 +110,17 @@ def test_coupons_excludes_expired():
         assert resp.json()["count"] == 0
     finally:
         _COUPONS.remove(expired)
+
+
+def test_goodrx_disabled_when_no_key():
+    """Without GOODRX_API_KEY / GOODRX_PRIVATE_KEY the endpoint returns
+    {enabled: false} with an empty results list and a 200 status — the frontend
+    skips the panel silently, no error state."""
+    resp = client.get("/coupons/goodrx", params={"drug": "atorvastatin"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["enabled"] is False
+    assert body["results"] == []
 
 
 def _coupon_fixture(**over):

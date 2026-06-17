@@ -11,12 +11,17 @@ path data/processed/nadac.jsonl is used.
 
 from __future__ import annotations
 
+import base64
+import hashlib
+import hmac as _hmac
 import json
 import os
 import re
 from datetime import date
+from urllib.parse import urlencode
 
-from fastapi import FastAPI, Query
+import httpx
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="0penRX API", version="0.1.0")
@@ -93,6 +98,7 @@ def health():
         "status": "ok",
         "prices_loaded": _PRICES_LOADED,
         "coupons_loaded": _COUPONS_LOADED,
+        "goodrx_enabled": _GOODRX_ENABLED,
     }
 
 
@@ -189,3 +195,136 @@ def coupons(
         results.append(r)
 
     return {"drug": drug, "count": len(results), "results": results[:limit]}
+
+
+# ---- GoodRx Partner API v2 proxy -------------------------------------------
+# Set GOODRX_API_KEY and GOODRX_PRIVATE_KEY in the host environment (Render
+# dashboard) to activate. When unset the endpoint returns {"enabled": false}
+# and the frontend skips the GoodRx panel silently.
+#
+# API key:     GOODRX_API_KEY     — included as a query parameter in every request
+# Private key: GOODRX_PRIVATE_KEY — HMAC secret, never sent over the wire
+# Base URL:    GOODRX_API_BASE    — default https://api.goodrx.com (override for sandbox)
+#
+# GoodRx signing spec (verified from Partner API v2 docs):
+#   1. Build a sorted URL-encoded query string of all params including api_key.
+#   2. For POST requests, append the raw POST body directly (no separator).
+#   3. HMAC-SHA256 the combined string with the private key.
+#   4. Base64-encode and replace both '/' and '+' with '_' (GoodRx-specific —
+#      not standard URL-safe base64, which uses '-' for '+').
+#   5. Append sig=<result> to the request.
+#
+# Response field names below are inferred from verified v2 doc descriptions.
+# Confirm against real responses once the key is active and adjust as needed.
+
+_GOODRX_API_KEY = os.environ.get("GOODRX_API_KEY", "")
+_GOODRX_PRIVATE_KEY = os.environ.get("GOODRX_PRIVATE_KEY", "")
+_GOODRX_API_BASE = os.environ.get("GOODRX_API_BASE", "https://api.goodrx.com")
+_GOODRX_ENABLED = bool(_GOODRX_API_KEY and _GOODRX_PRIVATE_KEY)
+
+
+def _goodrx_sign(query_params: dict[str, str], post_body: str = "") -> str:
+    """Return the HMAC-SHA256 signature for a GoodRx API request.
+
+    query_params must include api_key. post_body is the raw URL-encoded POST
+    body for POST requests (empty string for GET). The signed string is the
+    sorted query string concatenated directly with the POST body (no separator).
+    """
+    query = urlencode(sorted(query_params.items()))
+    message = (query + post_body).encode()
+    raw = _hmac.new(_GOODRX_PRIVATE_KEY.encode(), message, hashlib.sha256).digest()
+    return base64.b64encode(raw).decode().replace("/", "_").replace("+", "_")
+
+
+@app.get("/coupons/goodrx")
+async def coupons_goodrx(
+    drug: str = Query(..., description="Generic drug name to look up"),
+    quantity: int = Query(30, ge=1, le=360, description="Fill quantity for pricing"),
+):
+    """Proxy to GoodRx Partner API v2: price compare then coupon adjudication.
+
+    Two-step call:
+      1. GET /v2/price/compare — finds the cheapest GoodRx offer for the drug.
+      2. POST /v2/coupon       — retrieves BIN/PCN/Group/Member ID for POS use.
+
+    Returns {"enabled": false, "results": []} when credentials are not set so
+    the frontend skips the GoodRx section without an error state.
+    The result is shaped like a catalog coupon record so couponCardHTML()
+    renders it without modification.
+    """
+    if not _GOODRX_ENABLED:
+        return {"drug": drug, "enabled": False, "results": []}
+
+    # Step 1: price compare — cheapest GoodRx offer for this drug + quantity.
+    compare_params: dict[str, str] = {
+        "name": drug,
+        "quantity": str(quantity),
+        "api_key": _GOODRX_API_KEY,
+    }
+    compare_params["sig"] = _goodrx_sign(compare_params)
+
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
+            r1 = await client.get(
+                f"{_GOODRX_API_BASE}/v2/price/compare",
+                params=compare_params,
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(502, "GoodRx price-compare timed out")
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, f"GoodRx price-compare failed: {exc}")
+
+    if r1.status_code != 200:
+        raise HTTPException(502, f"GoodRx price-compare returned {r1.status_code}")
+
+    prices = r1.json().get("data", {}).get("prices", [])
+    if not prices:
+        return {"drug": drug, "enabled": True, "results": []}
+
+    best = min(prices, key=lambda o: o.get("display", {}).get("price", 9999))
+    pharmacy = best.get("pharmacy", {})
+
+    # Step 2: coupon — adjudication codes (BIN/PCN/Group/Member) for the best offer.
+    body_fields: dict[str, str] = {
+        "ndc": str(best.get("ndc", "")),
+        "quantity": str(quantity),
+        "pharmacy_id": str(pharmacy.get("id", "")),
+    }
+    post_body = urlencode(sorted(body_fields.items()))
+    # POST signing: only api_key in query string, full body appended, no separator.
+    coupon_query: dict[str, str] = {"api_key": _GOODRX_API_KEY}
+    coupon_query["sig"] = _goodrx_sign(coupon_query, post_body)
+
+    try:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
+            r2 = await client.post(
+                f"{_GOODRX_API_BASE}/v2/coupon",
+                params=coupon_query,
+                content=post_body,
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+            )
+    except httpx.TimeoutException:
+        raise HTTPException(502, "GoodRx coupon timed out")
+    except httpx.HTTPError as exc:
+        raise HTTPException(502, f"GoodRx coupon failed: {exc}")
+
+    if r2.status_code != 200:
+        raise HTTPException(502, f"GoodRx coupon returned {r2.status_code}")
+
+    c = r2.json().get("data", {})
+    result = {
+        "program_name": "GoodRx",
+        "program_type": "copay-card",
+        "drug_name": drug,
+        "manufacturer": None,
+        "bin": c.get("bin"),
+        "pcn": c.get("pcn"),
+        "group": c.get("group"),
+        "member_id": c.get("memberId") or c.get("member_id"),
+        "price_usd": best.get("display", {}).get("price"),
+        "pharmacy_name": pharmacy.get("name"),
+        "coupon_url": c.get("url"),
+        "medicare_medicaid_excluded": True,
+        "source": "goodrx",
+    }
+    return {"drug": drug, "enabled": True, "results": [result]}

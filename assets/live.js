@@ -210,8 +210,9 @@ export async function getNadac(generic) {
 }
 
 // ---- Coupons / patient-assistance programs (backend only) ------------------
-// Static GitHub Pages deploy has no backend (API_BASE is null), so this fails
-// soft to null and the feature renders nothing. Only active when API_BASE is set.
+// Static GitHub Pages deploy has no backend (API_BASE is null), so both
+// functions fail soft to null and the feature renders nothing. Only active
+// when API_BASE is set.
 export async function getCoupons(query) {
   if (!API_BASE) return null;                 // static deploy: feature off
   // Query by the catalog slug (unique, no ® so it substring-matches the backend's
@@ -224,6 +225,24 @@ export async function getCoupons(query) {
     const data = await fetchJSON(`${API_BASE.replace(/\/$/, '')}/coupons?drug=${encodeURIComponent(q)}&limit=25`, { timeout: 35000 });
     return data?.results || [];
   } catch { return null; }                     // fail soft like getNadac
+}
+
+// GoodRx Partner API v2 proxy — server-side HMAC signing, keys never touch
+// the browser. Returns null (not an error) when credentials are absent so
+// the caller skips the GoodRx panel silently. Shape is identical to getCoupons
+// results so couponCardHTML() renders them without modification.
+export async function getGoodRxCoupons(generic) {
+  if (!API_BASE || !generic) return null;
+  const g = (generic || '').replace(/[®™]/g, '').split(/[\/,\s]+/)[0].trim().toLowerCase();
+  if (!g) return null;
+  try {
+    const data = await fetchJSON(
+      `${API_BASE.replace(/\/$/, '')}/coupons/goodrx?drug=${encodeURIComponent(g)}`,
+      { timeout: 20000 },
+    );
+    if (!data?.enabled) return null;
+    return data?.results || [];
+  } catch { return null; }
 }
 
 // Cost Plus Drugs-style estimate from a REAL NADAC per-unit cost:
