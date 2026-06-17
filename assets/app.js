@@ -3,6 +3,8 @@
 // ============================================================
 import { CATALOG, API_SOURCES } from './catalog.js';
 import * as live from './live.js';
+import { validateCatalog } from './catalog-validator.js';
+validateCatalog(CATALOG);
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -100,24 +102,53 @@ const BRAND_URL = {
 // and the generated coupon dataset resolve a partner to the same destination
 // (enforced in CI by data/tests/test_cross_language_consistency.py).
 const PARTNER_URL = {
-  'AstraZeneca Direct': 'https://www.azandmeapp.com',
+  // ── AstraZeneca ─────────────────────────────────────────────────────────
+  'AZ&Me': 'https://www.azandmeapp.com',
+  'AstraZeneca Direct': 'https://www.azandmeapp.com',       // legacy alias
+  // ── Sanofi ──────────────────────────────────────────────────────────────
   'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
+  // ── GSK ─────────────────────────────────────────────────────────────────
   'GSK For You': 'https://www.gskforyou.com',
-  'J&J Direct': 'https://www.jnjwithme.com',
-  'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com',
-  'Boehringer Ingelheim Cares': 'https://www.bicares.com',
+  // ── Johnson & Johnson ────────────────────────────────────────────────────
+  'J&J withMe Savings Program': 'https://www.jnjwithme.com',
+  'J&J Direct': 'https://www.jnjwithme.com',                // legacy alias
+  // ── Bristol Myers Squibb ─────────────────────────────────────────────────
+  'BMS Patient Connect': 'https://www.bmspatientconnect.com',
+  'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com', // legacy alias
+  // ── Boehringer Ingelheim ─────────────────────────────────────────────────
+  'BI Savings Card': 'https://www.boehringer-ingelheim.com/us/patient-support',
+  'Boehringer Ingelheim Cares': 'https://www.bicares.com',   // legacy alias (free PAP)
+  // ── Eli Lilly ────────────────────────────────────────────────────────────
   'LillyDirect®': 'https://lillydirect.com',
+  'LillyDirect': 'https://lillydirect.com',
+  // ── Pfizer ──────────────────────────────────────────────────────────────
   'Pfizer RxPathways': 'https://www.pfizerrxpathways.com',
-  'Amgen Assist360': 'https://www.amgenassist360.com',
+  // ── Amgen ────────────────────────────────────────────────────────────────
+  'Amgen SupportPlus': 'https://www.amgensupportplus.com',
+  'AmgenNow': 'https://www.amgennow.com',
+  'Amgen Assist360': 'https://www.amgenassist360.com',       // legacy alias
+  // ── Novo Nordisk ─────────────────────────────────────────────────────────
   'Novo Nordisk Savings Program': 'https://www.novocare.com',
-  'Novartis Direct': 'https://www.us.novartis.com',
-  'AbbVie Synthroid Savings': 'https://www.synthroid.com',
-  'Merck Patient Assistance': 'https://www.merckhelps.com',
-  'Genentech Patient Foundation': 'https://www.gene.com/patients/patient-foundation',
-  // Manufacturer programs for drugs whose cards are NOT cash-pay coupons (see BIN_INFO).
+  // ── Novartis ─────────────────────────────────────────────────────────────
+  'Alongside MAYZENT': 'https://www.mayzent.com/support',
+  'Novartis Oncology Universal Co-pay': 'https://www.novartisoncologysupport.com',
+  'Novartis Direct': 'https://www.us.novartis.com',          // legacy alias
+  // ── AbbVie ──────────────────────────────────────────────────────────────
+  'Synthroid Delivers Program': 'https://www.synthroid.com/savings',
+  'AbbVie Synthroid Savings': 'https://www.synthroid.com',   // legacy alias
   'AbbVie At Your Service': 'https://www.savewithays.com',
   'myAbbVie Assist': 'https://www.abbvie.com/patients/patient-support/patient-assistance.html',
-  'EMD Serono Fertility Savings': 'https://www.fertilityinstantsavings.com',
+  // ── Merck ────────────────────────────────────────────────────────────────
+  'MerckHelps': 'https://www.merckhelps.com',
+  'Merck Patient Assistance': 'https://www.merckhelps.com',  // legacy alias
+  // ── EMD Serono ───────────────────────────────────────────────────────────
+  'Fertility Instant Savings Program': 'https://www.fertilityinstantsavings.com',
+  'EMD Serono Fertility Savings': 'https://www.fertilityinstantsavings.com', // legacy alias
+  // ── Genentech ────────────────────────────────────────────────────────────
+  'Genentech Direct-to-Patient': 'https://www.gene.com/patients',
+  'Genentech Patient Foundation': 'https://www.gene.com/patients/patient-foundation', // legacy
+  // ── Pfizer (additional programs) ─────────────────────────────────────────
+  'Amgen Assist360 / Pfizer': 'https://www.amgenassist360.com',
 };
 const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d);
 
@@ -321,6 +352,13 @@ function openDetail(slug) {
       <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${ext ? 'manufacturer direct' : 'federal program / cash-pay'} · reference</div></div>
       ${d.retail > d.price ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
     </div>
+    ${d.status === 'limited' ? `<span class="status-badge status-limited">Limited Access</span>` : d.status === 'archived' ? `<span class="status-badge status-archived">Archived · Verify Availability</span>` : ''}
+    ${d.priceNote ? `<p class="price-note">${esc(d.priceNote)}</p>` : ''}
+    ${d.eligibility && d.eligibility !== 'cash-pay' ? (
+      d.eligibility === 'insured-only'  ? `<p class="eligibility-warn">⚠ Requires commercial insurance — not available to cash-pay patients</p>` :
+      d.eligibility === 'medicare-only' ? `<p class="eligibility-warn">⚠ Medicare Part D beneficiaries only</p>` :
+      d.eligibility === 'mixed'         ? `<p class="eligibility-warn">⚠ Pricing channel varies — see price note for details</p>` : ''
+    ) : ''}
 
     ${((!ext && d.bin === '015995') || d.isGeneric) ? `<div class="label">Where to fill</div>` : ''}
     ${(!ext && d.bin === '015995') ? `<div class="row"><div class="row-l"><span class="row-tag grx">RX</span><div><div class="row-name">GoodRx cash-discount network</div><div class="row-note">cash coupon · BIN 015995</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}

@@ -725,6 +725,39 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
   .db-search { width: 120px; }
 }
 
+/* ── Catalog status badges ─────────────────────────────────────────── */
+.status-badge {
+  display: inline-block;
+  font: 600 10px/1 var(--font-m);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: var(--r-1);
+  margin: var(--sp-2) 0 var(--sp-3);
+}
+.status-limited  { background: #2a1a00; color: #f5a623; border: 1px solid #6b3f00; }
+.status-archived { background: #1a0000; color: #e05050; border: 1px solid #5a1a1a; }
+
+/* ── Price notes & eligibility warnings ─────────────────────────────── */
+.price-note {
+  font: 400 12px/1.5 var(--font-b);
+  color: var(--text-3);
+  margin: var(--sp-2) 0 var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-2);
+  border-left: 2px solid var(--text-3);
+  border-radius: 0 var(--r-1) var(--r-1) 0;
+}
+.eligibility-warn {
+  font: 500 12px/1.5 var(--font-b);
+  color: #f5a623;
+  background: #1c1200;
+  border: 1px solid #6b3f00;
+  border-radius: var(--r-1);
+  padding: var(--sp-2) var(--sp-3);
+  margin: var(--sp-2) 0 var(--sp-3);
+}
+
 /* ---- Responsive -------------------------------------------- */
 @media (max-width: 720px) { .logo-tag { display: none; } }
 @media (max-width: 600px) {
