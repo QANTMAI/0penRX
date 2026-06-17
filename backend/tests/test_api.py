@@ -205,7 +205,14 @@ def test_coupons_query_with_regex_special_chars():
 
     _word_match uses re.escape(needle) so these are safe, but this test locks
     that invariant — a future edit that removes re.escape would break this."""
-    for q in ("metformin+xr", "drug/combo", "drug.name", "name[1]", "drug*", r"back\slash"):
+    for q in (
+        "metformin+xr",
+        "drug/combo",
+        "drug.name",
+        "name[1]",
+        "drug*",
+        r"back\slash",
+    ):
         resp = client.get("/coupons", params={"drug": q})
         assert resp.status_code == 200, f"status {resp.status_code} for drug={q!r}"
         assert "count" in resp.json()
@@ -231,7 +238,9 @@ def test_load_records_skips_malformed_lines():
 
 def test_load_coupons_skips_malformed_lines():
     """Malformed JSON lines in the coupon JSONL are silently skipped; valid lines load."""
-    good = json.dumps({"drug_slug": "testdrug", "program_name": "Test", "status": "active"})
+    good = json.dumps(
+        {"drug_slug": "testdrug", "program_name": "Test", "status": "active"}
+    )
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
         f.write("GARBAGE\n")
         f.write(good + "\n")
@@ -271,8 +280,12 @@ def test_goodrx_sign_known_vector():
         post_body = "ndc=12345&pharmacy_id=P1&quantity=30"
         sig_post = _app_module._goodrx_sign({"api_key": "testkey"}, post_body)
         qs2 = urlencode(sorted({"api_key": "testkey"}.items()))
-        raw2 = _hmac_lib.new(b"testsecret", (qs2 + post_body).encode(), hashlib.sha256).digest()
-        expected_post = base64.b64encode(raw2).decode().replace("/", "_").replace("+", "_")
+        raw2 = _hmac_lib.new(
+            b"testsecret", (qs2 + post_body).encode(), hashlib.sha256
+        ).digest()
+        expected_post = (
+            base64.b64encode(raw2).decode().replace("/", "_").replace("+", "_")
+        )
         assert sig_post == expected_post
     finally:
         _app_module._GOODRX_PRIVATE_KEY = orig

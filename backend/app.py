@@ -276,7 +276,9 @@ async def coupons_goodrx(
                 params=compare_params,
             )
             if r1.status_code != 200:
-                raise HTTPException(502, f"GoodRx price-compare returned {r1.status_code}")
+                raise HTTPException(
+                    502, f"GoodRx price-compare returned {r1.status_code}"
+                )
 
             prices = r1.json().get("data", {}).get("prices", [])
             if not prices:

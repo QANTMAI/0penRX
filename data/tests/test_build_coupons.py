@@ -126,7 +126,9 @@ def test_catalog_to_jsonl_round_trip():
     the catalog source of truth and the committed coupon dataset (e.g. a drug
     added/removed from catalog.js without rebuilding, or a build script bug that
     silently drops records)."""
-    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    repo_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
     catalog_path = os.path.join(repo_root, "assets", "catalog.js")
     jsonl_path = os.path.join(repo_root, "data", "coupons.jsonl")
 
@@ -137,9 +139,7 @@ def test_catalog_to_jsonl_round_trip():
     catalog = build_coupons.load_catalog(catalog_path)
 
     # Catalog slugs that should have coupon records (have bin or partner).
-    expected_slugs = {
-        d["slug"] for d in catalog if (d.get("bin") or d.get("partner"))
-    }
+    expected_slugs = {d["slug"] for d in catalog if (d.get("bin") or d.get("partner"))}
 
     # Slugs present in coupons.jsonl.
     jsonl_slugs: set[str] = set()
