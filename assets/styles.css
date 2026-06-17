@@ -354,6 +354,373 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
 .foot-legal p { font-size: var(--t-xs); color: var(--text-3); line-height: var(--lh-normal); }
 .foot-copy { font-size: var(--t-xs); color: var(--text-3); }
 
+
+/* ============================================================
+   DASHBOARD VIEW EXTENSION
+   Dense operational UI: Linear + Vercel + NOC fusion.
+   Uses only tokens defined in the root token set.
+   No overrides of existing shared rules.
+   ============================================================ */
+
+/* ---- Dashboard full-bleed breakout -------------------------
+   #view-dashboard sits inside .main which has max-width and
+   padding. Negative margins let the db-layout span full width.
+   ----------------------------------------------------------- */
+#view-dashboard {
+  margin-left: calc(-1 * var(--sp-6));
+  margin-right: calc(-1 * var(--sp-6));
+  margin-top: calc(-1 * var(--sp-6));
+}
+
+/* ---- Layout ------------------------------------------------ */
+.db-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  min-height: calc(100dvh - 52px);
+  align-items: start;
+}
+
+.db-sidebar {
+  border-right: 1px solid var(--divider);
+  background: var(--surface);
+  position: sticky;
+  top: 52px;
+  max-height: calc(100dvh - 52px);
+  overflow-y: auto;
+  flex-shrink: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--divider) transparent;
+}
+.db-sidebar::-webkit-scrollbar { width: 4px; }
+.db-sidebar::-webkit-scrollbar-track { background: transparent; }
+.db-sidebar::-webkit-scrollbar-thumb { background: var(--divider); border-radius: 2px; }
+
+.db-main {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Section container (sidebar blocks) -------------------- */
+.db-section {
+  border-bottom: 1px solid var(--divider);
+  padding: 12px 16px;
+}
+.db-section:last-child { border-bottom: none; }
+
+/* ---- KPI rail ---------------------------------------------- */
+.db-kpi-rail {
+  display: flex;
+  flex-direction: row;
+  overflow-x: auto;
+  gap: 1px;
+  background: var(--divider);
+  border-bottom: 1px solid var(--divider);
+  scrollbar-width: none;
+}
+.db-kpi-rail::-webkit-scrollbar { display: none; }
+
+.db-kpi {
+  background: var(--surface);
+  flex-shrink: 0;
+  min-width: 130px;
+  padding: 12px 16px;
+  cursor: default;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.db-kpi-num {
+  font-size: 22px;
+  font-family: var(--font-m);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.db-kpi-lbl {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-3);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.db-kpi-delta {
+  font-size: 11px;
+  display: inline-block;
+  margin-top: 2px;
+  font-family: var(--font-m);
+  font-variant-numeric: tabular-nums;
+}
+.db-kpi-delta.ok   { color: var(--good); }
+.db-kpi-delta.warn { color: var(--gold); }
+.db-kpi-delta.off  { color: var(--text-3); }
+
+/* ---- Sidebar: section header ------------------------------- */
+.db-sidebar-head {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-3);
+  font-weight: 600;
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid var(--divider);
+}
+
+/* ---- Sidebar: source rows ---------------------------------- */
+.db-source-list { padding: 0; }
+
+.db-source-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-bottom: 1px solid var(--divider);
+  min-height: 36px;
+}
+.db-source-row:last-child { border-bottom: none; }
+
+.db-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.db-dot.ok       { background: var(--good); }
+.db-dot.warn     { background: var(--gold); }
+.db-dot.err      { background: var(--accent); }
+.db-dot.off      { background: var(--text-3); }
+.db-dot.checking { background: var(--text-3); animation: db-pulse 1s ease infinite; }
+
+@keyframes db-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: .3; }
+}
+
+.db-source-name {
+  font-size: 12px;
+  color: var(--text);
+  flex: 1;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-latency {
+  font-size: 11px;
+  font-family: var(--font-m);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.db-source-status-txt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  font-weight: 600;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.db-source-status-txt.ok   { color: var(--good); }
+.db-source-status-txt.warn { color: var(--gold); }
+.db-source-status-txt.err  { color: var(--accent); }
+.db-source-status-txt.off  { color: var(--text-3); }
+
+/* ---- Main: header toolbar ---------------------------------- */
+.db-main-head {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-3);
+  font-weight: 600;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--divider);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--surface);
+  min-height: 44px;
+}
+
+/* ---- Search input (dashboard) ------------------------------ */
+.db-search {
+  height: 28px;
+  width: 240px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: 12px;
+  font-family: var(--font-b);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+  transition: border-color var(--tr), background var(--tr);
+}
+.db-search:focus { border-color: var(--primary); background: var(--surface); }
+.db-search::placeholder { color: var(--text-3); }
+
+.db-count-lbl {
+  font-size: 11px;
+  color: var(--text-3);
+  white-space: nowrap;
+  font-family: var(--font-m);
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+/* ---- Drug catalog table ------------------------------------ */
+.db-table-wrap { overflow-x: auto; flex: 1; }
+
+.db-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.db-table thead tr {
+  background: var(--surface-2);
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.db-table th {
+  padding: 7px 12px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-3);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  text-align: left;
+  transition: color var(--tr);
+  border-bottom: none;
+}
+.db-table th:hover { color: var(--text-2); }
+.db-table th.sorted { color: var(--primary); }
+
+.db-table th.r,
+.db-table td.r { text-align: right; }
+
+.db-table tbody tr {
+  border-bottom: 1px solid var(--divider);
+  cursor: pointer;
+  transition: background 80ms;
+}
+.db-table tbody tr:last-child { border-bottom: none; }
+.db-table tbody tr:hover td { background: var(--surface-2); }
+
+.db-table td {
+  padding: 7px 12px;
+  vertical-align: middle;
+  color: var(--text);
+  border-radius: 0;
+  white-space: nowrap;
+}
+.db-table td.name-cell,
+.db-table td.gen-cell { white-space: normal; max-width: 200px; }
+.db-table td.name-cell { font-weight: 500; font-size: 13px; }
+.db-table td.gen-cell  { font-size: 12px; color: var(--text-2); }
+.db-table td.mono      { font-family: var(--font-m); font-variant-numeric: tabular-nums; }
+.db-table td.dim       { color: var(--text-3); font-size: 12px; }
+
+.db-table .badge { border-radius: var(--r-sm); padding: .12rem .4rem; font-size: 11px; }
+
+.db-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+.db-sort-arrow { font-size: 10px; opacity: .7; }
+
+/* ---- Coverage mini-bars (sidebar) -------------------------- */
+.db-cov-section { padding: 8px 0 4px; }
+
+.db-cov-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 7px;
+}
+.db-cov-row:last-child { margin-bottom: 0; }
+
+.db-cov-lbl {
+  font-size: 11px;
+  color: var(--text-2);
+  width: 110px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-cov-bar-wrap {
+  flex: 1;
+  height: 5px;
+  background: var(--surface-3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.db-cov-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width .5s ease;
+}
+
+.db-cov-num {
+  font-size: 11px;
+  font-family: var(--font-m);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-3);
+  width: 24px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+/* ---- Responsive -------------------------------------------- */
+@media (max-width: 900px) {
+  .db-layout { grid-template-columns: 1fr; }
+  .db-sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--divider);
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+  }
+  .db-search { width: 180px; }
+}
+
+@media (max-width: 600px) {
+  #view-dashboard { margin-left: -1rem; margin-right: -1rem; margin-top: -1rem; }
+  .db-table td.gen-cell,
+  .db-table th[data-col='generic'] { display: none; }
+  .db-search { width: 120px; }
+}
+
 /* ---- Responsive -------------------------------------------- */
 @media (max-width: 720px) { .logo-tag { display: none; } }
 @media (max-width: 600px) {

@@ -95,6 +95,7 @@
       <button class="ntab on" data-nav="browse">Browse</button>
       <button class="ntab" data-nav="sources">Data Sources</button>
       <button class="ntab" data-nav="coupons">Coupon Guide</button>
+      <button class="ntab" data-nav="dashboard">Dashboard</button>
     </nav>
     <div class="hdr-r">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle light/dark theme"></button>
@@ -203,6 +204,155 @@
     <div class="disclaimer-box">
       <strong>⚠️ Cash-pay only.</strong> Do not submit to insurance. Cannot be used with Medicare, Medicaid, TRICARE, VA, or any government health program. If you have insurance, verify your copay first — it may be lower. Out-of-pocket costs from these programs do not count toward Medicare Part D TrOOP.
     </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="view-dashboard" hidden>
+    <div class="db-layout">
+
+      <!-- ===== LEFT SIDEBAR ===== -->
+      <aside class="db-sidebar">
+
+        <!-- Data Sources -->
+        <div class="db-sidebar-head">Data Sources</div>
+        <div class="db-source-list" id="db-source-list">
+          <div class="db-source-row" id="db-src-rxnorm">
+            <span class="db-dot checking"></span>
+            <div style="flex:1;min-width:0">
+              <div class="db-source-name">NLM RxNorm</div>
+              <div class="db-source-status-txt off">checking...</div>
+            </div>
+            <span class="db-latency mono"></span>
+          </div>
+          <div class="db-source-row" id="db-src-openfda">
+            <span class="db-dot checking"></span>
+            <div style="flex:1;min-width:0">
+              <div class="db-source-name">openFDA Drug NDC</div>
+              <div class="db-source-status-txt off">checking...</div>
+            </div>
+            <span class="db-latency mono"></span>
+          </div>
+          <div class="db-source-row" id="db-src-nadac">
+            <span class="db-dot checking"></span>
+            <div style="flex:1;min-width:0">
+              <div class="db-source-name">CMS NADAC</div>
+              <div class="db-source-status-txt off">checking...</div>
+            </div>
+            <span class="db-latency mono"></span>
+          </div>
+          <div class="db-source-row" id="db-src-backend">
+            <span class="db-dot checking"></span>
+            <div style="flex:1;min-width:0">
+              <div class="db-source-name">0penRX Backend</div>
+              <div class="db-source-status-txt off">checking...</div>
+            </div>
+            <span class="db-latency mono"></span>
+          </div>
+          <div class="db-source-row" id="db-src-goodrx">
+            <span class="db-dot off"></span>
+            <div style="flex:1;min-width:0">
+              <div class="db-source-name">GoodRx API</div>
+              <div class="db-source-status-txt off">pending backend</div>
+            </div>
+            <span class="db-latency mono"></span>
+          </div>
+        </div>
+
+        <!-- Coverage & Breakdown -->
+        <div id="dbCoverage">
+          <div class="db-section">
+            <div class="db-sidebar-head" style="padding:0 0 8px;border-bottom:none;margin-bottom:0">Program Type</div>
+            <div class="db-cov-section" id="dbCovProgramType"></div>
+          </div>
+          <div class="db-section">
+            <div class="db-sidebar-head" style="padding:0 0 8px;border-bottom:none;margin-bottom:0">Top Categories</div>
+            <div class="db-cov-section" id="dbCovCategories"></div>
+          </div>
+          <div class="db-section">
+            <div class="db-sidebar-head" style="padding:0 0 8px;border-bottom:none;margin-bottom:0">Savings Bands</div>
+            <div class="db-cov-section" id="dbCovSavings"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ===== RIGHT MAIN PANEL ===== -->
+      <div class="db-main">
+
+        <!-- KPI Rail -->
+        <div class="db-kpi-rail" id="dbKpiRail">
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-1">—</div>
+            <div class="db-kpi-lbl">Drugs</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-1"></div>
+          </div>
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-2">—</div>
+            <div class="db-kpi-lbl">Avg Savings</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-2"></div>
+          </div>
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-3">—</div>
+            <div class="db-kpi-lbl" id="dbKpiLbl-3">Top Savings</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-3"></div>
+          </div>
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-4">—</div>
+            <div class="db-kpi-lbl">GoodRx Network</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-4"></div>
+          </div>
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-5">—</div>
+            <div class="db-kpi-lbl">Mfr Direct</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-5"></div>
+          </div>
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-6">—</div>
+            <div class="db-kpi-lbl">Backend API</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-6">checking</div>
+          </div>
+          <div class="db-kpi">
+            <div class="db-kpi-num" id="dbKpi-7">—</div>
+            <div class="db-kpi-lbl">GoodRx API</div>
+            <div class="db-kpi-delta off" id="dbKpiDelta-7">checking</div>
+          </div>
+        </div>
+
+        <!-- Toolbar: title + search + count -->
+        <div class="db-main-head">
+          <span>Medication Catalog</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input
+              class="db-search"
+              type="search"
+              id="dbDrugSearch"
+              placeholder="Filter by name, generic, or company…"
+              autocomplete="off"
+              aria-label="Filter medications"
+              spellcheck="false"
+            >
+            <span class="db-count-lbl" id="dbDrugCount" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <!-- Drug Catalog Table -->
+        <div class="db-table-wrap">
+          <table class="db-table" role="grid" aria-label="Drug catalog">
+            <thead>
+              <tr>
+                <th data-col="name" scope="col">Drug</th>
+                <th data-col="generic" scope="col">Generic</th>
+                <th data-col="program" scope="col">Program</th>
+                <th data-col="price" class="r" scope="col">Price</th>
+                <th data-col="retail" class="r" scope="col">Retail</th>
+                <th data-col="savings" class="r" scope="col">Savings</th>
+              </tr>
+            </thead>
+            <tbody id="dbDrugTbody" aria-live="polite"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /.db-main -->
+    </div><!-- /.db-layout -->
   </section>
 
 </main>

@@ -628,8 +628,10 @@ function setView(name) {
   $('#view-browse').hidden = name !== 'browse';
   $('#view-sources').hidden = name !== 'sources';
   $('#view-coupons').hidden = name !== 'coupons';
+  $('#view-dashboard').hidden = name !== 'dashboard';
   if (name === 'sources' && !state.sourcesInit) { renderSources(); state.sourcesInit = true; }
   if (name === 'coupons' && !$('#couponList').children.length) renderCoupons();
+  if (name === 'dashboard' && !_dashboardInit) { renderDashboard(); _dashboardInit = true; }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -709,3 +711,331 @@ function init() {
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ============================================================
+// DASHBOARD VIEW
+// ============================================================
+
+let _dashboardInit = false;
+
+let dbTableSort = { col: 'savings', dir: 'desc' };
+let dbTableFilter = '';
+let _dbTableListenersAttached = false;
+
+function renderDashboardKPI() {
+  const total = CATALOG.length;
+  document.getElementById('dbKpi-1').textContent = total;
+
+  const savingsList = CATALOG.map(d =>
+    typeof d.savings === 'number' ? d.savings : savPct(d)
+  );
+  const avgSav = Math.round(savingsList.reduce((a, b) => a + b, 0) / savingsList.length);
+  document.getElementById('dbKpi-2').textContent = avgSav + '%';
+
+  const topDrug = CATALOG.reduce((best, d) => {
+    const s = typeof d.savings === 'number' ? d.savings : savPct(d);
+    const bs = typeof best.savings === 'number' ? best.savings : savPct(best);
+    return s > bs ? d : best;
+  });
+  const topPct = typeof topDrug.savings === 'number' ? topDrug.savings : savPct(topDrug);
+  document.getElementById('dbKpi-3').textContent = topPct + '%';
+  const lbl3 = document.getElementById('dbKpiLbl-3');
+  if (lbl3) lbl3.textContent = esc(topDrug.name);
+  const delta3 = document.getElementById('dbKpiDelta-3');
+  if (delta3) { delta3.textContent = 'top savings'; delta3.className = 'db-kpi-delta ok'; }
+
+  const grxCount = CATALOG.filter(d => d.bin === '015995').length;
+  document.getElementById('dbKpi-4').textContent = grxCount;
+
+  const mfrCount = CATALOG.filter(
+    d => d.heroType === 'ExternalLinkRouting' && !!d.partner
+  ).length;
+  document.getElementById('dbKpi-5').textContent = mfrCount;
+
+  const numEl6 = document.getElementById('dbKpi-6');
+  const deltaEl6 = document.getElementById('dbKpiDelta-6');
+  const numEl7 = document.getElementById('dbKpi-7');
+  const deltaEl7 = document.getElementById('dbKpiDelta-7');
+
+  if (!live.API_BASE) {
+    numEl6.textContent = 'N/A';
+    deltaEl6.textContent = 'not configured';
+    deltaEl6.className = 'db-kpi-delta off';
+    numEl7.textContent = 'N/A';
+    deltaEl7.textContent = 'not configured';
+    deltaEl7.className = 'db-kpi-delta off';
+    return;
+  }
+
+  const healthUrl = live.API_BASE.replace(/\/$/, '') + '/health';
+  const t0 = performance.now();
+
+  fetch(healthUrl, {
+    mode: 'cors',
+    headers: { Accept: 'application/json' },
+    signal: AbortSignal.timeout(9000)
+  })
+    .then(res => {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(health => {
+      const latencyMs = Math.round(performance.now() - t0);
+      numEl6.textContent = latencyMs + 'ms';
+      const statusOk = health.status === 'ok' || health.prices_loaded;
+      deltaEl6.textContent = statusOk && latencyMs < 500 ? 'online' : statusOk ? 'slow' : 'degraded';
+      deltaEl6.className = 'db-kpi-delta ' + (statusOk && latencyMs < 500 ? 'ok' : 'warn');
+      const grxEnabled = !!health.goodrx_enabled;
+      numEl7.textContent = grxEnabled ? 'enabled' : 'disabled';
+      numEl7.style.fontSize = 'var(--t-sm)';
+      deltaEl7.textContent = grxEnabled ? 'live prices' : 'reference only';
+      deltaEl7.className = 'db-kpi-delta ' + (grxEnabled ? 'ok' : 'warn');
+    })
+    .catch(() => {
+      numEl6.textContent = 'offline';
+      deltaEl6.textContent = 'unreachable';
+      deltaEl6.className = 'db-kpi-delta off';
+      numEl7.textContent = '—';
+      deltaEl7.textContent = 'api offline';
+      deltaEl7.className = 'db-kpi-delta off';
+    });
+}
+
+function _updateSourceRow(id, dotClass, statusText, latencyMs) {
+  const row = document.getElementById(id);
+  if (!row) return;
+  const dot = row.querySelector('.db-dot');
+  const txt = row.querySelector('.db-source-status-txt');
+  const lat = row.querySelector('.db-latency');
+  if (dot) dot.className = 'db-dot ' + dotClass;
+  if (txt) { txt.textContent = statusText; txt.className = 'db-source-status-txt ' + dotClass; }
+  if (lat) lat.textContent = (typeof latencyMs === 'number' && isFinite(latencyMs)) ? Math.round(latencyMs) + 'ms' : '';
+}
+
+async function renderDashboardSources() {
+  ['rxnorm', 'openfda', 'nadac', 'backend'].forEach(key => {
+    _updateSourceRow('db-src-' + key, 'checking', 'checking...', null);
+  });
+  _updateSourceRow('db-src-goodrx', 'off', 'pending backend', null);
+
+  const probe = (key) => {
+    const t0 = performance.now();
+    return live.checkSource(key)
+      .then(ok => {
+        const ms = performance.now() - t0;
+        _updateSourceRow('db-src-' + key, ok ? 'ok' : 'err', ok ? 'online' : 'unreachable', ms);
+      })
+      .catch(() => {
+        _updateSourceRow('db-src-' + key, 'err', 'error', performance.now() - t0);
+      });
+  };
+
+  const probeBackend = (() => {
+    if (!live.API_BASE) {
+      _updateSourceRow('db-src-backend', 'off', 'not configured', null);
+      _updateSourceRow('db-src-goodrx', 'off', 'key pending', null);
+      return Promise.resolve();
+    }
+    const t0 = performance.now();
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
+    return fetch(live.API_BASE.replace(/\/$/, '') + '/health', {
+      signal: ctrl.signal,
+      headers: { Accept: 'application/json' }
+    })
+      .then(res => { clearTimeout(timer); if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
+      .then(health => {
+        const ms = performance.now() - t0;
+        const ok = health && (health.status === 'ok' || health.prices_loaded || health.coupons_loaded);
+        const detail = [];
+        if (health.prices_loaded) detail.push('prices');
+        if (health.coupons_loaded) detail.push('coupons');
+        _updateSourceRow('db-src-backend', ok ? 'ok' : 'warn', ok ? ('online' + (detail.length ? ' · ' + detail.join(', ') : '')) : (health.status || 'degraded'), ms);
+        _updateSourceRow('db-src-goodrx', health.goodrx_enabled ? 'ok' : 'warn', health.goodrx_enabled ? 'enabled' : 'key pending', null);
+      })
+      .catch(err => {
+        clearTimeout(timer);
+        const ms = performance.now() - t0;
+        _updateSourceRow('db-src-backend', 'err', err && err.name === 'AbortError' ? 'timeout' : 'unreachable', ms);
+        _updateSourceRow('db-src-goodrx', 'off', 'key pending', null);
+      });
+  })();
+
+  return Promise.allSettled([probe('rxnorm'), probe('openfda'), probe('nadac'), probeBackend]);
+}
+
+function renderDashboardCoverage() {
+  const total = CATALOG.length;
+  if (!total) return;
+
+  const grxCount = CATALOG.filter(d => d.bin === '015995').length;
+  const mfrCount = CATALOG.filter(d => d.heroType === 'ExternalLinkRouting' && !!d.partner).length;
+  const genCount = CATALOG.filter(d => d.isGeneric).length;
+
+  const ptEl = document.getElementById('dbCovProgramType');
+  if (ptEl) {
+    ptEl.innerHTML = [
+      { label: 'GoodRx Network', count: grxCount, color: '--primary' },
+      { label: 'Mfr Direct',     count: mfrCount, color: '--live'    },
+      { label: 'Generic',        count: genCount, color: '--good'    },
+    ].map(r => {
+      const pct = (r.count / total) * 100;
+      return `<div class="db-cov-row"><span class="db-cov-lbl">${esc(r.label)}</span><div class="db-cov-bar-wrap"><div class="db-cov-fill" style="width:${pct.toFixed(1)}%;background:var(${r.color})"></div></div><span class="db-cov-num">${r.count}</span></div>`;
+    }).join('');
+  }
+
+  const catMap = {};
+  CATALOG.forEach(d => { const c = d.category || 'Uncategorized'; catMap[c] = (catMap[c] || 0) + 1; });
+  const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const maxCount = sortedCats.length ? sortedCats[0][1] : 1;
+
+  const catEl = document.getElementById('dbCovCategories');
+  if (catEl) {
+    catEl.innerHTML = sortedCats.map(([cat, count]) => {
+      const pct = (count / maxCount) * 100;
+      return `<div class="db-cov-row"><span class="db-cov-lbl">${esc(cat)}</span><div class="db-cov-bar-wrap"><div class="db-cov-fill" style="width:${pct.toFixed(1)}%"></div></div><span class="db-cov-num">${count}</span></div>`;
+    }).join('');
+  }
+
+  const clsOf = s => s >= 70 ? 'hi' : s >= 40 ? 'md' : 'lo';
+  let hi = 0, md = 0, lo = 0;
+  CATALOG.forEach(d => {
+    const s = typeof d.savings === 'number' ? d.savings : savPct(d);
+    if (s >= 70) hi++; else if (s >= 40) md++; else lo++;
+  });
+
+  const svEl = document.getElementById('dbCovSavings');
+  if (svEl) {
+    svEl.innerHTML = [
+      { label: 'High ≥70%',   count: hi, color: '--good'    },
+      { label: 'Medium 40–69%', count: md, color: '--primary' },
+      { label: 'Low <40%',         count: lo, color: '--gold'    },
+    ].map(r => {
+      const pct = (r.count / total) * 100;
+      return `<div class="db-cov-row"><span class="db-cov-lbl">${esc(r.label)}</span><div class="db-cov-bar-wrap"><div class="db-cov-fill" style="width:${pct.toFixed(1)}%;background:var(${r.color})"></div></div><span class="db-cov-num">${r.count}</span></div>`;
+    }).join('');
+  }
+}
+
+function _sortAndFilter(catalog) {
+  let list = dbTableFilter
+    ? catalog.filter(d =>
+        (d.name + ' ' + (d.generic || '') + ' ' + (d.company || '')).toLowerCase().includes(dbTableFilter)
+      )
+    : catalog.slice();
+
+  const { col, dir } = dbTableSort;
+  const m = dir === 'asc' ? 1 : -1;
+
+  if (col === 'name') {
+    list.sort((a, b) => m * a.name.localeCompare(b.name));
+  } else if (col === 'price') {
+    list.sort((a, b) => m * (a.price - b.price));
+  } else if (col === 'retail') {
+    list.sort((a, b) => m * (a.retail - b.retail));
+  } else {
+    list.sort((a, b) => {
+      const sa = typeof a.savings === 'number' ? a.savings : savPct(a);
+      const sb = typeof b.savings === 'number' ? b.savings : savPct(b);
+      return m * (sa - sb);
+    });
+  }
+  return list;
+}
+
+function _programTag(d) {
+  if (d.bin === '015995') return '<span class="tag grx">GoodRx</span>';
+  if (d.heroType === 'ExternalLinkRouting') return '<span class="tag mfr">Mfr Direct</span>';
+  if (d.isGeneric) return '<span class="tag cpd">Generic</span>';
+  return '<span style="color:var(--text-3);font-size:11px">—</span>';
+}
+
+function _renderDrugTable() {
+  const list = _sortAndFilter(CATALOG);
+
+  const countEl = document.getElementById('dbDrugCount');
+  if (countEl) countEl.textContent = list.length + ' medication' + (list.length !== 1 ? 's' : '');
+
+  document.querySelectorAll('#view-dashboard th[data-col]').forEach(th => {
+    const isActive = th.dataset.col === dbTableSort.col;
+    th.classList.toggle('sorted', isActive);
+    const arr = th.querySelector('.db-sort-arrow');
+    if (arr) arr.remove();
+    if (isActive) {
+      const span = document.createElement('span');
+      span.className = 'db-sort-arrow';
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = dbTableSort.dir === 'asc' ? ' ↑' : ' ↓';
+      th.appendChild(span);
+    }
+  });
+
+  const tbody = document.getElementById('dbDrugTbody');
+  if (!tbody) return;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="db-empty">No medications match your search.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(d => {
+    const pct = typeof d.savings === 'number' ? d.savings : savPct(d);
+    return `<tr data-slug="${esc(d.slug)}" tabindex="0" role="row"><td class="name-cell">${esc(d.name)}</td><td class="gen-cell">${esc(d.generic || '')}</td><td>${_programTag(d)}</td><td class="r mono">${money(d.price)}</td><td class="r mono dim">${money(d.retail)}</td><td class="r"><span class="badge ${savClass(pct)}">${pct}%</span></td></tr>`;
+  }).join('');
+}
+
+function renderDashboardTable() {
+  if (!_dbTableListenersAttached) {
+    _dbTableListenersAttached = true;
+
+    const searchEl = document.getElementById('dbDrugSearch');
+    if (searchEl) {
+      searchEl.addEventListener('input', () => {
+        dbTableFilter = searchEl.value.trim().toLowerCase();
+        _renderDrugTable();
+      });
+      searchEl.addEventListener('keydown', e => {
+        if (e.key === 'Escape') { searchEl.value = ''; dbTableFilter = ''; _renderDrugTable(); }
+      });
+    }
+
+    const thead = document.querySelector('#view-dashboard .db-table thead');
+    if (thead) {
+      thead.addEventListener('click', e => {
+        const th = e.target.closest('th[data-col]');
+        if (!th) return;
+        const col = th.dataset.col;
+        if (col === 'program' || col === 'generic') return;
+        dbTableSort.dir = dbTableSort.col === col
+          ? (dbTableSort.dir === 'asc' ? 'desc' : 'asc')
+          : (col === 'name' ? 'asc' : 'desc');
+        dbTableSort.col = col;
+        _renderDrugTable();
+      });
+    }
+
+    const tbody = document.getElementById('dbDrugTbody');
+    if (tbody) {
+      tbody.addEventListener('click', e => {
+        const row = e.target.closest('tr[data-slug]');
+        if (row) openDetail(row.dataset.slug);
+      });
+      tbody.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const row = e.target.closest('tr[data-slug]');
+          if (row) { e.preventDefault(); openDetail(row.dataset.slug); }
+        }
+      });
+    }
+  }
+
+  _renderDrugTable();
+}
+
+function renderDashboard() {
+  renderDashboardKPI();
+  renderDashboardSources();
+  renderDashboardCoverage();
+  renderDashboardTable();
+}
+
