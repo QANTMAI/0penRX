@@ -81,7 +81,9 @@ def test_manufacturer_direct_record():
     assert record["program_name"] == "Sanofi Patient Connection"
     assert record["url"] == "https://www.sanofipatientconnection.com"
     assert record["medicare_medicaid_excluded"] is True
-    assert record["state_restrictions"] == ["MA", "CA"]
+    # Manufacturer-direct programs are not pharmacy copay cards; MA/CA anti-coupon
+    # state laws do not apply, so state_restrictions must be empty.
+    assert record["state_restrictions"] == []
 
 
 def test_skip_drug_without_coupon_data():

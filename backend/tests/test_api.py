@@ -14,16 +14,27 @@ client = TestClient(app)
 def test_health():
     resp = client.get("/health")
     assert resp.status_code == 200
-    assert resp.json() == {"status": "ok"}
+    body = resp.json()
+    assert body["status"] == "ok"
+    assert isinstance(body["prices_loaded"], bool)
+    assert isinstance(body["coupons_loaded"], bool)
 
 
 def test_prices_returns_match():
+    from app import _PRICES_LOADED
+
     resp = client.get("/prices", params={"drug": "atorvastatin"})
     assert resp.status_code == 200
     body = resp.json()
     assert body["drug"] == "atorvastatin"
-    assert body["count"] >= 1
-    assert body["results"][0]["price_usd"] > 0
+    if not _PRICES_LOADED:
+        # NADAC data file absent (gitignored) — API must return empty, not sample
+        assert body["count"] == 0
+        assert body["results"] == []
+        assert body.get("loaded") is False
+    else:
+        assert body["count"] >= 1
+        assert body["results"][0]["price_usd"] > 0
 
 
 def test_prices_no_match():

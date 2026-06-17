@@ -27,12 +27,17 @@ jobs:
         with:
           python-version: "3.12"
       - name: Run NADAC ingestion
+        env:
+          # Pull workflow_dispatch inputs into env vars so they are never
+          # interpolated directly into the shell script body (shell injection).
+          INGEST_YEAR: ${{ github.event.inputs.year || '2026' }}
+          INGEST_LIMIT: ${{ github.event.inputs.limit || '5000' }}
         run: |
-          YEAR="${{ github.event.inputs.year || '2026' }}"
-          LIMIT="${{ github.event.inputs.limit || '5000' }}"
-          ARGS="--out data/processed/nadac.jsonl --year $YEAR"
-          if [ -n "$LIMIT" ]; then ARGS="$ARGS --limit $LIMIT"; fi
-          python data/ingest_nadac.py $ARGS
+          echo "$INGEST_YEAR" | grep -qE '^[0-9]{4}$' || { echo "Invalid year: $INGEST_YEAR"; exit 1; }
+          echo "$INGEST_LIMIT" | grep -qE '^[0-9]+$' || { echo "Invalid limit: $INGEST_LIMIT"; exit 1; }
+          ARGS="--out data/processed/nadac.jsonl --year $INGEST_YEAR"
+          if [ -n "$INGEST_LIMIT" ]; then ARGS="$ARGS --limit $INGEST_LIMIT"; fi
+          python3 data/ingest_nadac.py $ARGS
       - name: Summarize output
         run: |
           echo "Records: $(wc -l < data/processed/nadac.jsonl)"

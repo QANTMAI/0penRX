@@ -126,7 +126,9 @@ def build_record(drug: dict, now: datetime) -> dict | None:
         "source_url": "https://0penrx.org",
         "effective_date": f"{year}-01-01",
         "expiration_date": f"{year}-12-31",
-        "state_restrictions": [] if drug.get("isGeneric") else ["MA", "CA"],
+        # MA/CA restrict pharmacy copay-card programs (anti-coupon state laws).
+        # They do NOT apply to manufacturer-direct assistance programs (no BIN).
+        "state_restrictions": ["MA", "CA"] if (bin_value and not drug.get("isGeneric")) else [],
         "status": "active",
         "ingested_at": now.isoformat(),
     }

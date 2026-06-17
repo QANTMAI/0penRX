@@ -23,15 +23,16 @@ app = FastAPI(title="0penRX API", version="0.1.0")
 
 # The static frontend (0penrx.org, GitHub Pages, or local preview) calls this
 # API cross-origin, so CORS must be open for GET. Override the allowed origins
-# with the OPENRX_CORS_ORIGINS env var (comma-separated) to lock it down.
+# with the OPENRX_CORS_ORIGINS env var (comma-separated).
+# Default is the production origin — never open to * in production.
 _origins = [
     o.strip()
-    for o in os.environ.get("OPENRX_CORS_ORIGINS", "*").split(",")
+    for o in os.environ.get("OPENRX_CORS_ORIGINS", "https://0penrx.org").split(",")
     if o.strip()
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_origins or ["*"],
+    allow_origins=_origins,
     allow_methods=["GET"],
     allow_headers=["Accept", "Content-Type"],
 )
@@ -39,25 +40,15 @@ app.add_middleware(
 DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")
 COUPONS_DATA_PATH = os.environ.get("COUPONS_DATA", "data/coupons.jsonl")
 
-# In-memory fallback used when no ingested data file is available.
-_SAMPLE = [
-    {
-        "drug_name": "atorvastatin",
-        "dose": "10 mg tablet",
-        "quantity": 30,
-        "price_usd": 8.42,
-        "unit": "EA",
-        "pharmacy_name": "Example Pharmacy",
-        "zip": "06095",
-        "source": "NADAC",
-    },
-]
 
+def _load_records(path: str) -> tuple[list[dict], bool]:
+    """Load normalized price records from a JSONL file.
 
-def _load_records(path: str) -> list[dict]:
-    """Load normalized price records from a JSONL file, or the sample."""
+    Returns (records, loaded) where loaded=False means the data file was absent
+    and the caller should return an empty result set rather than fabricated data.
+    """
     if not path or not os.path.exists(path):
-        return list(_SAMPLE)
+        return [], False
     records: list[dict] = []
     with open(path) as f:
         for line in f:
@@ -68,40 +59,16 @@ def _load_records(path: str) -> list[dict]:
                 records.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
-    return records or list(_SAMPLE)
+    return records, bool(records)
 
 
-# In-memory fallback used when no coupon dataset file is available.
-_COUPON_SAMPLE = [
-    {
-        "program_name": "Amgen Assist360",
-        "manufacturer": "Amgen",
-        "drug_name": "erenumab-aooe",
-        "drug_slug": "aimovig",
-        "brand": "Aimovig®",
-        "program_type": "copay-card",
-        "bin": "015995",
-        "pcn": "GDC",
-        "group": "MAHA",
-        "member_id": "RXFINDER",
-        "eligibility": None,
-        "medicare_medicaid_excluded": True,
-        "url": "https://www.amgenassist360.com",
-        "source": "catalog",
-        "source_url": "https://0penrx.org",
-        "effective_date": "2026-01-01",
-        "expiration_date": "2026-12-31",
-        "state_restrictions": ["MA", "CA"],
-        "status": "active",
-        "ingested_at": "2026-01-01T00:00:00+00:00",
-    },
-]
+def _load_coupons(path: str) -> tuple[list[dict], bool]:
+    """Load coupon records from a JSONL file.
 
-
-def _load_coupons(path: str) -> list[dict]:
-    """Load coupon records from a JSONL file, or the in-memory sample."""
+    Returns (records, loaded) where loaded=False means the data file was absent.
+    """
     if not path or not os.path.exists(path):
-        return list(_COUPON_SAMPLE)
+        return [], False
     records: list[dict] = []
     with open(path) as f:
         for line in f:
@@ -112,17 +79,21 @@ def _load_coupons(path: str) -> list[dict]:
                 records.append(json.loads(line))
             except json.JSONDecodeError:
                 continue
-    return records or list(_COUPON_SAMPLE)
+    return records, bool(records)
 
 
 # Loaded once at startup; restart the process to pick up new data.
-_RECORDS = _load_records(DEFAULT_DATA_PATH)
-_COUPONS = _load_coupons(COUPONS_DATA_PATH)
+_RECORDS, _PRICES_LOADED = _load_records(DEFAULT_DATA_PATH)
+_COUPONS, _COUPONS_LOADED = _load_coupons(COUPONS_DATA_PATH)
 
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    return {
+        "status": "ok",
+        "prices_loaded": _PRICES_LOADED,
+        "coupons_loaded": _COUPONS_LOADED,
+    }
 
 
 @app.get("/prices")
@@ -131,7 +102,13 @@ def prices(
     zip: str | None = Query(None, description="5-digit ZIP filter"),
     limit: int = Query(25, ge=1, le=200, description="Max results to return"),
 ):
-    """Return matching price records, ranked cheapest first."""
+    """Return matching price records, ranked cheapest first.
+
+    Returns count=0 and an empty results list when no data file is loaded rather
+    than fabricating sample records that would corrupt bench-day data collection.
+    """
+    if not _PRICES_LOADED:
+        return {"drug": drug, "count": 0, "results": [], "loaded": False}
     needle = drug.lower()
     results = [
         r
@@ -188,7 +165,12 @@ def coupons(
     ),
     limit: int = Query(25, ge=1, le=200, description="Max results to return"),
 ):
-    """Return matching coupon records, excluding any that have expired."""
+    """Return matching coupon records, excluding any that have expired.
+
+    Returns count=0 and an empty results list when no data file is loaded.
+    """
+    if not _COUPONS_LOADED:
+        return {"drug": drug, "count": 0, "results": [], "loaded": False}
     needle = drug.lower().strip()
     # ISO dates sort lexically, so a string compare is correct for expiry.
     today = date.today().isoformat()

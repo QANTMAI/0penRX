@@ -115,3 +115,28 @@ def test_partner_urls_match_backend():
             }
         )
     )
+
+
+def test_catalog_partners_in_partner_url():
+    """Every catalog drug that names a partner program must resolve in PARTNER_URL.
+
+    A partner value missing from PARTNER_URL means the coupon record gets
+    url=None (the PARTNER_URL.get() call silently returns None) and the user
+    sees a broken or missing assistance-program link.  Fail CI the moment a new
+    partner is added to the catalog without a corresponding PARTNER_URL entry.
+    """
+    bc = _load_build_coupons()
+    catalog = bc.load_catalog(str(REPO / "assets" / "catalog.js"))
+    js_text = APP_JS.read_text(encoding="utf-8")
+    partner_url = _parse_js_partner_url(js_text)
+
+    missing = [
+        (d["slug"], d["partner"])
+        for d in catalog
+        if d.get("partner") and d["partner"] not in partner_url
+    ]
+    assert not missing, (
+        "Catalog drugs with partner values not found in PARTNER_URL: "
+        + repr(missing)
+        + "\nAdd them to PARTNER_URL in both assets/app.js and data/build_coupons.py."
+    )

@@ -125,6 +125,9 @@ const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dail
 
 // ---- Browse grid -----------------------------------------------------------
 const savClass = s => s >= 70 ? 'hi' : s >= 40 ? 'md' : 'lo';
+// Compute savings % from price and retail at render time so the badge stays
+// accurate even if price is updated without manually recomputing the catalog field.
+const savPct = d => d.retail > d.price ? Math.round((1 - d.price / d.retail) * 100) : 0;
 
 function tagsFor(d) {
   const t = [];
@@ -135,15 +138,16 @@ function tagsFor(d) {
 }
 
 function cardHTML(d) {
+  const pct = savPct(d);
   return `<article class="card" role="listitem" tabindex="0" data-slug="${esc(d.slug)}"
-      aria-label="${esc(d.name)}, ${money(d.price)}, ${d.savings}% off">
+      aria-label="${esc(d.name)}, ${money(d.price)}, ${pct}% off">
     <div class="card-top">
       <div>
         <div class="card-name">${esc(d.name)}</div>
         <div class="card-gen">${esc(d.generic)}</div>
         <div class="card-co">${esc(d.company)}</div>
       </div>
-      ${d.savings > 0 ? `<span class="badge ${savClass(d.savings)}">${d.savings}% off</span>` : ''}
+      ${pct > 0 ? `<span class="badge ${savClass(pct)}">${pct}% off</span>` : ''}
     </div>
     <div>
       <div class="price-row"><span class="price">${money(d.price)}</span>${d.retail > d.price ? `<span class="price-was">${money(d.retail)}</span>` : ''}</div>
@@ -294,6 +298,9 @@ function couponBlock(d) {
   return '';
 }
 
+// Incremented on every panel open so enrichLive callbacks spawned for a
+// previous drug no-op when they resolve after a new drug's panel is open.
+let _panelGen = 0;
 function openDetail(slug) {
   const d = CATALOG.find(x => x.slug === slug);
   if (!d) return;
@@ -308,7 +315,7 @@ function openDetail(slug) {
     <div class="p-sub">${esc(d.generic)} · ${esc(d.company)} · ${esc(d.category)}</div>
     <div class="p-hero">
       <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${ext ? 'manufacturer direct' : 'federal program / cash-pay'} · reference</div></div>
-      ${d.retail > d.price ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${d.savings}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
+      ${d.retail > d.price ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
     </div>
 
     ${((!ext && d.bin === '015995') || d.isGeneric) ? `<div class="label">Where to fill</div>` : ''}
@@ -346,7 +353,7 @@ function openDetail(slug) {
   $('#panel').scrollTop = 0;
   $('#panelBody [data-close]').focus();
 
-  enrichLive(d, token);
+  enrichLive(d, token, ++_panelGen);
 }
 
 // Fetch + inject the real RxNorm / openFDA / NADAC data.
@@ -370,10 +377,14 @@ function prefetchDrug(slug) {
   live.getCoupons(d.slug || d.generic);
 }
 
-async function enrichLive(d, token) {
+function enrichLive(d, token, gen) {
+  // Abort if a newer panel has opened since this call was dispatched.
+  const alive = () => _panelGen === gen;
+
   // Identity: RxNorm + openFDA in parallel.
   Promise.allSettled([live.getRxNorm(d.generic), live.getOpenFda(d.generic, d.name)])
     .then(([rx, fda]) => {
+      if (!alive()) return;
       const el = $('#liveIdentity'); if (!el) return;
       const rxv = rx.status === 'fulfilled' ? rx.value : null;
       const fv = fda.status === 'fulfilled' ? fda.value : null;
@@ -395,10 +406,11 @@ async function enrichLive(d, token) {
         `<dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
          <a class="src-link" href="${esc(src)}" target="_blank" rel="noopener noreferrer">Source: ${fv ? 'openFDA NDC' : 'RxNorm'} ↗</a>`;
     })
-    .catch(() => { const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
+    .catch(() => { if (!alive()) return; const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
 
   // NADAC: real acquisition cost + estimated cash price.
   live.getNadac(d.generic).then(n => {
+    if (!alive()) return;
     const el = $('#liveNadac'); if (!el) return;
     if (!n) {
       el.innerHTML = `<div class="live-err">No CMS NADAC record found for “${esc(token)}” (often the case for brand-only biologics).</div>`;
@@ -416,11 +428,12 @@ async function enrichLive(d, token) {
       </dl>
       <a class="src-link" href="${esc(n.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: CMS NADAC${n.via === 'backend' ? ' (via API)' : ''} ↗</a>`;
   })
-    .catch(() => { const el = $('#liveNadac'); if (el) el.innerHTML = `<div class="live-err">NADAC lookup unavailable.</div>`; });
+    .catch(() => { if (!alive()) return; const el = $('#liveNadac'); if (el) el.innerHTML = `<div class="live-err">NADAC lookup unavailable.</div>`; });
 
   // FDA shortages + recalls (openFDA drug/shortages + drug/enforcement).
   Promise.allSettled([live.getDrugShortages(d.generic), live.getDrugRecalls(d.generic)])
     .then(([shRes, rcRes]) => {
+      if (!alive()) return;
       const el = $('#liveSafety'); if (!el) return;
       const sh = shRes.status === 'fulfilled' ? shRes.value : { records: [] };
       const rc = rcRes.status === 'fulfilled' ? rcRes.value : { records: [] };
@@ -445,10 +458,11 @@ async function enrichLive(d, token) {
       }
       el.innerHTML = html;
     })
-    .catch(() => { const el = $('#liveSafety'); if (el) el.innerHTML = `<div class="live-err">Safety lookup unavailable.</div>`; });
+    .catch(() => { if (!alive()) return; const el = $('#liveSafety'); if (el) el.innerHTML = `<div class="live-err">Safety lookup unavailable.</div>`; });
 
   // FAERS adverse events — top reported reactions (with the spontaneous-report caveat).
   live.getAdverseEvents(d.generic).then(ae => {
+    if (!alive()) return;
     const el = $('#liveFaers'); if (!el) return;
     if (!ae.events.length) {
       el.innerHTML = `<div class="live-note">No FDA FAERS reports found for “${esc(token)}.”</div>`;
@@ -462,10 +476,11 @@ async function enrichLive(d, token) {
          <span class="row-price" style="color:var(--text-2);font-weight:600">${e.count.toLocaleString()}</span></div>`).join('') +
       `<div class="live-note"><strong>Spontaneous FDA FAERS reports</strong> — counts reflect reporting volume and drug popularity, <strong>not incidence and not causation</strong>. Not medical advice.</div>` +
       `<a class="src-link" href="${esc(ae.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA FAERS ↗</a>`;
-  }).catch(() => { const el = $('#liveFaers'); if (el) el.innerHTML = `<div class="live-err">Adverse-event lookup unavailable.</div>`; });
+  }).catch(() => { if (!alive()) return; const el = $('#liveFaers'); if (el) el.innerHTML = `<div class="live-err">Adverse-event lookup unavailable.</div>`; });
 
   // FDA label drug-interaction narrative (NOT a checked drug-pair result).
   live.getLabelInteractions(d.generic, d.name).then(di => {
+    if (!alive()) return;
     const el = $('#liveInteractions'); if (!el) return;
     if (!di) {
       el.innerHTML = `<div class="live-note">No FDA-label interaction text found for “${esc(token)}.”</div>`;
@@ -476,18 +491,19 @@ async function enrichLive(d, token) {
       `<p style="font-size:var(--t-sm);line-height:1.55">${esc(short)}</p>
        <div class="live-note">From the <strong>FDA label</strong> — narrative text, <strong>not a checked drug-pair interaction</strong>. Verify with a pharmacist.</div>
        <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA label ↗</a>`;
-  }).catch(() => { const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
+  }).catch(() => { if (!alive()) return; const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
 
   // Coupons / patient-assistance programs (backend only; getCoupons returns null
   // on the static deploy and the #liveCoupons box is never rendered, so this no-ops).
   live.getCoupons(d.slug || d.generic).then(list => {
+    if (!alive()) return;
     const el = $('#liveCoupons'); if (!el) return;
     if (!list || !list.length) { el.remove(); return; }   // no coupons or feature off -> remove the box cleanly
     // Collapse identical program cards (a slug can match drug-form variants).
     const seen = new Set();
     const uniq = list.filter(c => { const k = `${c.program_name}|${c.bin}|${c.url}`; return seen.has(k) ? false : seen.add(k); });
     el.innerHTML = uniq.map(c => couponCardHTML(c)).join('') + `<div class="live-note">Reference only — verify each program before use. Manufacturer copay cards cannot be used with Medicare or Medicaid.</div>`;
-  }).catch(() => { const el = $('#liveCoupons'); if (el) el.remove(); });
+  }).catch(() => { if (!alive()) return; const el = $('#liveCoupons'); if (el) el.remove(); });
 }
 
 // Detail panel for an off-catalog drug — no curated price, pure live data.
@@ -522,7 +538,7 @@ function openLiveDetail(display, clean) {
   ov.classList.add('open');
   $('#panel').scrollTop = 0;
   $('#panelBody [data-close]').focus();
-  enrichLive({ generic: clean, name: display }, token);
+  enrichLive({ generic: clean, name: display }, token, ++_panelGen);
 }
 
 function closeDetail() { $('#overlay').classList.remove('open'); }
@@ -631,7 +647,7 @@ function init() {
     if (e.target.closest('[data-close]')) { closeDetail(); return; }
     if (copy) { copyCoupon(copy.dataset.copy, copy); return; }
     if (nav) { e.preventDefault(); setView(nav.dataset.nav); return; }
-    if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); input.value = d.name; state.q = d.name; sugg.classList.remove('vis'); renderGrid(); openDetail(pick.dataset.pick); return; }
+    if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); if (!d) return; input.value = d.name; state.q = d.name; sugg.classList.remove('vis'); renderGrid(); openDetail(pick.dataset.pick); return; }
     if (liveEl) { input.value = liveEl.dataset.live; state.q = liveEl.dataset.live; sugg.classList.remove('vis'); openLiveDetail(liveEl.dataset.live, liveEl.dataset.clean); return; }
     if (open) { const slug = open.dataset.open || open.dataset.slug; openDetail(slug); return; }
   });
