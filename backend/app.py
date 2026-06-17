@@ -51,11 +51,11 @@ DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")
 COUPONS_DATA_PATH = os.environ.get("COUPONS_DATA", "data/coupons.jsonl")
 
 
-def _load_records(path: str) -> tuple[list[dict], bool]:
-    """Load normalized price records from a JSONL file.
+def _load_jsonl(path: str) -> tuple[list[dict], bool]:
+    """Load records from a JSONL file; returns (records, loaded).
 
-    Returns (records, loaded) where loaded=False means the data file was absent
-    and the caller should return an empty result set rather than fabricated data.
+    loaded=False means the file was absent — callers return empty results
+    rather than fabricated data, so bench-day collections stay clean.
     """
     if not path or not os.path.exists(path):
         return [], False
@@ -72,29 +72,12 @@ def _load_records(path: str) -> tuple[list[dict], bool]:
     return records, bool(records)
 
 
-def _load_coupons(path: str) -> tuple[list[dict], bool]:
-    """Load coupon records from a JSONL file.
-
-    Returns (records, loaded) where loaded=False means the data file was absent.
-    """
-    if not path or not os.path.exists(path):
-        return [], False
-    records: list[dict] = []
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError:
-                continue
-    return records, bool(records)
-
+# Aliases so existing tests that call _load_records / _load_coupons still work.
+_load_records = _load_coupons = _load_jsonl
 
 # Loaded once at startup; restart the process to pick up new data.
-_RECORDS, _PRICES_LOADED = _load_records(DEFAULT_DATA_PATH)
-_COUPONS, _COUPONS_LOADED = _load_coupons(COUPONS_DATA_PATH)
+_RECORDS, _PRICES_LOADED = _load_jsonl(DEFAULT_DATA_PATH)
+_COUPONS, _COUPONS_LOADED = _load_jsonl(COUPONS_DATA_PATH)
 
 
 @app.get("/health")
@@ -270,7 +253,6 @@ async def coupons_goodrx(
 
     try:
         async with httpx.AsyncClient(timeout=httpx.Timeout(15.0)) as client:
-            # Step 1: price compare — cheapest GoodRx offer for this drug + quantity.
             r1 = await client.get(
                 f"{_GOODRX_API_BASE}/v2/price/compare",
                 params=compare_params,
@@ -326,7 +308,7 @@ async def coupons_goodrx(
         "member_id": c.get("memberId") or c.get("member_id"),
         "price_usd": best.get("display", {}).get("price"),
         "pharmacy_name": pharmacy.get("name"),
-        "coupon_url": c.get("url"),
+        "url": c.get("url"),
         "medicare_medicaid_excluded": True,
         "source": "goodrx",
     }

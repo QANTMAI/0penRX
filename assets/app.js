@@ -375,6 +375,7 @@ function prefetchDrug(slug) {
   live.getAdverseEvents(d.generic);
   live.getLabelInteractions(d.generic, d.name);
   live.getCoupons(d.slug || d.generic);
+  live.getGoodRxCoupons(d.generic);
 }
 
 function enrichLive(d, token, gen) {
@@ -494,11 +495,17 @@ function enrichLive(d, token, gen) {
        <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA label ↗</a>`;
   }).catch(() => { if (!alive()) return; const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
 
-  // Coupons / patient-assistance programs (backend only; getCoupons returns null
+  // Coupons / patient-assistance programs (backend only; both functions return null
   // on the static deploy and the #liveCoupons box is never rendered, so this no-ops).
-  live.getCoupons(d.slug || d.generic).then(list => {
+  // GoodRx results are merged with catalog coupons; getGoodRxCoupons returns null
+  // when the key is absent so this is a silent no-op until the key is configured.
+  Promise.all([
+    live.getCoupons(d.slug || d.generic),
+    live.getGoodRxCoupons(d.generic),
+  ]).then(([list, grx]) => {
     if (!alive()) return;
     const el = $('#liveCoupons'); if (!el) return;
+    const combined = [...(list || []), ...(grx || [])];
     // Outbound deep-links — referral only; none of these sources permit scraping.
     // NeedyMeds CCRM: 7,000+ programs / 1,500 branded discount cards (7/2025 PR kit).
     // RxAssist PAP: manufacturer PAP directory operated by RxVantage.
@@ -511,7 +518,7 @@ function enrichLive(d, token, gen) {
       <a class="live-more-link" href="https://www.rxassist.org/pap-info" target="_blank" rel="noopener noreferrer">RxAssist PAP ↗</a>
       <a class="live-more-link" href="https://www.panfoundation.org/" target="_blank" rel="noopener noreferrer">PAN Foundation (insured) ↗</a>
     </div>`;
-    if (!list || !list.length) {
+    if (!combined.length) {
       // No curated record — still surface the external search links so users
       // aren't left with a blank box when assistance programs may exist elsewhere.
       el.innerHTML = `<div class="live-note">No curated record for this drug — search public databases below.</div>${moreLinks}`;
@@ -519,7 +526,7 @@ function enrichLive(d, token, gen) {
     }
     // Collapse identical program cards (a slug can match drug-form variants).
     const seen = new Set();
-    const uniq = list.filter(c => { const k = `${c.program_name}|${c.bin}|${c.url}`; return seen.has(k) ? false : seen.add(k); });
+    const uniq = combined.filter(c => { const k = `${c.program_name}|${c.bin}|${c.url}`; return seen.has(k) ? false : seen.add(k); });
     el.innerHTML = uniq.map(c => couponCardHTML(c)).join('')
       + `<div class="live-note">Reference only — verify each program before use. Manufacturer copay cards cannot be used with Medicare or Medicaid.</div>`
       + moreLinks;
