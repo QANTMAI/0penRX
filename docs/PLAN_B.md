@@ -69,46 +69,47 @@ These are sequenced by value and unblock-ability, not yet built:
    partner credentials are issued.
 
 2. **NeedyMeds CCRM + PAP directory** — *blocked: license required.*
-   Per NeedyMeds' own published PR toolkit: **7,000+ assistance programs** (PAPs,
-   disease-specific, state/local), **15,000+ free/low-cost/sliding-scale clinics**,
-   and **1,500 drug discount coupons** (the NeedyMeds-issued Drug Discount Card
-   program, distinct from PAPs). An earlier point-in-time enumeration of their
-   CCRM drug-level search page returned ~4,768 entries — this likely counts
-   individual drug-level coupon records including third-party manufacturer coupons
-   indexed in their database, not NeedyMeds-issued cards alone. Both figures are
-   defensible depending on what is being counted; precision requires asking
-   NeedyMeds directly. No public API (`/api` returns 404). No bulk download. ToS
-   prohibits commercial use and screen-scraping. The only legitimate commercial
-   integration path is a negotiated data license — contact
-   **licensing@needymeds.org**. Cost and format (CSV/XML/JSON) are not published;
-   every arrangement is bespoke. The frontend already deep-links users to the CCRM
-   drug search (`coupons.taf?_function=name_list&gname=`) as a zero-cost interim
-   measure.
+   Per NeedyMeds' own published PR toolkit (the only publicly citable figures):
+   **7,000+ assistance programs** (PAPs, disease-specific, state/local),
+   **15,000+ free/low-cost/sliding-scale clinics**, and **1,500 drug discount
+   coupons** (the NeedyMeds-issued Drug Discount Card program, distinct from PAPs).
+   A figure of ~4,768 drug-level CCRM entries was obtained from a point-in-time
+   scrape of their search interface — this is a scrape-derived count, not a
+   published claim, and reflects individual drug-level records including third-party
+   manufacturer coupons indexed in their database. Do not cite the 4,768 figure as
+   authoritative; use the PR-toolkit figures or contact NeedyMeds directly. No
+   public API. No bulk download. ToS prohibits commercial use and screen-scraping.
+   The only legitimate commercial integration path is a negotiated data license —
+   contact **licensing@needymeds.org** (or info@needymeds.org for general
+   inquiries). Cost and format are not published; every arrangement is bespoke. The
+   frontend already deep-links users to the CCRM drug search
+   (`coupons.taf?_function=name_list&gname=`) as a zero-cost interim measure.
 
 3. **RxAssist PAP directory** — *blocked: ToS / written permission required.*
-   Operated by RxVantage (for-profit; acquired from Volunteers in Health Care,
-   est. 1999 with Robert Wood Johnson Foundation funding). The site no longer
-   publishes aggregate program counts on any public-facing page — the "375+ PAPs"
-   figure circulating in secondary sources reflects pre-2015 documentation and
-   cannot be confirmed today. The "875–900 programs" figure from an earlier scrape
-   pass is similarly unverifiable from public pages; true current count requires
-   direct database access. The search interface covers two databases: manufacturer
-   PAP programs (including RxOutreach and Xubex) and Generics Retail Programs. ToS
-   explicitly prohibits commercial use, redistribution, and derivative products —
-   written permission from RxVantage required before any programmatic ingestion. No
-   API, no bulk export. The frontend deep-links users to the PAP directory as a
-   zero-cost interim measure.
+   Operated by RxVantage (for-profit; est. 1999 with Robert Wood Johnson Foundation
+   funding). **RxAssist publishes zero quantitative database statistics on any
+   public-facing page.** The About page (rxassist.org/about) contains only a brief
+   mission statement — no program counts, no aggregate numbers whatsoever. All
+   figures that have circulated ("375+ PAPs", "875–900 programs") originate from
+   secondary sources, historical scrapes, or internal RxVantage data — none are
+   traceable to a published RxAssist or RxVantage document. The true current count
+   is unknown without direct contact (info@rxassist.org) or database access. The
+   search interface covers manufacturer PAP programs (including RxOutreach and
+   Xubex) and Generics Retail Programs. ToS explicitly prohibits commercial use,
+   redistribution, and derivative products — written permission from RxVantage
+   required before any programmatic ingestion. No API, no bulk export. The frontend
+   deep-links users to the PAP directory as a zero-cost interim measure.
 
-4. **PPA / helpingpatients.org** — *blocked: scraping prohibited; no CSV.*
-   Operated by PhRMA. The "475+" program count still appears in syndicated
-   government and nonprofit references (including a Nebraska state resource page)
-   but reflects an older claim, likely accurate when originally set (~2010–2015).
-   Live enumeration of the current site returns **~265 active programs** across
-   ~161 sponsors — the gap reflects programs that have expired or been folded into
-   other platforms since that figure was established. No CSV download exists; the
-   claim is unverified and no download link appears on the current site. ToS
-   explicitly prohibits scraping and commercial use. Do not ingest without a signed
-   agreement with PhRMA.
+4. **PPA / Partnership for Prescription Assistance** — *defunct: do not target.*
+   PhRMA shut down the consumer-facing PPA database approximately 2019. The
+   original domain `pparx.org` has been repurposed as an unrelated generic health
+   content site ("Professional Prescription Assistance") with no connection to the
+   former program. `helpingpatients.org` returns HTTP 200 but carries a
+   `last-modified: 09 Mar 2018` header — it is a frozen 8-year-old snapshot, not a
+   maintained database. All historical program counts ("475+", "265") refer to a
+   program that no longer operates. **Do not deep-link to pparx.org or
+   helpingpatients.org** — users will land on stale or repurposed content. No code
+   in this repo references either domain.
 
 5. **Per-portal manufacturer scraping** — *blocked: ToS / legal review, last
    resort.* Direct scraping of individual manufacturer portals is the fallback of
@@ -159,8 +160,8 @@ analogue of the NADAC year-rollover maintenance in `ingest.yml`.
 | NeedyMeds CCRM deep-link (outbound, no license needed) | **Shipped** |
 | RxAssist PAP deep-link (outbound, no license needed) | **Shipped** |
 | NeedyMeds licensed data feed (7,000+ programs; 1,500 discount cards) | Blocked — contact licensing@needymeds.org |
-| RxAssist data license (count unconfirmed from public pages) | Blocked — written permission from RxVantage |
-| PPA / helpingpatients.org | Blocked — ToS prohibits; no CSV exists (verified) |
+| RxAssist data license (count unknown; no public stats published) | Blocked — written permission from RxVantage |
+| PPA / helpingpatients.org / pparx.org | **Defunct** — PhRMA shut down ~2019; do not link |
 | Per-portal manufacturer scraping | Blocked — ToS / legal review (last resort) |
 
 ## Commercial layer — verified ground truth (2026-06-17)
