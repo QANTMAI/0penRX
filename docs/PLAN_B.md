@@ -69,34 +69,45 @@ These are sequenced by value and unblock-ability, not yet built:
    partner credentials are issued.
 
 2. **NeedyMeds CCRM + PAP directory** — *blocked: license required.*
-   Verified 2026-06-17: ~4,768 coupon/rebate/savings-card offers covering
-   ~4,613 drugs (CCRM), plus 9,000+ PAPs covering ~4,700 medications (separate
-   directory). No public API exists (`/api` returns 404). No bulk download.
-   ToS explicitly prohibits commercial use and screen-scraping. The only
-   legitimate commercial integration path is a negotiated data license —
-   contact **licensing@needymeds.org**. Cost and format (CSV/XML/JSON) are not
-   published; every arrangement appears bespoke. The frontend already deep-links
-   users directly to the CCRM drug search (`coupons.taf?_function=name_list&gname=`)
-   as a zero-cost interim measure.
+   Per NeedyMeds' own published PR toolkit: **7,000+ assistance programs** (PAPs,
+   disease-specific, state/local), **15,000+ free/low-cost/sliding-scale clinics**,
+   and **1,500 drug discount coupons** (the NeedyMeds-issued Drug Discount Card
+   program, distinct from PAPs). An earlier point-in-time enumeration of their
+   CCRM drug-level search page returned ~4,768 entries — this likely counts
+   individual drug-level coupon records including third-party manufacturer coupons
+   indexed in their database, not NeedyMeds-issued cards alone. Both figures are
+   defensible depending on what is being counted; precision requires asking
+   NeedyMeds directly. No public API (`/api` returns 404). No bulk download. ToS
+   prohibits commercial use and screen-scraping. The only legitimate commercial
+   integration path is a negotiated data license — contact
+   **licensing@needymeds.org**. Cost and format (CSV/XML/JSON) are not published;
+   every arrangement is bespoke. The frontend already deep-links users to the CCRM
+   drug search (`coupons.taf?_function=name_list&gname=`) as a zero-cost interim
+   measure.
 
 3. **RxAssist PAP directory** — *blocked: ToS / written permission required.*
-   Verified 2026-06-17: ~875–900 individual program entries across ~300+
-   manufacturers (not 375 as previously noted). Operated by RxVantage (for-profit).
-   HTML is server-rendered (no headless browser needed); robots.txt blocks nothing.
-   ToS explicitly prohibits commercial use, redistribution, and building derivative
-   products — written permission from RxVantage required before any programmatic
-   ingestion. No API, no bulk export. Data quality is mixed (some records have
-   corrupt/blank fields, one date field shows Unix epoch 0). The frontend
-   deep-links users to the PAP directory as a zero-cost interim measure.
+   Operated by RxVantage (for-profit; acquired from Volunteers in Health Care,
+   est. 1999 with Robert Wood Johnson Foundation funding). The site no longer
+   publishes aggregate program counts on any public-facing page — the "375+ PAPs"
+   figure circulating in secondary sources reflects pre-2015 documentation and
+   cannot be confirmed today. The "875–900 programs" figure from an earlier scrape
+   pass is similarly unverifiable from public pages; true current count requires
+   direct database access. The search interface covers two databases: manufacturer
+   PAP programs (including RxOutreach and Xubex) and Generics Retail Programs. ToS
+   explicitly prohibits commercial use, redistribution, and derivative products —
+   written permission from RxVantage required before any programmatic ingestion. No
+   API, no bulk export. The frontend deep-links users to the PAP directory as a
+   zero-cost interim measure.
 
 4. **PPA / helpingpatients.org** — *blocked: scraping prohibited; no CSV.*
-   Verified 2026-06-17: Operated by PhRMA. The claimed "downloadable CSV of 475
-   programs" **does not exist** — no CSV, no data file, no download link of any
-   kind on the site. The program list page (server-rendered Drupal) contains 265
-   programs across 161 sponsors; the site's own "475+" claim appears to be stale
-   marketing copy. ToS explicitly prohibits scraping and commercial use. PHP 7.4
-   (EOL) on LiteSpeed/Cloudflare. Database last updated September 15, 2025.
-   robots.txt is completely open, but ToS governs. Do not ingest without a signed
+   Operated by PhRMA. The "475+" program count still appears in syndicated
+   government and nonprofit references (including a Nebraska state resource page)
+   but reflects an older claim, likely accurate when originally set (~2010–2015).
+   Live enumeration of the current site returns **~265 active programs** across
+   ~161 sponsors — the gap reflects programs that have expired or been folded into
+   other platforms since that figure was established. No CSV download exists; the
+   claim is unverified and no download link appears on the current site. ToS
+   explicitly prohibits scraping and commercial use. Do not ingest without a signed
    agreement with PhRMA.
 
 5. **Per-portal manufacturer scraping** — *blocked: ToS / legal review, last
@@ -147,7 +158,37 @@ analogue of the NADAC year-rollover maintenance in `ingest.yml`.
 | GoodRx Partner API v2 (server-side HMAC proxy) | Blocked — key pending |
 | NeedyMeds CCRM deep-link (outbound, no license needed) | **Shipped** |
 | RxAssist PAP deep-link (outbound, no license needed) | **Shipped** |
-| NeedyMeds licensed data feed (~4,768 offers) | Blocked — contact licensing@needymeds.org |
-| RxAssist data license (~875 PAPs) | Blocked — written permission from RxVantage |
+| NeedyMeds licensed data feed (7,000+ programs; 1,500 discount cards) | Blocked — contact licensing@needymeds.org |
+| RxAssist data license (count unconfirmed from public pages) | Blocked — written permission from RxVantage |
 | PPA / helpingpatients.org | Blocked — ToS prohibits; no CSV exists (verified) |
 | Per-portal manufacturer scraping | Blocked — ToS / legal review (last resort) |
+
+## Commercial layer — verified ground truth (2026-06-17)
+
+Reference notes on sources that appear in developer documentation but have been
+verified against primary sources. Corrections here override any secondary-source
+claims in the codebase or prior notes.
+
+**FDB (First Databank) and AWP.** FDB stopped publishing AWP-based prices in
+September 2011 following a class action settlement (Judge Patti B. Saris, U.S.
+District Court of Massachusetts) in which FDB and Medi-Span agreed to reduce AWPs
+to 120% of WAC and subsequently cease AWP publication entirely. Any documentation
+claiming FDB "exposes AWP" is factually incorrect post-2011. FDB now publishes
+WAC, NADAC, and clinical decision support data. Current commercial AWP publishers
+are **Medi-Span (Wolters Kluwer)**, **Micromedex RED BOOK (Merative)**, and
+**Gold Standard Drug Database**.
+
+**CoverMyMeds developer portal.** The original `developer.covermymeds.com` URL is
+dead. CoverMyMeds was acquired by McKesson in 2017 and its developer
+infrastructure has been consolidated into McKesson/RelayHealth. A standalone
+public API portal equivalent to the pre-acquisition product no longer exists. The
+current developer support entry point is
+`https://covermymeds.com/main/support/developers/` — requires a formal partnership
+application; not self-serve.
+
+**RxHope.** Privacy Policy prohibits commercial exploitation of content. The
+database is frozen at 2009–2011 vintage. At directory-tier browsing, only program
+names are accessible — no eligibility criteria, income thresholds, or application
+data. Scraping for commercial reuse carries meaningful legal risk. Use as a
+reference only: confirm a program exists, then route users to the manufacturer
+directly. Not a data extraction target.
