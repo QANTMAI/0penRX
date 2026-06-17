@@ -289,6 +289,10 @@ ul { list-style: none; }
 .src-link:hover { text-decoration: underline; }
 .live-note { font-size: var(--t-xs); color: var(--text-2); margin-top: .5rem; }
 .live-err { font-size: var(--t-sm); color: var(--accent); }
+.live-more { margin-top: .8rem; padding-top: .65rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.live-more-lbl { font-size: var(--t-xs); color: var(--text-2); white-space: nowrap; }
+.live-more-link { font-size: var(--t-xs); color: var(--primary); background: var(--surface-2); padding: .2rem .55rem; border-radius: 4px; text-decoration: none; white-space: nowrap; }
+.live-more-link:hover { text-decoration: underline; }
 
 /* ---- Coupon block ------------------------------------------ */
 .coupon { background: var(--surface-2); border: 1px dashed var(--border); border-radius: var(--r-lg); padding: var(--sp-4); margin-top: var(--sp-4); }

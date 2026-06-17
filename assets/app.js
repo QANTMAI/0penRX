@@ -498,11 +498,27 @@ function enrichLive(d, token, gen) {
   live.getCoupons(d.slug || d.generic).then(list => {
     if (!alive()) return;
     const el = $('#liveCoupons'); if (!el) return;
-    if (!list || !list.length) { el.remove(); return; }   // no coupons or feature off -> remove the box cleanly
+    // Deep-links into NeedyMeds CCRM (~4,768 offers) and RxAssist PAP directory
+    // (~875 programs). Outbound referral only — these sources prohibit scraping;
+    // contact licensing@needymeds.org for a data licensing arrangement.
+    const gen = encodeURIComponent(d.generic || '');
+    const moreLinks = `<div class="live-more">
+      <span class="live-more-lbl">Also search:</span>
+      <a class="live-more-link" href="https://www.needymeds.org/coupons.taf?_function=name_list&amp;gname=${gen}" target="_blank" rel="noopener noreferrer">NeedyMeds CCRM ↗</a>
+      <a class="live-more-link" href="https://www.rxassist.org/pap-info" target="_blank" rel="noopener noreferrer">RxAssist PAP ↗</a>
+    </div>`;
+    if (!list || !list.length) {
+      // No curated record — still surface the external search links so users
+      // aren't left with a blank box when assistance programs may exist elsewhere.
+      el.innerHTML = `<div class="live-note">No curated record for this drug — search public databases below.</div>${moreLinks}`;
+      return;
+    }
     // Collapse identical program cards (a slug can match drug-form variants).
     const seen = new Set();
     const uniq = list.filter(c => { const k = `${c.program_name}|${c.bin}|${c.url}`; return seen.has(k) ? false : seen.add(k); });
-    el.innerHTML = uniq.map(c => couponCardHTML(c)).join('') + `<div class="live-note">Reference only — verify each program before use. Manufacturer copay cards cannot be used with Medicare or Medicaid.</div>`;
+    el.innerHTML = uniq.map(c => couponCardHTML(c)).join('')
+      + `<div class="live-note">Reference only — verify each program before use. Manufacturer copay cards cannot be used with Medicare or Medicaid.</div>`
+      + moreLinks;
   }).catch(() => { if (!alive()) return; const el = $('#liveCoupons'); if (el) el.remove(); });
 }
 

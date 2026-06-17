@@ -68,18 +68,38 @@ These are sequenced by value and unblock-ability, not yet built:
    browser. Caching and display must honor the partner contract. Blocked until
    partner credentials are issued.
 
-2. **NeedyMeds** — *blocked: licensed feed.*
-   Comprehensive PAP/coupon coverage, but there is no free public API; access is
-   a **licensed data feed**. Requires a signed license before ingest. No
-   scraping of NeedyMeds as a substitute for licensing.
+2. **NeedyMeds CCRM + PAP directory** — *blocked: license required.*
+   Verified 2026-06-17: ~4,768 coupon/rebate/savings-card offers covering
+   ~4,613 drugs (CCRM), plus 9,000+ PAPs covering ~4,700 medications (separate
+   directory). No public API exists (`/api` returns 404). No bulk download.
+   ToS explicitly prohibits commercial use and screen-scraping. The only
+   legitimate commercial integration path is a negotiated data license —
+   contact **licensing@needymeds.org**. Cost and format (CSV/XML/JSON) are not
+   published; every arrangement appears bespoke. The frontend already deep-links
+   users directly to the CCRM drug search (`coupons.taf?_function=name_list&gname=`)
+   as a zero-cost interim measure.
 
-3. **PPA / helpingpatients.org** — *blocked: needs a verified parser.*
-   The Partnership for Prescription Assistance publishes program data as an HTML
-   list that is **likely JS-rendered**. Before any ingest we must (a) capture and
-   record the site's terms of use, and (b) build and verify a parser against the
-   real rendered DOM. No ingest until the parser is proven correct.
+3. **RxAssist PAP directory** — *blocked: ToS / written permission required.*
+   Verified 2026-06-17: ~875–900 individual program entries across ~300+
+   manufacturers (not 375 as previously noted). Operated by RxVantage (for-profit).
+   HTML is server-rendered (no headless browser needed); robots.txt blocks nothing.
+   ToS explicitly prohibits commercial use, redistribution, and building derivative
+   products — written permission from RxVantage required before any programmatic
+   ingestion. No API, no bulk export. Data quality is mixed (some records have
+   corrupt/blank fields, one date field shows Unix epoch 0). The frontend
+   deep-links users to the PAP directory as a zero-cost interim measure.
 
-4. **Per-portal manufacturer scraping** — *blocked: ToS / legal review, last
+4. **PPA / helpingpatients.org** — *blocked: scraping prohibited; no CSV.*
+   Verified 2026-06-17: Operated by PhRMA. The claimed "downloadable CSV of 475
+   programs" **does not exist** — no CSV, no data file, no download link of any
+   kind on the site. The program list page (server-rendered Drupal) contains 265
+   programs across 161 sponsors; the site's own "475+" claim appears to be stale
+   marketing copy. ToS explicitly prohibits scraping and commercial use. PHP 7.4
+   (EOL) on LiteSpeed/Cloudflare. Database last updated September 15, 2025.
+   robots.txt is completely open, but ToS governs. Do not ingest without a signed
+   agreement with PhRMA.
+
+5. **Per-portal manufacturer scraping** — *blocked: ToS / legal review, last
    resort.* Direct scraping of individual manufacturer portals is the fallback of
    last resort. Each target's Terms of Service must pass legal review before any
    automated access. Not a default path.
@@ -125,6 +145,9 @@ analogue of the NADAC year-rollover maintenance in `ingest.yml`.
 | Catalog-derived coupons + `/coupons` + gated frontend | **Shipped** (Phase 1) |
 | Timed sentinel (`coupons.yml`) | **Shipped** (Phase 1.5) |
 | GoodRx Partner API v2 (server-side HMAC proxy) | Blocked — key pending |
-| NeedyMeds licensed feed | Blocked — license required |
-| PPA / helpingpatients.org | Blocked — verified parser + ToS capture |
+| NeedyMeds CCRM deep-link (outbound, no license needed) | **Shipped** |
+| RxAssist PAP deep-link (outbound, no license needed) | **Shipped** |
+| NeedyMeds licensed data feed (~4,768 offers) | Blocked — contact licensing@needymeds.org |
+| RxAssist data license (~875 PAPs) | Blocked — written permission from RxVantage |
+| PPA / helpingpatients.org | Blocked — ToS prohibits; no CSV exists (verified) |
 | Per-portal manufacturer scraping | Blocked — ToS / legal review (last resort) |
