@@ -646,6 +646,10 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
 
 .db-table .badge { border-radius: var(--r-sm); padding: .12rem .4rem; font-size: 11px; }
 
+/* In the table: green = cash coupon (GoodRx), purple = Mfr program. Makes them immediately distinct. */
+.db-table .tag.grx { color: var(--good); background: var(--good-l); }
+.db-table .tag.mfr { color: #c489ff; background: #190a2e; }
+
 .db-empty {
   text-align: center;
   padding: 32px 16px;
