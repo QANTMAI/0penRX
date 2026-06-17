@@ -128,3 +128,27 @@ Failing to do this causes NADAC lookups to go stale (CMS retires old distributio
 ## 12. Provenance for every catalog entry
 
 Any drug price, coupon code, or program claim added to `assets/catalog.js` must have a verifiable primary source. Document it in `docs/PROVENANCE.md` or in the PR description before merging. "I saw it somewhere" is not a source.
+
+---
+
+## 13. Catalog integrity and re-verification
+
+Every catalog entry carries integrity metadata that must stay truthful:
+
+- `status` — `active` · `limited` · `archived`. Mark `limited` when a program is closing to new patients, the drug is in shortage, or access is otherwise restricted; mark `archived` when the drug is effectively off-market. Never leave a discontinued or restricted drug as `active`.
+- `eligibility` — `cash-pay` · `insured-only` · `medicare-only` · `mixed` · `income-qualified`. A price that is **not** redeemable by an uninsured cash payer (a commercial-insurance copay card, an IRA Medicare-negotiated price, etc.) must NOT be labeled `cash-pay`. This is rule §3 applied to the price figure itself.
+- `priceNote` — required whenever the displayed price is conditional (starting-dose-only, time-limited introductory offer, shipping fee included). State the condition plainly.
+- `verified` — the ISO date of last manual audit. Re-stamp it only when the entry is actually re-checked against a primary source.
+
+**Enforcement (two layers):**
+1. `assets/catalog-validator.js` runs at page load via `validateCatalog(CATALOG)` and fails loud on missing fields, `price > retail`, savings-math mismatch (>2 pts), unknown enum values, or a `verified` date older than 90 days.
+2. A scheduled **sentinel** (`openrx-catalog-sentinel`, every 12 hours) re-audits the catalog against live web sources — checking `limited`/`archived` entries for status changes, expired price notes, and stale `verified` dates — and emails findings to `info@qantm.ai`. Do not disable it without a replacement check.
+
+---
+
+## 14. Benchmark-term accuracy (AWP / WAC / MFP)
+
+When any pricing benchmark is named in the UI, docs, or comments, it must be used correctly (see `docs/PROVENANCE.md` §4–§5):
+
+- **AWP** is a proprietary, manufacturer-reported compendia benchmark — not a transaction average and not a public feed. The current AWP publishers are **Medi-Span, Micromedex RED BOOK, and Elsevier Gold Standard**. Do **not** cite First DataBank as an AWP source — FDB exited AWP publishing in 2011 (it still publishes WAC). 0penRX does not redistribute licensed AWP values.
+- **MFP** (the IRA Medicare-negotiated Maximum Fair Price) is a **Medicare Part D price only**. Never present an MFP as a cash-pay or commercial price; if a catalog figure derives from one, flag it via `eligibility` (`medicare-only` / `mixed`) and a `priceNote`. Cite the statute (42 U.S.C. § 1320f-4) and CMS, not secondary summaries.

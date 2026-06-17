@@ -18,22 +18,28 @@ Live at [0penrx.org](https://0penrx.org).
 ## Architecture
 
 ```
-index.html          Static frontend — GitHub Pages (0penrx.org)
+index.html             Static frontend — GitHub Pages (0penrx.org)
 assets/
-  app.js            Main app: drug cards, detail panel, live data display
-  catalog.js        Curated drug catalog (single source of truth for prices/programs)
-  live.js           Live data fetchers: RxNorm, openFDA, CMS NADAC
-  styles.css        Design system
-  config.js         Runtime config (API_BASE — not committed; set per deployment)
+  app.js               Main app: drug cards, detail panel, live data display
+  catalog.js           Curated drug catalog (single source of truth for prices/programs)
+  catalog-validator.js Load-time integrity checks (price math, enums, staleness)
+  live.js              Live data fetchers: RxNorm, openFDA, CMS NADAC
+  styles.css           Design system
+  config.js            Runtime config (API_BASE — not committed; set per deployment)
 backend/
-  app.py            FastAPI backend — /coupons, /prices, /health
+  app.py               FastAPI backend — /coupons, /prices, /health
 data/
-  build_coupons.py  Derives coupons.jsonl from catalog.js (CI-rebuilt monthly)
-  ingest_nadac.py   CMS NADAC ingestion pipeline
-  coupons.jsonl     Committed coupon dataset (88 records)
-docs/               Platform rules, schema, provenance, deploy guide
-.github/workflows/  CI, NADAC ingest, coupon rebuild, CodeQL, pre-commit
-sw.js               Service worker — PWA shell cache (never caches API responses)
+  build_coupons.py     Derives coupons.jsonl from catalog.js (CI-rebuilt monthly)
+  ingest_nadac.py      CMS NADAC ingestion pipeline
+  coupons.jsonl        Committed coupon dataset
+docs/                  Platform rules, schema, provenance, deploy guide
+.github/workflows/     CI, NADAC ingest, coupon rebuild, CodeQL, pre-commit
+sw.js                  Service worker — PWA shell cache (never caches API responses)
+```
+
+Each catalog entry carries integrity metadata — `status` (`active`/`limited`/`archived`), `eligibility` (e.g. `cash-pay`/`insured-only`/`medicare-only`), an optional `priceNote`, and a `verified` audit date. `catalog-validator.js` checks these at page load (savings math, enum validity, 90-day staleness), and a 12-hour sentinel re-audits the catalog against live web sources and emails findings. See [docs/SCHEMA.md](docs/SCHEMA.md) and [docs/PROVENANCE.md](docs/PROVENANCE.md).
+
+```
 ```
 
 ## Data sources
@@ -45,6 +51,9 @@ sw.js               Service worker — PWA shell cache (never caches API respons
 | CMS NADAC | Weekly acquisition cost (base for Cost Plus formula) | Free, no key |
 | GoodRx (BIN 015995) | Cash coupon at 70K+ pharmacies | BIN in catalog |
 | Manufacturer programs | 15+ copay/assistance programs | Links to official pages |
+| CMS IRA negotiated prices (MFP) | Medicare Part D Maximum Fair Price (reference context, not cash-pay) | Public, cms.gov |
+
+> **Benchmark terms** are used precisely (see [docs/PROVENANCE.md](docs/PROVENANCE.md)): *AWP* is a proprietary compendia benchmark (Medi-Span, RED BOOK, Gold Standard — **not** First DataBank, which exited AWP in 2011); *MFP* is the IRA Medicare-negotiated price and is never presented as a cash-pay figure. 0penRX redistributes neither — both are documented for accuracy only.
 
 ## Running locally
 

@@ -25,6 +25,8 @@ allowed to do* with each source. See `docs/PLAN_B.md` for the rollout plan and
 | **RxAssist** | Directory of manufacturer PAPs and application forms | Free directory; redistribution/attribution terms must be confirmed before ingest | Web pages, no public API; not CORS-callable. Would require a parser | **3 — Gated** |
 | **Manufacturer portals** (Pfizer RxPathways, Sanofi Patient Connection, AstraZeneca Direct, Amgen Assist360, NovoCare, GSK For You, J&J, BI Cares, BMS, LillyDirect, EMD Serono, Novartis) | Authoritative per-program savings cards, direct-pay pricing, eligibility | Each portal's ToS governs automated access and redistribution individually | Per-portal HTML, no CORS; direct scraping is the **last resort** and needs per-target ToS / legal review | **3 — Gated** |
 | **BPGLookup** (BIN/PCN/Group lookup) | Validation/enrichment of card routing fields (BIN → network/PCN/group) | Reference lookup; redistribution terms must be confirmed | No public CORS API; used as enrichment, not a primary feed | **3 — Gated** |
+| **CMS IRA Negotiated Prices (MFP)** | Government-negotiated Maximum Fair Price for the IRA-selected Medicare drugs (first 10 effective Jan 1 2026; 15 more Jan 1 2027) | Public-domain U.S. government data; freely redistributable with attribution | Published as downloadable files on cms.gov (no JSON API); Medicare Part D price only — **not** a cash-pay benchmark | **2 — Gated** |
+| **AWP compendia** (Wolters Kluwer Medi-Span · Merative RED BOOK · Elsevier Gold Standard) | Average Wholesale Price + WAC benchmarks | **Proprietary, licensed** — no free redistribution; manufacturer-reported, not transaction-averaged. FDB MedKnowledge no longer publishes AWP (exited 2011) | No public API; contractual license only. Referenced for context, **never** redistributed | **3 — Gated** |
 
 ## Attribution & ToS obligations
 
@@ -39,3 +41,10 @@ allowed to do* with each source. See `docs/PLAN_B.md` for the rollout plan and
 - **RxAssist / manufacturer portals / BPGLookup** — confirm each source's ToS and
   attribution terms before automated access; any scraping path requires legal
   review (Tier 3) and is the last resort.
+- **CMS IRA negotiated prices** — public-domain; attribute to CMS and cite
+  42 U.S.C. § 1320f-4. These are Medicare Part D Maximum Fair Prices, **not**
+  cash-pay prices; never present an MFP as a cash/retail figure without that label.
+- **AWP compendia (Medi-Span / RED BOOK / Gold Standard)** — proprietary licensed
+  data; **do not redistribute AWP values**. The compendia landscape is documented
+  in `docs/PROVENANCE.md` §4 for terminology accuracy only. Note FDB MedKnowledge
+  exited AWP publishing in 2011 and now publishes WAC only.

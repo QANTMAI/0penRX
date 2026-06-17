@@ -3,6 +3,38 @@
 All ingested pricing data is normalized to a single record shape so prices from
 different sources are directly comparable.
 
+## Catalog entry (`assets/catalog.js`)
+
+The curated catalog is the single source of truth for displayed brand/reference
+prices. Each entry is validated at page load by `assets/catalog-validator.js`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| slug | string | URL-safe primary key, joins to coupons and detail routing |
+| name | string | Brand name as displayed, e.g. "Farxiga®" |
+| generic | string | Non-proprietary (INN) name; biologics carry the FDA 4-letter suffix, e.g. "somatrogon-ghla" |
+| company | string | Manufacturer as displayed |
+| category | string | Therapeutic category (drives the filter chips) |
+| price | number | Reference cash-pay / program price in USD |
+| retail | number | WAC list price in USD (savings-% baseline only, not a consumer quote) |
+| savings | number | Integer % off retail; must equal `round((retail−price)/retail×100)` ±2 |
+| heroType | string | `GenericCashCoupon` (BIN-routed card) or `ExternalLinkRouting` (partner portal) |
+| bin | string | GoodRx network BIN for coupon cards; empty string for manufacturer-direct |
+| partner | string | Assistance-program name; resolves to a URL via `PARTNER_URL` in `app.js` |
+| isGeneric | boolean | True if a generic equivalent is the dispensed product (adds Cost Plus / Amazon tags) |
+| **status** | string | `active` · `limited` · `archived`. `limited` = program closing, shortage, or restricted; `archived` = effectively off-market. Drives the detail-card badge. |
+| **eligibility** | string | `cash-pay` · `insured-only` · `medicare-only` · `mixed` · `income-qualified`. Anything but `cash-pay` renders a warning that an uninsured payer cannot redeem the listed price. |
+| **priceNote** | string \| null | Dose-tier or expiry caveat, e.g. *"starting dose; up to $449/mo"*. Null when the price is unconditional. |
+| **verified** | string | ISO date (`YYYY-MM-DD`) of last manual audit. Validator + 12-hour sentinel flag entries older than 90 days. |
+
+### Validation rules (`catalog-validator.js`)
+
+Fails loud (console error) on any of: missing required field; `price ≤ 0` or
+`retail ≤ 0`; `price > retail`; `savings` disagreeing with the computed
+percentage by more than 2 points; an unknown `status` or `eligibility` value.
+Warns (console warn) on: a `verified` date older than 90 days, or a missing
+`verified` date. Run automatically at module load via `validateCatalog(CATALOG)`.
+
 ## Price record
 
 | Field | Type | Description |
