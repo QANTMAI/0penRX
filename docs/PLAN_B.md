@@ -69,21 +69,25 @@ These are sequenced by value and unblock-ability, not yet built:
    partner credentials are issued.
 
 2. **NeedyMeds CCRM + PAP directory** — *blocked: license required.*
-   Per NeedyMeds' own published PR toolkit (the only publicly citable figures):
-   **7,000+ assistance programs** (PAPs, disease-specific, state/local),
-   **15,000+ free/low-cost/sliding-scale clinics**, and **1,500 drug discount
-   coupons** (the NeedyMeds-issued Drug Discount Card program, distinct from PAPs).
-   A figure of ~4,768 drug-level CCRM entries was obtained from a point-in-time
-   scrape of their search interface — this is a scrape-derived count, not a
-   published claim, and reflects individual drug-level records including third-party
-   manufacturer coupons indexed in their database. Do not cite the 4,768 figure as
-   authoritative; use the PR-toolkit figures or contact NeedyMeds directly. No
-   public API. No bulk download. ToS prohibits commercial use and screen-scraping.
-   The only legitimate commercial integration path is a negotiated data license —
-   contact **licensing@needymeds.org** (or info@needymeds.org for general
-   inquiries). Cost and format are not published; every arrangement is bespoke. The
-   frontend already deep-links users to the CCRM drug search
-   (`coupons.taf?_function=name_list&gname=`) as a zero-cost interim measure.
+   Count reconciliation across sources (different dates, different units):
+
+   | Source | Date | Figure |
+   |--------|------|--------|
+   | Triage Cancer (citing NeedyMeds) | 2024 | 5,000+ programs, 13,000+ clinics, 1,000 discount coupons |
+   | NeedyMeds PR Toolkit | 2025 | 7,000+ programs, 15,000+ clinics, 1,500 discount coupons |
+   | Point-in-time CCRM scrape | 2026-06 | ~4,768 drug-coupon pairs across ~4,613 drugs |
+
+   The "1,000–1,500 drug discount coupons" figure refers specifically to the
+   NeedyMeds-issued Drug Discount Card program entries. The ~4,768 scrape count
+   reflects individual drug-level coupon pairings including third-party manufacturer
+   coupons indexed in their broader database — a different unit of measure. Both are
+   correct for different scopes. Do not cite the 4,768 as an authoritative published
+   figure; use the PR-toolkit numbers. No public API. No bulk download. ToS prohibits
+   commercial use and screen-scraping. The only legitimate commercial integration path
+   is a negotiated data license — contact **licensing@needymeds.org** (or
+   info@needymeds.org for general inquiries). Cost and format are not published; every
+   arrangement is bespoke. The frontend already deep-links users to the CCRM drug
+   search (`coupons.taf?_function=name_list&gname=`) as a zero-cost interim measure.
 
 3. **RxAssist PAP directory** — *blocked: ToS / written permission required.*
    Operated by RxVantage (for-profit; est. 1999 with Robert Wood Johnson Foundation
@@ -193,3 +197,49 @@ names are accessible — no eligibility criteria, income thresholds, or applicat
 data. Scraping for commercial reuse carries meaningful legal risk. Use as a
 reference only: confirm a program exists, then route users to the manufacturer
 directly. Not a data extraction target.
+
+## Drug pricing benchmark hierarchy
+
+For reference and future data-source decisions. Statutory citations where available.
+
+| Benchmark | Definition | Publisher | Notes |
+|-----------|-----------|-----------|-------|
+| **WAC** (Wholesale Acquisition Cost) | Manufacturer's list price to wholesalers, excluding discounts/rebates | Manufacturer-reported | Statutory definition: 42 U.S.C. § 1395w-3a |
+| **AWP** (Average Wholesale Price) | Historical reference benchmark for insurance reimbursement | Medi-Span (Wolters Kluwer), Micromedex RED BOOK (Merative) | FDB stopped publishing post-2011 settlement; no longer a statutory benchmark |
+| **AMP** (Average Manufacturer Price) | Price wholesalers actually pay manufacturers | CMS (not public) | Used for Medicaid rebate calculations |
+| **NADAC** (National Average Drug Acquisition Cost) | CMS weekly survey of actual pharmacy acquisition costs | CMS / data.medicaid.gov | Most accurate public cash-pay benchmark; what 0penRX uses |
+| **MFP** (Maximum Fair Price) | IRA-negotiated Medicare prices for selected high-cost drugs | CMS / cms.gov/inflation-reduction-act | Public since March 1, 2025; 10 drugs initially |
+
+Source: Minnesota Department of Commerce 2024 state government drug pricing primer; NIH PMC 2024 peer-reviewed study (PMC11953851) confirming hospital price transparency data is not usable for drug price comparison; Commonwealth Fund 2023.
+
+**Why NADAC + Cost Plus formula is the right benchmark for 0penRX:** A 2024 NIH PMC peer-reviewed study found that federally mandated Hospital Price Transparency data (required since 2021) is unusable for drug price comparison because hospitals are not required to report units of measurement (CMS added this requirement starting January 2025). NADAC is the most accurate publicly available benchmark for actual pharmacy acquisition costs. The Cost Plus formula (acquisition × quantity × 1.15 markup + $3 dispensing) mirrors the Mark Cuban Cost Plus model. This is the correct approach.
+
+## Net new sources (verified 2026-06-17)
+
+Sources confirmed in the expanded research pass that are not yet integrated:
+
+**PAN Foundation** (`panfoundation.org`) — copay grant funds for *insured* patients
+with high cost-sharing (copays, premiums, deductibles). This is a categorically
+different program type from PAPs, which serve uninsured patients. PAN covers
+disease-specific fund areas; apply via their portal or 1-866-316-7263. Partners
+with SSA Extra Help / Low-Income Subsidy for Medicare patients. **Already wired as
+an outbound deep-link in the drug detail panel.**
+
+**ASHP Drug Shortage Database** (`ashp.org/drug-shortages`) — University of Utah
+Drug Information Service maintains the authoritative drug shortage tracker; 223
+active shortages as of mid-2025 (down from all-time high of 323). ASHP is the
+primary source that feeds FDA shortage awareness. Shortages directly affect NADAC
+pricing (shortage drugs spike dramatically). **Already wired as an outbound link
+in the drug detail shortage panel** alongside the openFDA shortage API results.
+
+**CMS IRA Negotiated Prices** (`cms.gov/inflation-reduction-act`) — government-
+published Maximum Fair Price (MFP) for the first 10 IRA-negotiated drugs, public
+since March 1, 2025 per statutory requirement. A new category of
+government-published benchmark price. Worth a dedicated section in the Data
+Sources page when the catalog grows to include any of the 10 negotiated drugs.
+
+**CMS Drug Price Verification Survey** (proposed rule) — CMS has proposed requiring
+manufacturers of high-cost drugs to submit detailed pricing data annually, with
+non-proprietary elements published publicly on Medicaid.gov. If finalized, this
+becomes a new primary source for manufacturer-reported prices. Monitor for
+finalization.

@@ -443,10 +443,11 @@ function enrichLive(d, token, gen) {
       if (sh.records.length) {
         html += sh.records.slice(0, 3).map(r =>
           `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">⚠️ ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
-        html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA drug shortages ↗</a>`;
+        html += `<a class=”src-link” href=”${esc(sh.sourceUrl)}” target=”_blank” rel=”noopener noreferrer”>Source: openFDA drug shortages ↗</a>`;
       } else {
-        html += `<div class="live-note">No active FDA shortage reported for “${esc(token)}.”</div>`;
+        html += `<div class=”live-note”>No active FDA shortage reported for “${esc(token)}.”</div>`;
       }
+      html += `<a class=”src-link” style=”margin-top:.4rem” href=”https://www.ashp.org/drug-shortages” target=”_blank” rel=”noopener noreferrer”>ASHP Drug Shortage Database (authoritative) ↗</a>`;
 
       html += '<div class="label" style="margin:1rem 0 .55rem">Recent recalls</div>';
       if (rc.records.length) {
@@ -498,14 +499,17 @@ function enrichLive(d, token, gen) {
   live.getCoupons(d.slug || d.generic).then(list => {
     if (!alive()) return;
     const el = $('#liveCoupons'); if (!el) return;
-    // Deep-links into NeedyMeds CCRM (~4,768 offers) and RxAssist PAP directory
-    // (~875 programs). Outbound referral only — these sources prohibit scraping;
-    // contact licensing@needymeds.org for a data licensing arrangement.
+    // Outbound deep-links — referral only; none of these sources permit scraping.
+    // NeedyMeds CCRM: 7,000+ programs / 1,500 branded discount cards (7/2025 PR kit).
+    // RxAssist PAP: manufacturer PAP directory operated by RxVantage.
+    // PAN Foundation: copay grants for *insured* patients with high cost-sharing
+    //   (distinct from PAPs, which serve uninsured patients) — panfoundation.org.
     const gen = encodeURIComponent(d.generic || '');
     const moreLinks = `<div class="live-more">
       <span class="live-more-lbl">Also search:</span>
       <a class="live-more-link" href="https://www.needymeds.org/coupons.taf?_function=name_list&amp;gname=${gen}" target="_blank" rel="noopener noreferrer">NeedyMeds CCRM ↗</a>
       <a class="live-more-link" href="https://www.rxassist.org/pap-info" target="_blank" rel="noopener noreferrer">RxAssist PAP ↗</a>
+      <a class="live-more-link" href="https://www.panfoundation.org/" target="_blank" rel="noopener noreferrer">PAN Foundation (insured) ↗</a>
     </div>`;
     if (!list || !list.length) {
       // No curated record — still surface the external search links so users
