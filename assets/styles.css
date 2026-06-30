@@ -363,6 +363,13 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
 .seo-catalog ul { margin: 0; padding-left: 1.2em; line-height: 1.7; }
 .seo-catalog li { margin-bottom: .25rem; }
 
+/* Per-drug static page (/drugs/<slug>/) — the same detail content as the modal,
+   rendered as a centered page card (no overlay, no transform). */
+.drug-back { display: inline-block; margin: var(--sp-4) 0 0 var(--sp-4); color: var(--text-2); text-decoration: none; font-size: var(--t-sm); }
+.drug-back:hover { color: var(--primary); }
+.drug-page-wrap { display: flex; justify-content: center; padding: var(--sp-4) var(--sp-4) var(--sp-6); }
+.drug-page { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: 2rem 1.5rem 1.5rem; max-width: 640px; width: 100%; box-shadow: var(--shadow-lg); }
+
 
 /* ============================================================
    DASHBOARD VIEW EXTENSION

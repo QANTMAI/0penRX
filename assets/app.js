@@ -335,16 +335,11 @@ function couponBlock(d) {
 // Incremented on every panel open so enrichLive callbacks spawned for a
 // previous drug no-op when they resolve after a new drug's panel is open.
 let _panelGen = 0;
-function openDetail(slug) {
-  const d = CATALOG.find(x => x.slug === slug);
-  if (!d) return;
-  const ext = d.heroType === 'ExternalLinkRouting';
-  const token = live.searchToken(d.generic) || live.searchToken(d.name);
-
-  $('#panelBody').innerHTML = `
-    <button class="panel-close" data-close aria-label="Close">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
-    </button>
+// The detail body — shared by the modal (openDetail) and the per-drug static
+// page (renderDrugPage) so the two are byte-identical. No close button here;
+// the modal prepends one, the page uses a back link in its header instead.
+function detailBodyHTML(d, token, ext) {
+  return `
     <div class="p-name">${esc(d.name)}</div>
     <div class="p-sub">${esc(d.generic)} · ${esc(d.company)} · ${esc(d.category)}</div>
     <div class="p-hero">
@@ -385,12 +380,42 @@ function openDetail(slug) {
       <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
     </div>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
+}
+
+// Modal detail (home page): prepend a close button to the shared body.
+function openDetail(slug) {
+  const d = CATALOG.find(x => x.slug === slug);
+  if (!d) return;
+  const ext = d.heroType === 'ExternalLinkRouting';
+  const token = live.searchToken(d.generic) || live.searchToken(d.name);
+
+  $('#panelBody').innerHTML = `
+    <button class="panel-close" data-close aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>` + detailBodyHTML(d, token, ext);
 
   const ov = $('#overlay');
   ov.classList.add('open');
   $('#panel').scrollTop = 0;
   $('#panelBody [data-close]').focus();
 
+  enrichLive(d, token, ++_panelGen);
+}
+
+// Per-drug static page (/drugs/<slug>/): render the same body inline (no modal),
+// wire the coupon copy button, and hydrate the live FDA data exactly as the modal
+// does. The page's static HTML already holds a crawler-readable copy of this body.
+function renderDrugPage(dp) {
+  const d = CATALOG.find(x => x.slug === dp.dataset.slug);
+  if (!d) return;
+  document.title = `${d.name} cash price & savings — 0penRX`;
+  const ext = d.heroType === 'ExternalLinkRouting';
+  const token = live.searchToken(d.generic) || live.searchToken(d.name);
+  dp.innerHTML = detailBodyHTML(d, token, ext);
+  document.addEventListener('click', e => {
+    const copy = e.target.closest('[data-copy]');
+    if (copy) copyCoupon(copy.dataset.copy, copy);
+  });
   enrichLive(d, token, ++_panelGen);
 }
 
@@ -711,10 +736,17 @@ function renderCatalogVerified() {
 }
 
 function init() {
+  initTheme();
+
+  // Per-drug static page (/drugs/<slug>/): render the detail, register the SW,
+  // and skip all the home-page (grid/search/nav) wiring — those elements don't
+  // exist here.
+  const dp = document.getElementById('drugpage');
+  if (dp) { renderDrugPage(dp); registerSW(); return; }
+
   renderFilters();
   renderGrid();
   renderCatalogVerified();
-  initTheme();
 
   const input = $('#search'), clear = $('#searchClear'), sugg = $('#sugg');
   input.addEventListener('input', () => {
@@ -759,18 +791,23 @@ function init() {
     if (card) prefetchDrug(card.dataset.slug);
   });
 
-  // Progressive Web App: instant repeat loads + offline shell + installable.
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => { /* SW is an enhancement */ });
-    });
-  }
+  registerSW();
 
   // Warm the Render backend so the first coupon lookup doesn't hit a cold start.
   // Fire-and-forget: the /health response is ignored; this just prevents the
   // free-tier container from being asleep when a user opens their first drug.
   if (live.API_BASE) {
     fetch(`${live.API_BASE.replace(/\/$/, '')}/health`, { mode: 'cors' }).catch(() => {});
+  }
+}
+
+// Progressive Web App: instant repeat loads + offline shell + installable.
+// Shared by the home page and every per-drug page.
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => { /* SW is an enhancement */ });
+    });
   }
 }
 
