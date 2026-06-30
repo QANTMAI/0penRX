@@ -19,6 +19,7 @@ on:
       - 'assets/styles.css'
       - 'sitemap.xml'
       - 'llms.txt'
+      - 'drugs/**'
   workflow_dispatch:
 
 permissions:
