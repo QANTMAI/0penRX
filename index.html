@@ -7,26 +7,27 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://rxnav.nlm.nih.gov https://api.fda.gov https://data.medicaid.gov https://clinicaltables.nlm.nih.gov https://openrx-api.onrender.com; base-uri 'self'; object-src 'none'; form-action 'none'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>0PENRX — Find your lowest prescription price</title>
-<meta name="description" content="Compare real cash-pay prescription prices across the federal program, GoodRx, Cost Plus Drugs, and Amazon Pharmacy. Live drug identity, NDC, and acquisition-cost data from RxNorm, openFDA, and CMS NADAC. Reference prices — verify before use.">
-<meta name="keywords" content="prescription drug prices, cost plus drugs, goodrx, cash pay pharmacy, uninsured medication, cheap prescriptions, federal drug program, NADAC">
-<meta name="robots" content="index, follow">
-<link rel="canonical" href="https://0penrx.org">
+<meta name="description" content="Real cash-pay prescription prices — no insurance, no account. Search any drug for live FDA data (identity, NDC, acquisition cost, shortages, recalls) plus the GoodRx discount card and manufacturer savings programs.">
+<meta name="keywords" content="cash pay prescription prices, GoodRx coupon, uninsured medication, prescription discount card, drug shortage lookup, FDA drug data, NADAC acquisition cost, manufacturer savings programs, cheap prescriptions without insurance">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://0penrx.org/">
 <meta property="og:title" content="0penRX — Find your lowest prescription price">
-<meta property="og:description" content="Compare cash-pay prescription prices and see live, sourced drug data. Zero middlemen. Open prices.">
+<meta property="og:description" content="Real cash-pay prescription prices and live, sourced FDA/CMS drug data — identity, cost, shortages, recalls. No insurance, no account, no tracking.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://0penrx.org">
+<meta property="og:url" content="https://0penrx.org/">
 <meta property="og:site_name" content="0penRX">
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://0penrx.org/assets/og-image.png">
+<meta property="og:image:secure_url" content="https://0penrx.org/assets/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:alt" content="0PENRX — Real prescription prices, zero middlemen. Compare cash-pay drug prices across the federal program, GoodRx, Cost Plus Drugs and Amazon Pharmacy.">
+<meta property="og:image:alt" content="0PENRX — Real cash-pay prescription prices and live FDA drug data. Zero middlemen.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="0penRX — Find your lowest prescription price">
-<meta name="twitter:description" content="86 medications. Live, sourced data. Zero middlemen. Open prices.">
+<meta name="twitter:description" content="86 curated medications + live FDA data for any drug. Cash-pay prices, GoodRx card, no account, no tracking.">
 <meta name="twitter:image" content="https://0penrx.org/assets/og-image.png">
-<meta name="twitter:image:alt" content="0PENRX — Real prescription prices, zero middlemen.">
+<meta name="twitter:image:alt" content="0PENRX — Real cash-pay prescription prices and live FDA drug data. Zero middlemen.">
 <meta name="theme-color" content="#017a72">
 <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -49,27 +50,38 @@
     {
       "@type": "WebSite",
       "@id": "https://0penrx.org/#website",
-      "url": "https://0penrx.org",
+      "url": "https://0penrx.org/",
       "name": "0penRX",
-      "description": "Compare real cash-pay prescription prices across the federal program, GoodRx, Cost Plus Drugs, and Amazon Pharmacy, with live drug data from RxNorm, openFDA, and CMS NADAC.",
+      "description": "Free cash-pay prescription price reference with live drug data from RxNorm, openFDA, and CMS NADAC, the GoodRx discount card, and manufacturer savings programs.",
       "inLanguage": "en-US",
       "publisher": { "@id": "https://0penrx.org/#org" }
     },
     {
       "@type": "Organization",
       "@id": "https://0penrx.org/#org",
-      "name": "QANTMAI",
-      "url": "https://0penrx.org",
-      "logo": "https://0penrx.org/assets/og-image.png"
+      "name": "QANTM AI",
+      "url": "https://0penrx.org/",
+      "logo": "https://0penrx.org/assets/og-image.png",
+      "sameAs": ["https://github.com/QANTMAI/0penRX"]
     },
     {
       "@type": "WebApplication",
       "name": "0penRX",
-      "url": "https://0penrx.org",
+      "url": "https://0penrx.org/",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Web",
       "browserRequirements": "Requires JavaScript.",
       "isAccessibleForFree": true,
+      "isFamilyFriendly": true,
+      "inLanguage": "en-US",
+      "audience": { "@type": "MedicalAudience", "audienceType": "Patient" },
+      "featureList": [
+        "Cash-pay prescription reference prices for 86 medications",
+        "Live FDA drug identity, NDC, shortages, recalls, and label data",
+        "CMS NADAC real acquisition cost lookup for any drug",
+        "GoodRx universal discount card (BIN 015995)",
+        "Manufacturer savings-program routing"
+      ],
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
       "description": "A free, no-account prescription drug-price reference. Prices and coupon codes are reference values — verify before use."
     }

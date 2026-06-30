@@ -1,0 +1,41 @@
+name: IndexNow submit
+
+# Notifies the IndexNow network (Bing, Yandex, Seznam, Naver, Yep — one ping is
+# shared with all) whenever the homepage's content actually changes. Google does
+# NOT participate in IndexNow; Google discovers via the robots.txt Sitemap line +
+# Search Console (see docs/SEO_INDEXNOW_PLAYBOOK.md).
+#
+# This is the deploy-time alternative to Cloudflare Crawler Hints, which is NOT
+# usable on this site (proxying through Cloudflare conflicts with GitHub Pages'
+# HTTPS cert renewal — see the playbook).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'assets/catalog.js'
+      - 'assets/app.js'
+      - 'assets/styles.css'
+      - 'sitemap.xml'
+      - 'llms.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      # Give GitHub Pages a moment to publish the changed content before we ping.
+      - name: Wait for Pages to publish
+        run: sleep 90
+      # Node is preinstalled on the runner; the submitter has no dependencies.
+      - name: Submit changed URLs to IndexNow
+        run: node scripts/indexnow-submit.mjs --from-sitemap
