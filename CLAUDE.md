@@ -28,7 +28,7 @@ A prescription drug price-transparency static site (`https://0penrx.org`, GitHub
 index.html          ← shell, CSP meta, JSON-LD, preloads
 assets/config.js    ← window.OPENRX_API (loaded before app.js)
 assets/app.js       ← rendering, state, event wiring (ES module)
-assets/catalog.js   ← CATALOG[88] + API_SOURCES (ES module)
+assets/catalog.js   ← CATALOG[86] + API_SOURCES (ES module)
 assets/live.js      ← fetchJSON cache, RxNorm, openFDA, NADAC, coupons
 assets/styles.css   ← design tokens, components
 sw.js               ← PWA shell cache (never caches cross-origin)
