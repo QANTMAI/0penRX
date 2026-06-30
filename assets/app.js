@@ -692,9 +692,24 @@ function initTheme() {
 }
 
 // ---- Wiring ----------------------------------------------------------------
+// Surface the catalog freshness date in the footer from the data itself (the
+// oldest `verified` date across the catalog), so it can never go stale relative
+// to the data the way a hardcoded string would.
+function renderCatalogVerified() {
+  const el = $('#catalogVerified');
+  if (!el) return;
+  const dates = CATALOG.map(d => d.verified).filter(Boolean).sort();
+  if (!dates.length) return;
+  const oldest = dates[0]; // ISO YYYY-MM-DD sorts lexically
+  const nice = new Date(oldest + 'T00:00:00Z').toLocaleDateString('en-US',
+    { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  el.textContent = `Catalog last verified ${nice}.`;
+}
+
 function init() {
   renderFilters();
   renderGrid();
+  renderCatalogVerified();
   initTheme();
 
   const input = $('#search'), clear = $('#searchClear'), sugg = $('#sugg');
