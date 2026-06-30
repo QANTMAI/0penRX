@@ -355,6 +355,14 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
 .foot-copy { font-size: var(--t-xs); color: var(--text-3); }
 .foot-verified { color: var(--text-2); }
 
+/* No-JS catalog fallback (inside <noscript>) — only ever shown when JavaScript
+   is off; the JS app renders the interactive grid instead. Kept readable. */
+.seo-catalog { margin-top: var(--sp-4); color: var(--text-1); }
+.seo-catalog h2 { margin: 0 0 var(--sp-2); }
+.seo-catalog p { color: var(--text-2); margin: 0 0 var(--sp-3); }
+.seo-catalog ul { margin: 0; padding-left: 1.2em; line-height: 1.7; }
+.seo-catalog li { margin-bottom: .25rem; }
+
 
 /* ============================================================
    DASHBOARD VIEW EXTENSION
