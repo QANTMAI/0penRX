@@ -10,7 +10,7 @@ Live at [0penrx.org](https://0penrx.org).
 
 ## What it is
 
-- **86 curated brand and generic medications** with cash-pay prices, manufacturer programs, and GoodRx coupon codes.
+- **86 curated brand-name and biosimilar medications** with cash-pay prices, manufacturer programs, and GoodRx coupon codes.
 - **Live drug data** — identity, NDC, active ingredients, shortage alerts, and recalls via RxNorm, openFDA, and CMS NADAC, fetched at runtime.
 - **GoodRx BIN 015995** (PCN GDC / Group MAHA / Member RXFINDER) is the only cash coupon shown directly — verified as a true cash-pay card usable by any uninsured patient at 70,000+ pharmacies. All manufacturer copay/assistance programs (which require commercial insurance or per-patient enrollment) route to their official program pages.
 - Prices are **reference values** — always verify at the pharmacy before use.
@@ -32,11 +32,11 @@ data/
   build_coupons.py     Derives coupons.jsonl from catalog.js (CI-rebuilt monthly)
   coupons.jsonl        Committed coupon dataset
 docs/                  Platform rules, schema, provenance, deploy guide
-.github/workflows/     CI, NADAC ingest, coupon rebuild, CodeQL, pre-commit
+.github/workflows/     CI, coupon rebuild, CodeQL, pre-commit
 sw.js                  Service worker — PWA shell cache (never caches API responses)
 ```
 
-Each catalog entry carries integrity metadata — `status` (`active`/`limited`/`archived`), `eligibility` (e.g. `cash-pay`/`insured-only`/`medicare-only`), an optional `priceNote`, and a `verified` audit date. `catalog-validator.js` checks these at page load (savings math, enum validity, 90-day staleness), and a 12-hour sentinel re-audits the catalog against live web sources and emails findings. See [docs/SCHEMA.md](docs/SCHEMA.md) and [docs/PROVENANCE.md](docs/PROVENANCE.md).
+Each catalog entry carries integrity metadata — `status` (`active`/`limited`/`archived`), `eligibility` (e.g. `cash-pay`/`insured-only`/`medicare-only`), an optional `priceNote`, and a `verified` audit date. Two enforcement layers keep this honest: `catalog-validator.js` checks every entry at page load (savings math, enum validity, 90-day staleness), and `data/tests/test_catalog_validator.py` runs the same hard invariants in CI so bad data fails the build. The coupon dataset is rebuilt on a schedule (`.github/workflows/coupons.yml`, monthly + Jan-1) so expired offers aren't served as live. See [docs/SCHEMA.md](docs/SCHEMA.md) and [docs/PROVENANCE.md](docs/PROVENANCE.md).
 
 ```
 ```
