@@ -139,9 +139,11 @@ Every catalog entry carries integrity metadata that must stay truthful:
 - `priceNote` — required whenever the displayed price is conditional (starting-dose-only, time-limited introductory offer, shipping fee included). State the condition plainly.
 - `verified` — the ISO date of last manual audit. Re-stamp it only when the entry is actually re-checked against a primary source.
 
-**Enforcement (two layers):**
-1. `assets/catalog-validator.js` runs at page load via `validateCatalog(CATALOG)` and fails loud on missing fields, `price > retail`, savings-math mismatch (>2 pts), unknown enum values, or a `verified` date older than 90 days.
-2. A scheduled **sentinel** (`openrx-catalog-sentinel`, every 12 hours) re-audits the catalog against live web sources — checking `limited`/`archived` entries for status changes, expired price notes, and stale `verified` dates — and emails findings to `info@qantm.ai`. Do not disable it without a replacement check.
+**Enforcement (in-repo, two layers):**
+1. `assets/catalog-validator.js` runs at page load via `validateCatalog(CATALOG)` and logs loud on missing fields, `price > retail`, savings-math mismatch (>2 pts), unknown enum values, or a `verified` date older than 90 days.
+2. `data/tests/test_catalog_validator.py` runs the same hard invariants in CI (`ci.yml`), so bad catalog data fails the build — not just a browser console.
+
+**Operational re-audit (external, optional):** a catalog re-audit against live web sources (status changes on `limited`/`archived` entries, expired price notes, stale `verified` dates) can be run on a schedule outside the repo — e.g. an operator's scheduled agent emailing findings to `info@qantm.ai`. This is an operational add-on, **not** a workflow in `.github/`; the in-repo enforcement above is the source of truth for what ships.
 
 ---
 
