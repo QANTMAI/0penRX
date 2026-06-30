@@ -53,7 +53,7 @@ The following are intentionally **not** in scope for this threat model:
 - **Medical or clinical correctness** — 0penRX is a price *reference*, not clinical advice; whether a drug, dose, or therapy is appropriate is out of scope and out of the project's purpose.
 - **Security of third-party destination sites** (e.g., GoodRx, Mark Cuban Cost Plus Drug Company, or any pharmacy/coupon site a user navigates to) — these are independent properties under their own control.
 - **Findings that require a compromised maintainer machine or compromised maintainer credentials** as a precondition (e.g., local malware exfiltrating a personal token). Account/endpoint hygiene is assumed.
-- **Backend exposure in production** — the FastAPI backend (`backend/app.py`, `GET /prices`) is **not deployed in production**; it is provided for local/self-host use only. Its (now-present) CORS middleware and read-only surface are relevant only to self-hosters, who own that deployment's threat model.
+- **Backend exposure in production** — the FastAPI backend (`backend/app.py`) **is** deployed in production (Render, `openrx-api.onrender.com`) and serves read-only `GET /health`, `GET /coupons`, and the optional `GET /coupons/goodrx` proxy. It exposes no pricing endpoint — prescription pricing is fetched client-side from CMS NADAC. Attack surface is constrained by: CORS locked to `https://0penrx.org`, `allow_methods=["GET"]` (no mutations), no database, and secrets (GoodRx keys) read from host env vars only. Self-hosters own their own deployment's threat model.
 
 ---
 

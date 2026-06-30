@@ -9,7 +9,6 @@ pointed at it:
 |---|---|---|
 | Drug search, openFDA, NADAC, shortages/recalls/FAERS | No | client-side, CORS-open |
 | **Coupons & assistance** (`/coupons`) | **Yes** | served from `data/coupons.jsonl` |
-| **`/prices`** (NADAC via API) | Yes | optional proxy; needs ingested data |
 | **Server-side openFDA key** | Yes | keeps the key off the public bundle |
 | **GoodRx Partner API** (future) | Yes | HMAC, key-signed, not browser-safe |
 
@@ -85,12 +84,11 @@ Get a key at <https://open.fda.gov/apis/authentication/>, set it as the
 will use it for its openFDA calls; the frontend can then route openFDA through
 the backend if you choose.
 
-### 4. (Optional) Real `/prices` data
-`/prices` serves a one-row in-memory sample until a NADAC file exists at
-`data/processed/nadac.jsonl` (or `$NADAC_DATA`). To populate it, run the
-ingestion in CI (`.github/workflows/ingest.yml` → "Run workflow") and bake the
-artifact into the deploy, or run `python data/ingest_nadac.py --out
-data/processed/nadac.jsonl` in your build step. Coupons do **not** need this.
+### 4. Prescription pricing — no backend needed
+NADAC acquisition-cost pricing is fetched **client-side, directly from CMS**
+(`data.medicaid.gov`) by `assets/live.js`. There is no backend pricing endpoint:
+the backend serves coupons and the optional GoodRx proxy only. Nothing to deploy
+for pricing.
 
 ---
 

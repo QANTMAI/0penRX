@@ -137,7 +137,8 @@ expired offers as if they were live.
 
 The job commits the regenerated `data/coupons.jsonl` only when it actually
 changes, running as the `github-actions[bot]` identity. This is the coupon
-analogue of the NADAC year-rollover maintenance in `ingest.yml`.
+analogue of the annual `NADAC_DIST` refresh in `assets/live.js` (see
+PLATFORM_RULES §11).
 
 ## Compliance
 

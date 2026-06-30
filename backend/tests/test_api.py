@@ -24,37 +24,15 @@ def test_health():
     assert resp.status_code == 200
     body = resp.json()
     assert body["status"] == "ok"
-    assert isinstance(body["prices_loaded"], bool)
     assert isinstance(body["coupons_loaded"], bool)
     assert isinstance(body["goodrx_enabled"], bool)
 
 
-def test_prices_returns_match():
-    from app import _PRICES_LOADED
-
+def test_no_prices_endpoint():
+    """Pricing is client-side only (CMS NADAC direct). The backend must NOT
+    expose a /prices endpoint — guard against it silently returning."""
     resp = client.get("/prices", params={"drug": "atorvastatin"})
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["drug"] == "atorvastatin"
-    if not _PRICES_LOADED:
-        # NADAC data file absent (gitignored) — API must return empty, not sample
-        assert body["count"] == 0
-        assert body["results"] == []
-        assert body.get("loaded") is False
-    else:
-        assert body["count"] >= 1
-        assert body["results"][0]["price_usd"] > 0
-
-
-def test_prices_no_match():
-    resp = client.get("/prices", params={"drug": "nonexistent-drug"})
-    assert resp.status_code == 200
-    assert resp.json()["count"] == 0
-
-
-def test_prices_requires_drug():
-    resp = client.get("/prices")
-    assert resp.status_code == 422
+    assert resp.status_code == 404
 
 
 def test_coupons_returns_match():
@@ -218,8 +196,8 @@ def test_coupons_query_with_regex_special_chars():
         assert "count" in resp.json()
 
 
-def test_load_records_skips_malformed_lines():
-    """Malformed JSON lines in the price JSONL are silently skipped; valid lines load."""
+def test_load_jsonl_skips_malformed_lines():
+    """Malformed JSON lines in any JSONL are silently skipped; valid lines load."""
     good = json.dumps({"ndc": "12345", "price_usd": 9.99, "drug_name": "testdrug"})
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jsonl", delete=False) as f:
         f.write(good + "\n")
@@ -228,7 +206,7 @@ def test_load_records_skips_malformed_lines():
         f.write("{truncated\n")
         name = f.name
     try:
-        records, loaded = _app_module._load_records(name)
+        records, loaded = _app_module._load_jsonl(name)
         assert loaded is True
         assert len(records) == 1
         assert records[0]["ndc"] == "12345"

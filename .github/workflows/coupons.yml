@@ -14,9 +14,9 @@
 #     * the Jan-1 job handles the year-rollover boundary, re-stamping every
 #       record to the new year the moment coupons would otherwise expire.
 #
-#   This is the coupon analogue of the NADAC year-rollover maintenance in
-#   .github/workflows/ingest.yml: a small scheduled task whose only job is to
-#   stop stale, expired data from being served as live.
+#   A small scheduled task whose only job is to stop stale, expired coupon
+#   data from being served as live. (NADAC pricing is fetched client-side from
+#   CMS; the only annual upkeep there is NADAC_DIST in assets/live.js.)
 name: Coupon dataset refresh
 
 on:
