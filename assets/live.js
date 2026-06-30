@@ -7,21 +7,22 @@
 //   openFDA (FDA)  — NDC, manufacturer (labeler), dosage form, route
 //   NADAC   (CMS)  — real per-unit acquisition cost + effective date
 //
-// Optional: set window.OPENRX_API to route NADAC lookups through the repo's
-// FastAPI /prices endpoint instead of CMS.
+// window.OPENRX_API (optional, set in assets/config.js) points at the repo's
+// FastAPI backend — used only for the coupons / GoodRx endpoints. NADAC pricing
+// is ALWAYS fetched client-side from CMS, never through the backend.
 // ============================================================
 
 const RXNORM = 'https://rxnav.nlm.nih.gov/REST';
 const OPENFDA = 'https://api.fda.gov/drug/ndc.json';
 // CMS NADAC 2026 distribution. MAINTENANCE: CMS publishes a new yearly
-// distribution id each year — update this (and data/ingest_nadac.py's
-// NADAC_DISTRIBUTIONS map) at the year rollover or NADAC lookups go stale.
+// distribution id each year — update this at the year rollover or NADAC
+// lookups go stale.
 const NADAC_DIST = 'fbb83258-11c7-47f5-8b18-5f8e79f7e704';
 const NADAC_BASE = `https://data.medicaid.gov/api/1/datastore/query/${NADAC_DIST}/0`;
 
-// Optional backend base (connects the FastAPI /prices endpoint when hosted).
-// Set window.OPENRX_API in assets/config.js — never override via URL param
-// (that would let a crafted link point the site at an attacker-controlled host).
+// Backend base for the coupons / GoodRx endpoints (set in assets/config.js).
+// Never override via URL param — that would let a crafted link point the site
+// at an attacker-controlled host.
 export const API_BASE = (() => {
   try { return window.OPENRX_API || null; } catch { return null; }
 })();
@@ -171,25 +172,9 @@ export async function getNadac(generic) {
   const token = searchToken(generic);
   if (!token) return null;
 
-  // Start the optional backend lookup concurrently and capture its result
-  // off the critical path — we never await it directly, so a cold/empty
-  // free-tier backend can't delay the authoritative CMS result below.
-  let backendResult = null;
-  if (API_BASE) {
-    fetchJSON(`${API_BASE.replace(/\/$/, '')}/prices?drug=${encodeURIComponent(token)}&limit=50`)
-      .then(data => {
-        const rows = (data?.results || []).map(r => ({
-          ndc_description: r.drug_name, nadac_per_unit: r.price_usd,
-          pricing_unit: r.unit, ndc: r.ndc, effective_date: r.effective_date,
-        }));
-        const out = normalizeNadacRows(rows);
-        if (out) { out.via = 'backend'; backendResult = out; }
-      })
-      .catch(() => { /* backend optional; CMS is authoritative */ });
-  }
-
-  // CMS NADAC is the authoritative, CORS-open source; query it directly.
-  let cmsResult = null;
+  // CMS NADAC is the authoritative, CORS-open source; query it directly from
+  // the browser. There is no backend pricing endpoint — pricing is client-side
+  // only (the FastAPI backend serves coupons/GoodRx, never NADAC).
   const params = new URLSearchParams();
   params.append('conditions[0][property]', 'ndc_description');
   params.append('conditions[0][operator]', 'like');
@@ -197,22 +182,21 @@ export async function getNadac(generic) {
   params.append('limit', '60');
   try {
     const data = await fetchJSON(`${NADAC_BASE}?${params.toString()}`, { timeout: 12000 });
-    cmsResult = normalizeNadacRows(data?.results || []);
+    const cmsResult = normalizeNadacRows(data?.results || []);
     if (cmsResult) cmsResult.via = 'cms';
+    return cmsResult;
   } catch {
     // Network/timeout/5xx — fail soft so the caller shows "unavailable",
     // never an unhandled rejection or a spinner that hangs forever.
+    return null;
   }
-
-  // Prefer the backend only if it already returned data by the time CMS
-  // settled (i.e. it was warm and useful — zero added latency either way).
-  return backendResult || cmsResult;
 }
 
 // ---- Coupons / patient-assistance programs (backend only) ------------------
-// Static GitHub Pages deploy has no backend (API_BASE is null), so both
-// functions fail soft to null and the feature renders nothing. Only active
-// when API_BASE is set.
+// Active whenever API_BASE is set. The committed assets/config.js sets
+// window.OPENRX_API to the Render backend, so this IS live in production; a
+// build that ships without config.js (API_BASE null) fails soft to null and
+// the feature simply renders nothing.
 export async function getCoupons(query) {
   if (!API_BASE) return null;                 // static deploy: feature off
   // Query by the catalog slug (unique, no ® so it substring-matches the backend's

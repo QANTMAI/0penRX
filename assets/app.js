@@ -537,8 +537,9 @@ function enrichLive(d, token, gen) {
        <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA label ↗</a>`;
   }).catch(() => { if (!alive()) return; const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
 
-  // Coupons / patient-assistance programs (backend only; both functions return null
-  // on the static deploy and the #liveCoupons box is never rendered, so this no-ops).
+  // Coupons / patient-assistance programs (backend only). Live in production via
+  // the API_BASE that config.js sets; if a build ships without config.js the
+  // functions return null and the #liveCoupons box is never rendered, so this no-ops.
   // GoodRx results are merged with catalog coupons; getGoodRxCoupons returns null
   // when the key is absent so this is a silent no-op until the key is configured.
   Promise.all([
@@ -826,7 +827,7 @@ function renderDashboardKPI() {
     .then(health => {
       const latencyMs = Math.round(performance.now() - t0);
       numEl6.textContent = latencyMs + 'ms';
-      const statusOk = health.status === 'ok' || health.prices_loaded;
+      const statusOk = health.status === 'ok' || health.coupons_loaded;
       deltaEl6.textContent = statusOk && latencyMs < 500 ? 'online' : statusOk ? 'slow' : 'degraded';
       deltaEl6.className = 'db-kpi-delta ' + (statusOk && latencyMs < 500 ? 'ok' : 'warn');
       const grxEnabled = !!health.goodrx_enabled;
@@ -890,9 +891,8 @@ async function renderDashboardSources() {
       .then(res => { clearTimeout(timer); if (!res.ok) throw new Error('HTTP ' + res.status); return res.json(); })
       .then(health => {
         const ms = performance.now() - t0;
-        const ok = health && (health.status === 'ok' || health.prices_loaded || health.coupons_loaded);
+        const ok = health && (health.status === 'ok' || health.coupons_loaded);
         const detail = [];
-        if (health.prices_loaded) detail.push('prices');
         if (health.coupons_loaded) detail.push('coupons');
         _updateSourceRow('db-src-backend', ok ? 'ok' : 'warn', ok ? ('online' + (detail.length ? ' · ' + detail.join(', ') : '')) : (health.status || 'degraded'), ms);
         _updateSourceRow('db-src-goodrx', health.goodrx_enabled ? 'ok' : 'warn', health.goodrx_enabled ? 'enabled' : 'key pending', null);
@@ -1082,4 +1082,3 @@ function renderDashboard() {
   renderDashboardCoverage();
   renderDashboardTable();
 }
-

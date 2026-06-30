@@ -46,7 +46,7 @@ Every piece of data that appears in more than one place must have a designated a
 |---|---|---|---|
 | BIN/PCN/Group/Member codes | `assets/app.js` `BIN_INFO` | `data/build_coupons.py` `BIN_MAP` | `test_cross_language_consistency.py` |
 | Partner program URLs | `assets/app.js` `PARTNER_URL` | `data/build_coupons.py` `PARTNER_URL` | same test |
-| NADAC distribution ID | `assets/live.js` `NADAC_DIST` | `data/ingest_nadac.py` `NADAC_DISTRIBUTIONS[2026]` | manual review at year rollover |
+| NADAC distribution ID | `assets/live.js` `NADAC_DIST` | _(single copy — frontend only)_ | manual review at year rollover |
 
 ---
 
@@ -117,11 +117,10 @@ These disclosures must appear in the UI (Coupon Guide disclaimer, detail panel c
 ## 11. Year-rollover maintenance (annual)
 
 By January 1 of each year:
-1. Update `NADAC_DIST` in `assets/live.js` to the new CMS distribution ID.
-2. Update `NADAC_DISTRIBUTIONS[<new year>]` in `data/ingest_nadac.py`.
-3. The coupon rebuild workflow (`coupons.yml`) re-stamps effective/expiration dates automatically at 06:00 UTC on Jan 1 — verify the commit landed.
+1. Update `NADAC_DIST` in `assets/live.js` to the new CMS distribution ID (the single source — pricing is fetched client-side from CMS).
+2. The coupon rebuild workflow (`coupons.yml`) re-stamps effective/expiration dates automatically at 06:00 UTC on Jan 1 — verify the commit landed.
 
-Failing to do this causes NADAC lookups to go stale (CMS retires old distribution IDs).
+Failing to do step 1 causes NADAC lookups to go stale (CMS retires old distribution IDs).
 
 ---
 

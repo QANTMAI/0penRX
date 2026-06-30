@@ -8,9 +8,9 @@ WORKDIR /app
 COPY backend/requirements.txt backend/requirements.txt
 RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# App code + the committed coupon dataset (the only data file the API needs to
-# serve real data out of the box; /prices uses the in-memory sample until a
-# NADAC file is provided — see docs/DEPLOY.md).
+# App code + the committed coupon dataset (the only data file the API needs;
+# the backend serves coupons + the optional GoodRx proxy. Prescription pricing
+# is fetched client-side from CMS NADAC and never touches the backend).
 COPY backend/ backend/
 COPY data/coupons.jsonl data/coupons.jsonl
 

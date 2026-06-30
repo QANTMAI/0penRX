@@ -9,7 +9,6 @@ pointed at it:
 |---|---|---|
 | Drug search, openFDA, NADAC, shortages/recalls/FAERS | No | client-side, CORS-open |
 | **Coupons & assistance** (`/coupons`) | **Yes** | served from `data/coupons.jsonl` |
-| **`/prices`** (NADAC via API) | Yes | optional proxy; needs ingested data |
 | **Server-side openFDA key** | Yes | keeps the key off the public bundle |
 | **GoodRx Partner API** (future) | Yes | HMAC, key-signed, not browser-safe |
 
@@ -53,16 +52,23 @@ railway up                    # auto-detects the Dockerfile
 ## Post-deploy (required to light up the site)
 
 ### 1. Point the frontend at your backend
-The frontend reads `window.OPENRX_API`. Add one line to `index.html` **before**
-the module script (`<script type="module" src="assets/app.js">`):
+The frontend reads `window.OPENRX_API`, which is set in the committed,
+same-origin `assets/config.js` (loaded by `index.html` before the module
+script). It already points at the production backend:
 
-```html
-<script>window.OPENRX_API = 'https://openrx-api.onrender.com';</script>
+```js
+// assets/config.js
+window.OPENRX_API = 'https://openrx-api.onrender.com';
 ```
 
-Commit + push → GitHub Pages redeploys → the **Coupons & assistance** section
-goes live on every drug. (To test without committing, just open
-`https://0penrx.org/?api=https://openrx-api.onrender.com`.)
+To target a different backend, edit that one line, then commit + push → GitHub
+Pages redeploys → the **Coupons & assistance** section uses the new host.
+
+> The old `?api=...` URL override was **removed as a security fix** (a crafted
+> link could repoint the site at an attacker host). There is no URL override —
+> `window.OPENRX_API` from `config.js` is the only mechanism. Test against a
+> local backend by editing `config.js` locally and serving the site with
+> `python -m http.server`.
 
 ### 2. Verify
 ```bash
@@ -78,12 +84,11 @@ Get a key at <https://open.fda.gov/apis/authentication/>, set it as the
 will use it for its openFDA calls; the frontend can then route openFDA through
 the backend if you choose.
 
-### 4. (Optional) Real `/prices` data
-`/prices` serves a one-row in-memory sample until a NADAC file exists at
-`data/processed/nadac.jsonl` (or `$NADAC_DATA`). To populate it, run the
-ingestion in CI (`.github/workflows/ingest.yml` → "Run workflow") and bake the
-artifact into the deploy, or run `python data/ingest_nadac.py --out
-data/processed/nadac.jsonl` in your build step. Coupons do **not** need this.
+### 4. Prescription pricing — no backend needed
+NADAC acquisition-cost pricing is fetched **client-side, directly from CMS**
+(`data.medicaid.gov`) by `assets/live.js`. There is no backend pricing endpoint:
+the backend serves coupons and the optional GoodRx proxy only. Nothing to deploy
+for pricing.
 
 ---
 

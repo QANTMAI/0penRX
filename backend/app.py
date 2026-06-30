@@ -1,12 +1,11 @@
-"""0penRX price lookup API.
+"""0penRX coupon lookup API.
 
-Serves normalized prescription prices. Records are loaded from a JSONL file
-produced by data/ingest_nadac.py (one normalized record per line). When no
-data file is present, a small in-memory sample is used so the API and tests
-still work out of the box.
+Serves curated coupon / patient-assistance records (and an optional GoodRx
+Partner API proxy). Records are loaded from data/coupons.jsonl, generated from
+the catalog by data/build_coupons.py.
 
-Set the NADAC_DATA env var to point at a JSONL file, otherwise the default
-path data/processed/nadac.jsonl is used.
+Live prescription pricing (CMS NADAC) is fetched client-side directly from
+data.medicaid.gov by assets/live.js — it does NOT flow through this backend.
 """
 
 from __future__ import annotations
@@ -47,7 +46,6 @@ app.add_middleware(
     allow_headers=["Accept", "Content-Type"],
 )
 
-DEFAULT_DATA_PATH = os.environ.get("NADAC_DATA", "data/processed/nadac.jsonl")
 COUPONS_DATA_PATH = os.environ.get("COUPONS_DATA", "data/coupons.jsonl")
 
 
@@ -72,11 +70,10 @@ def _load_jsonl(path: str) -> tuple[list[dict], bool]:
     return records, bool(records)
 
 
-# Aliases so existing tests that call _load_records / _load_coupons still work.
-_load_records = _load_coupons = _load_jsonl
+# Alias so existing tests that call _load_coupons still work.
+_load_coupons = _load_jsonl
 
 # Loaded once at startup; restart the process to pick up new data.
-_RECORDS, _PRICES_LOADED = _load_jsonl(DEFAULT_DATA_PATH)
 _COUPONS, _COUPONS_LOADED = _load_jsonl(COUPONS_DATA_PATH)
 
 
@@ -84,37 +81,9 @@ _COUPONS, _COUPONS_LOADED = _load_jsonl(COUPONS_DATA_PATH)
 def health():
     return {
         "status": "ok",
-        "prices_loaded": _PRICES_LOADED,
         "coupons_loaded": _COUPONS_LOADED,
         "goodrx_enabled": _GOODRX_ENABLED,
     }
-
-
-@app.get("/prices")
-def prices(
-    drug: str = Query(..., description="Drug name substring to match"),
-    zip: str | None = Query(None, description="5-digit ZIP filter"),
-    limit: int = Query(25, ge=1, le=200, description="Max results to return"),
-):
-    """Return matching price records, ranked cheapest first.
-
-    Returns count=0 and an empty results list when no data file is loaded rather
-    than fabricating sample records that would corrupt bench-day data collection.
-    """
-    if not _PRICES_LOADED:
-        return {"drug": drug, "count": 0, "results": [], "loaded": False}
-    needle = drug.lower()
-    results = [
-        r
-        for r in _RECORDS
-        if r.get("drug_name")
-        and needle in r["drug_name"].lower()
-        and r.get("price_usd") is not None
-    ]
-    if zip:
-        results = [r for r in results if r.get("zip") == zip]
-    results.sort(key=lambda r: r["price_usd"])
-    return {"drug": drug, "count": len(results), "results": results[:limit]}
 
 
 def _word_match(needle: str, hay: str) -> bool:

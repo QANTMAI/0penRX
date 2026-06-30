@@ -46,25 +46,58 @@ BIN_MAP: dict[str, tuple[str | None, str | None, str | None]] = {
 }
 
 # Verified manufacturer-program landing pages keyed by partner name.
+# MUST stay byte-for-byte identical to PARTNER_URL in assets/app.js — enforced in
+# CI by data/tests/test_cross_language_consistency.py::test_partner_urls_match_backend.
+# Includes the post-audit program names plus legacy aliases (so older catalog
+# `partner` values still resolve to a real URL rather than None).
 PARTNER_URL: dict[str, str] = {
-    "Pfizer RxPathways": "https://www.pfizerrxpathways.com",
+    # AstraZeneca
+    "AZ&Me": "https://www.azandmeapp.com",
+    "AstraZeneca Direct": "https://www.azandmeapp.com",  # legacy alias
+    # Sanofi
     "Sanofi Patient Connection": "https://www.sanofipatientconnection.com",
-    "AstraZeneca Direct": "https://www.azandmeapp.com",
-    "Amgen Assist360": "https://www.amgenassist360.com",
-    "Novo Nordisk Savings Program": "https://www.novocare.com",
+    # GSK
     "GSK For You": "https://www.gskforyou.com",
-    "J&J Direct": "https://www.jnjwithme.com",
-    "Boehringer Ingelheim Cares": "https://www.bicares.com",
-    "Bristol Myers Squibb": "https://www.bmsaccesssupport.com",
+    # Johnson & Johnson
+    "J&J withMe Savings Program": "https://www.jnjwithme.com",
+    "J&J Direct": "https://www.jnjwithme.com",  # legacy alias
+    # Bristol Myers Squibb
+    "BMS Patient Connect": "https://www.bmspatientconnect.com",
+    "Bristol Myers Squibb": "https://www.bmsaccesssupport.com",  # legacy alias
+    # Boehringer Ingelheim
+    "BI Savings Card": "https://www.boehringer-ingelheim.com/us/patient-support",
+    "Boehringer Ingelheim Cares": "https://www.bicares.com",  # legacy alias (free PAP)
+    # Eli Lilly
     "LillyDirect®": "https://lillydirect.com",
-    "Novartis Direct": "https://www.us.novartis.com",
-    "AbbVie Synthroid Savings": "https://www.synthroid.com",
-    "Merck Patient Assistance": "https://www.merckhelps.com",
-    "Genentech Patient Foundation": "https://www.gene.com/patients/patient-foundation",
-    # Manufacturer programs for drugs whose cards are NOT cash-pay coupons.
+    "LillyDirect": "https://lillydirect.com",
+    # Pfizer
+    "Pfizer RxPathways": "https://www.pfizerrxpathways.com",
+    # Amgen
+    "Amgen SupportPlus": "https://www.amgensupportplus.com",
+    "AmgenNow": "https://www.amgennow.com",
+    "Amgen Assist360": "https://www.amgenassist360.com",  # legacy alias
+    # Novo Nordisk
+    "Novo Nordisk Savings Program": "https://www.novocare.com",
+    # Novartis
+    "Alongside MAYZENT": "https://www.mayzent.com/support",
+    "Novartis Oncology Universal Co-pay": "https://www.novartisoncologysupport.com",
+    "Novartis Direct": "https://www.us.novartis.com",  # legacy alias
+    # AbbVie
+    "Synthroid Delivers Program": "https://www.synthroid.com/savings",
+    "AbbVie Synthroid Savings": "https://www.synthroid.com",  # legacy alias
     "AbbVie At Your Service": "https://www.savewithays.com",
     "myAbbVie Assist": "https://www.abbvie.com/patients/patient-support/patient-assistance.html",
-    "EMD Serono Fertility Savings": "https://www.fertilityinstantsavings.com",
+    # Merck
+    "MerckHelps": "https://www.merckhelps.com",
+    "Merck Patient Assistance": "https://www.merckhelps.com",  # legacy alias
+    # EMD Serono
+    "Fertility Instant Savings Program": "https://www.fertilityinstantsavings.com",
+    "EMD Serono Fertility Savings": "https://www.fertilityinstantsavings.com",  # legacy alias
+    # Genentech
+    "Genentech Direct-to-Patient": "https://www.gene.com/patients",
+    "Genentech Patient Foundation": "https://www.gene.com/patients/patient-foundation",  # legacy
+    # Pfizer (additional programs)
+    "Amgen Assist360 / Pfizer": "https://www.amgenassist360.com",
 }
 
 

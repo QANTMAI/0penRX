@@ -27,10 +27,9 @@ assets/
   styles.css           Design system
   config.js            Runtime config (API_BASE — not committed; set per deployment)
 backend/
-  app.py               FastAPI backend — /coupons, /prices, /health
+  app.py               FastAPI backend — /coupons, /coupons/goodrx, /health
 data/
   build_coupons.py     Derives coupons.jsonl from catalog.js (CI-rebuilt monthly)
-  ingest_nadac.py      CMS NADAC ingestion pipeline
   coupons.jsonl        Committed coupon dataset
 docs/                  Platform rules, schema, provenance, deploy guide
 .github/workflows/     CI, NADAC ingest, coupon rebuild, CodeQL, pre-commit

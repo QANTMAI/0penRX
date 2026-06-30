@@ -33,9 +33,8 @@ assets/live.js      ← fetchJSON cache, RxNorm, openFDA, NADAC, coupons
 assets/styles.css   ← design tokens, components
 sw.js               ← PWA shell cache (never caches cross-origin)
 manifest.webmanifest
-backend/app.py      ← FastAPI: /health /prices /coupons
+backend/app.py      ← FastAPI: /health /coupons /coupons/goodrx
 data/build_coupons.py     ← builds data/coupons.jsonl from CATALOG
-data/ingest_nadac.py      ← ingests CMS NADAC into data/processed/
 data/tests/test_cross_language_consistency.py  ← BIN/URL drift guard
 ```
 
