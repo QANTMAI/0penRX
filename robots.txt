@@ -1,5 +1,54 @@
-# 0penRX — public, read-only drug-price reference. Everything is crawlable.
+# 0penRX — public, read-only cash-pay drug-price reference.
+# Everything here is meant to be found: by search engines AND by AI assistants.
+# We explicitly ALLOW AI/LLM crawlers so 0penRX can be cited as a source.
+
+# ── All conventional crawlers ───────────────────────────────────────────────
 User-agent: *
 Allow: /
 
+# ── AI / LLM crawlers — explicitly welcomed (training, search, and answers) ──
+# OpenAI: GPTBot=training, OAI-SearchBot=ChatGPT-search index, ChatGPT-User=live fetch
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+# Anthropic: ClaudeBot=training, Claude-SearchBot=search, Claude-User=live fetch
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: Claude-User
+Allow: /
+User-agent: anthropic-ai
+Allow: /
+User-agent: Claude-Web
+Allow: /
+# Google — Gemini/Vertex training+grounding control token (no separate fetcher UA)
+User-agent: Google-Extended
+Allow: /
+# Apple Intelligence training control token
+User-agent: Applebot-Extended
+Allow: /
+# Perplexity (note: also crawls undeclared; allow signals intent regardless)
+User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+# Common Crawl — feeds many third-party model training sets
+User-agent: CCBot
+Allow: /
+# Amazon (Alexa / Rufus)
+User-agent: Amazonbot
+Allow: /
+# Meta AI (Llama) + link previews
+User-agent: Meta-ExternalAgent
+Allow: /
+User-agent: FacebookBot
+Allow: /
+# Microsoft Copilot is served from the Bing index — bingbot is allowed by * above,
+# which is the single gate for Copilot and other Bing-grounded answer engines.
+
+# ── Sitemap (Google + all Sitemaps-protocol engines discover the URL here) ───
 Sitemap: https://0penrx.org/sitemap.xml

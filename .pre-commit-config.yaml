@@ -7,8 +7,12 @@ repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # v6.0.0
     hooks:
+      # The IndexNow key file must contain ONLY the 32-char key (no trailing
+      # newline) so the hosted file matches the key value exactly.
       - id: trailing-whitespace
+        exclude: '^[A-Za-z0-9-]{8,128}\.txt$'
       - id: end-of-file-fixer
+        exclude: '^[A-Za-z0-9-]{8,128}\.txt$'
       - id: check-yaml
       - id: check-json
       - id: check-merge-conflict
