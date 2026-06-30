@@ -74,9 +74,7 @@ def test_savings_math():
     for d in CATALOG:
         expected = round((d["retail"] - d["price"]) / d["retail"] * 100)
         if abs(expected - d["savings"]) > 2:
-            drift.append(
-                (d["slug"], f"listed {d['savings']}% vs computed {expected}%")
-            )
+            drift.append((d["slug"], f"listed {d['savings']}% vs computed {expected}%"))
     assert not drift, f"savings% disagrees with price/retail math: {drift}"
 
 
