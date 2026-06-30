@@ -111,7 +111,8 @@ export async function rxTermsSearch(query, max = 6) {
 
 // Bare ingredient/brand token for openFDA (its generic_name is the bare moiety,
 // e.g. "atorvastatin" not "atorvastatin calcium"; brand "Ozempic® Pen" -> "ozempic").
-function fdaToken(s) {
+// Exported for unit testing (test/live.test.mjs).
+export function fdaToken(s) {
   if (!s) return '';
   return s.replace(/[®™]/g, '').split(/[\/,\s]+/)[0].replace(/[^a-z0-9-]/gi, '').toLowerCase();
 }
@@ -145,7 +146,9 @@ export async function getOpenFda(generic, brand) {
 }
 
 // ---- NADAC: real per-unit acquisition cost ---------------------------------
-function normalizeNadacRows(rows) {
+// Exported for unit testing (test/live.test.mjs) — this is the client-side
+// pricing normalizer, so its ranking/parse logic is covered directly.
+export function normalizeNadacRows(rows) {
   const valid = rows
     .map(r => ({
       description: r.ndc_description,

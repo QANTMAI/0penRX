@@ -13,7 +13,7 @@
  *
  * Bump CACHE on any shell-asset change so old caches are evicted on activate.
  */
-const CACHE = 'openrx-shell-v2';
+const CACHE = 'openrx-shell-v3';
 const SHELL = [
   '/',
   '/index.html',
@@ -22,6 +22,7 @@ const SHELL = [
   '/assets/app.js',
   '/assets/live.js',
   '/assets/catalog.js',
+  '/assets/catalog-validator.js',
   '/assets/config.js',
   '/assets/favicon.svg',
   '/assets/fonts/dm-sans-latin.woff2',

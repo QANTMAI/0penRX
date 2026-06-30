@@ -486,11 +486,11 @@ function enrichLive(d, token, gen) {
       if (sh.records.length) {
         html += sh.records.slice(0, 3).map(r =>
           `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">⚠️ ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
-        html += `<a class=”src-link” href=”${esc(sh.sourceUrl)}” target=”_blank” rel=”noopener noreferrer”>Source: openFDA drug shortages ↗</a>`;
+        html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA drug shortages ↗</a>`;
       } else {
-        html += `<div class=”live-note”>No active FDA shortage reported for “${esc(token)}.”</div>`;
+        html += `<div class="live-note">No active FDA shortage reported for “${esc(token)}.”</div>`;
       }
-      html += `<a class=”src-link” style=”margin-top:.4rem” href=”https://www.ashp.org/drug-shortages” target=”_blank” rel=”noopener noreferrer”>ASHP Drug Shortage Database (authoritative) ↗</a>`;
+      html += `<a class="src-link" style="margin-top:.4rem" href="https://www.ashp.org/drug-shortages" target="_blank" rel="noopener noreferrer">ASHP Drug Shortage Database (authoritative) ↗</a>`;
 
       html += '<div class="label" style="margin:1rem 0 .55rem">Recent recalls</div>';
       if (rc.records.length) {
