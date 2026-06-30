@@ -95,7 +95,9 @@
       <button class="ntab on" data-nav="browse">Browse</button>
       <button class="ntab" data-nav="sources">Data Sources</button>
       <button class="ntab" data-nav="coupons">Coupon Guide</button>
-      <button class="ntab" data-nav="dashboard">Dashboard</button>
+      <!-- Dashboard is an internal operator/metrics view, hidden from the consumer
+           nav for v1.0. The #view-dashboard section and its JS remain in place;
+           re-add this button (or deep-link setView('dashboard')) to expose it. -->
     </nav>
     <div class="hdr-r">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle light/dark theme"></button>

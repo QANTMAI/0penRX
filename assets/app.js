@@ -162,7 +162,6 @@ function tagsFor(d) {
   const t = [];
   if (d.bin && binInfo(d.bin).tag) t.push(['grx', binInfo(d.bin).tag]);
   if (d.heroType === 'ExternalLinkRouting' && d.partner) t.push(['mfr', d.partner]);
-  if (d.isGeneric) { t.push(['cpd', 'Cost Plus']); t.push(['amz', 'Amazon Rx']); }
   return t.map(([c, l]) => `<span class="tag ${c}">${esc(l)}</span>`).join('');
 }
 
@@ -180,7 +179,7 @@ function cardHTML(d) {
     </div>
     <div>
       <div class="price-row"><span class="price">${money(d.price)}</span>${d.retail > d.price ? `<span class="price-was">${money(d.retail)}</span>` : ''}</div>
-      <div class="price-lbl">${d.isGeneric ? 'est. cash-pay' : d.heroType === 'ExternalLinkRouting' ? 'manufacturer program' : 'GoodRx cash'} · reference</div>
+      <div class="price-lbl">${d.heroType === 'ExternalLinkRouting' ? 'manufacturer program' : 'GoodRx cash'} · reference</div>
     </div>
     <div class="tags">${tagsFor(d)}</div>
     <div class="card-foot">
@@ -360,11 +359,8 @@ function openDetail(slug) {
       d.eligibility === 'mixed'         ? `<p class="eligibility-warn">⚠ Pricing channel varies — see price note for details</p>` : ''
     ) : ''}
 
-    ${((!ext && d.bin === '015995') || d.isGeneric) ? `<div class="label">Where to fill</div>` : ''}
+    ${(!ext && d.bin === '015995') ? `<div class="label">Where to fill</div>` : ''}
     ${(!ext && d.bin === '015995') ? `<div class="row"><div class="row-l"><span class="row-tag grx">RX</span><div><div class="row-name">GoodRx cash-discount network</div><div class="row-note">cash coupon · BIN 015995</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}
-    ${d.isGeneric ? `
-      <div class="row"><div class="row-l"><span class="row-tag cpd">CPD</span><div><div class="row-name">Cost Plus Drugs</div><div class="row-note">NADAC × 1.15 + $3</div></div></div><span class="row-price">${money(d.price)}</span></div>
-      <a class="row" href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer"><div class="row-l"><span class="row-tag amz">AMZ</span><div><div class="row-name">Amazon Pharmacy</div><div class="row-note">Prime Rx benefit — verify</div></div></div><span class="row-price" style="color:var(--text-2)">Check ↗</span></a>` : ''}
 
     ${couponBlock(d)}
 
@@ -685,10 +681,18 @@ const SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke=
 const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
 function initTheme() {
   const btn = $('[data-theme-toggle]'), root = document.documentElement;
-  let mode = matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light';
+  // Persist an explicit choice; fall back to the OS preference when unset.
+  const saved = (() => { try { return localStorage.getItem('orx-theme'); } catch { return null; } })();
+  let mode = (saved === 'dark' || saved === 'light')
+    ? saved
+    : (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
   const apply = () => { root.setAttribute('data-theme', mode); btn.innerHTML = mode === 'dark' ? SUN : MOON; };
   apply();
-  btn.addEventListener('click', () => { mode = mode === 'dark' ? 'light' : 'dark'; apply(); });
+  btn.addEventListener('click', () => {
+    mode = mode === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('orx-theme', mode); } catch { /* private mode: in-memory only */ }
+    apply();
+  });
 }
 
 // ---- Wiring ----------------------------------------------------------------
