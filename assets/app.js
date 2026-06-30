@@ -537,8 +537,9 @@ function enrichLive(d, token, gen) {
        <a class="src-link" href="${esc(di.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA label ↗</a>`;
   }).catch(() => { if (!alive()) return; const el = $('#liveInteractions'); if (el) el.innerHTML = `<div class="live-err">Interaction lookup unavailable.</div>`; });
 
-  // Coupons / patient-assistance programs (backend only; both functions return null
-  // on the static deploy and the #liveCoupons box is never rendered, so this no-ops).
+  // Coupons / patient-assistance programs (backend only). Live in production via
+  // the API_BASE that config.js sets; if a build ships without config.js the
+  // functions return null and the #liveCoupons box is never rendered, so this no-ops.
   // GoodRx results are merged with catalog coupons; getGoodRxCoupons returns null
   // when the key is absent so this is a silent no-op until the key is configured.
   Promise.all([

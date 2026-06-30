@@ -210,9 +210,10 @@ export async function getNadac(generic) {
 }
 
 // ---- Coupons / patient-assistance programs (backend only) ------------------
-// Static GitHub Pages deploy has no backend (API_BASE is null), so both
-// functions fail soft to null and the feature renders nothing. Only active
-// when API_BASE is set.
+// Active whenever API_BASE is set. The committed assets/config.js sets
+// window.OPENRX_API to the Render backend, so this IS live in production; a
+// build that ships without config.js (API_BASE null) fails soft to null and
+// the feature simply renders nothing.
 export async function getCoupons(query) {
   if (!API_BASE) return null;                 // static deploy: feature off
   // Query by the catalog slug (unique, no ® so it substring-matches the backend's
