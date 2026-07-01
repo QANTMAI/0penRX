@@ -1,0 +1,9 @@
+# 0penRX security contact — RFC 9116
+# Report vulnerabilities privately; please do not open a public issue.
+
+Contact: https://github.com/QANTMAI/0penRX/security/advisories/new
+Contact: mailto:info@qantm.ai
+Policy: https://github.com/QANTMAI/0penRX/blob/main/SECURITY.md
+Preferred-Languages: en
+Canonical: https://0penrx.org/.well-known/security.txt
+Expires: 2027-06-30T00:00:00.000Z

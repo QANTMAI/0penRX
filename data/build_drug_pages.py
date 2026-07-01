@@ -203,7 +203,10 @@ def jsonld(d) -> str:
             ],
         },
     ]
-    return json.dumps(graph, ensure_ascii=False, separators=(",", ":"))
+    # Escape HTML-significant chars so catalog text can never break out of the
+    # <script type="application/ld+json"> block (defense-in-depth XSS).
+    body = json.dumps(graph, ensure_ascii=False, separators=(",", ":"))
+    return body.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
 def page_html(d) -> str:

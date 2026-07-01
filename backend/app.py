@@ -46,6 +46,34 @@ app.add_middleware(
     allow_headers=["Accept", "Content-Type"],
 )
 
+
+# Security response headers. Unlike the GitHub Pages frontend (which can only use
+# a <meta> CSP), this backend serves real HTTP headers, so we set the OWASP-
+# recommended baseline on every JSON response. This is a read-only, no-cookie,
+# no-embed API, so the strict cross-origin values are safe.
+_SECURITY_HEADERS = {
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Resource-Policy": "same-origin",
+    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+    "Permissions-Policy": "geolocation=(), camera=(), microphone=(), payment=(), usb=()",
+    "Cache-Control": "no-store",
+}
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    for k, v in _SECURITY_HEADERS.items():
+        response.headers.setdefault(k, v)
+    # Reduce fingerprinting: don't advertise the server stack.
+    response.headers["Server"] = "0penrx"
+    return response
+
+
 COUPONS_DATA_PATH = os.environ.get("COUPONS_DATA", "data/coupons.jsonl")
 
 
@@ -260,10 +288,12 @@ async def coupons_goodrx(
 
     except HTTPException:
         raise
-    except httpx.TimeoutException as exc:
-        raise HTTPException(502, f"GoodRx request timed out: {exc}")
-    except httpx.HTTPError as exc:
-        raise HTTPException(502, f"GoodRx request failed: {exc}")
+    except httpx.TimeoutException:
+        # Never interpolate the exception into the response — for the signed
+        # request it can stringify a URL that carries the GoodRx api_key.
+        raise HTTPException(502, "GoodRx request timed out")
+    except httpx.HTTPError:
+        raise HTTPException(502, "GoodRx upstream error")
 
     c = r2.json().get("data", {})
     result = {
