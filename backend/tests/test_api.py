@@ -28,6 +28,19 @@ def test_health():
     assert isinstance(body["goodrx_enabled"], bool)
 
 
+def test_security_headers_present():
+    """Every response carries the OWASP-baseline security headers, and the
+    server stack is not advertised."""
+    h = client.get("/health").headers
+    assert h.get("X-Content-Type-Options") == "nosniff"
+    assert h.get("X-Frame-Options") == "DENY"
+    assert h.get("Referrer-Policy") == "no-referrer"
+    assert h.get("Cross-Origin-Resource-Policy") == "same-origin"
+    assert "max-age=" in h.get("Strict-Transport-Security", "")
+    assert h.get("Cache-Control") == "no-store"
+    assert h.get("Server") == "0penrx"  # stack not advertised
+
+
 def test_no_prices_endpoint():
     """Pricing is client-side only (CMS NADAC direct). The backend must NOT
     expose a /prices endpoint — guard against it silently returning."""

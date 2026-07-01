@@ -78,7 +78,10 @@ def build_itemlist(catalog: list[dict]) -> str:
         "itemListElement": elements,
     }
     # Compact (no indentation) — valid JSON-LD, ~3x smaller in the served HTML.
+    # Escape HTML-significant chars so catalog text can never break out of the
+    # <script> block (e.g. a literal "</script>" or "&"): defense-in-depth XSS.
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    body = body.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
     return (
         f"{ITEMLIST_START} — generated from assets/catalog.js by "
         f"data/build_static_seo.py; do not edit by hand -->\n"
