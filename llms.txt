@@ -9,6 +9,8 @@
 - [0penRX home](https://0penrx.org/): Search any drug; browse 86 curated medications with cash-pay reference prices, savings vs. retail, GoodRx card (BIN 015995), and per-drug live FDA data.
 - [Data Sources](https://0penrx.org/#sources): The live APIs behind every figure — NLM RxNorm (identity), openFDA (NDC, shortages, recalls, FAERS, label interactions), CMS NADAC (real per-unit acquisition cost).
 - [Coupon Guide](https://0penrx.org/#coupons): How the universal GoodRx cash-discount card (BIN 015995) works, and why manufacturer copay cards that exclude cash-pay patients are routed to their official programs instead.
+- [Compare Platforms](https://0penrx.org/compare-platforms/): Independent head-to-head table comparing Amazon Pharmacy + One Medical against GoodRx + Companion on cost, prerequisites, prescription coverage, telehealth, discounts, network, and limitations. Vendor prices attributed with sources and a verify-before-signup caveat.
+- [Uninsured Guide](https://0penrx.org/uninsured-guide/): A cash-pay guide to healthcare platforms for the uninsured — a side-by-side table of Cost Plus Drugs, Amazon (RxPass/One Medical), GoodRx (free/Gold/Companion), Sesame, Walmart, Hims/Hers, Ro, FQHC sliding-fee, and discount cards, plus suggested stacks. Prices attributed to vendor sources with a verify-before-signup caveat.
 
 ## What 0penRX covers
 

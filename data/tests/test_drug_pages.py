@@ -15,6 +15,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "data"))
 
+import build_drug_pages  # noqa: E402
 from build_drug_pages import CATALOG_PATH, build, load_catalog  # noqa: E402
 
 CATALOG = load_catalog(CATALOG_PATH)
@@ -52,10 +53,12 @@ def test_sitemap_lists_homepage_drugs_and_privacy():
     locs = set(re.findall(r"<loc>(.*?)</loc>", sitemap))
     assert "https://0penrx.org/" in locs
     assert "https://0penrx.org/privacy/" in locs
+    assert "https://0penrx.org/compare-platforms/" in locs
+    assert "https://0penrx.org/uninsured-guide/" in locs
     for d in CATALOG:
         assert f"https://0penrx.org/drugs/{d['slug']}/" in locs
-    # homepage + every drug + privacy
-    assert len(locs) == len(CATALOG) + 2
+    # homepage + every drug + the standalone content pages
+    assert len(locs) == len(CATALOG) + 1 + len(build_drug_pages.CONTENT_PAGES)
 
 
 def test_each_page_has_canonical_and_valid_jsonld():
