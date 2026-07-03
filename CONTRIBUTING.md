@@ -47,6 +47,15 @@ Do not open public issues for security, data-integrity, or credential-exposure
 problems. Use GitHub private vulnerability reporting and follow the process in
 [SECURITY.md](SECURITY.md).
 
-## License
+## License and contribution assignment
 
-By contributing, you agree that your contributions are licensed under the repository's LICENSE.
+0penRX is proprietary, royalty-bearing software — see [LICENSE](LICENSE). It is
+**not** open source, and nothing in this repository grants a right to use the
+software without a separate signed, paid license from QANTM AI.
+
+By submitting a contribution you represent that it is your original work and you
+irrevocably assign to QANTM AI all right, title, and interest (including all
+copyright) in that contribution, or — where assignment is not permitted by law —
+grant QANTM AI a perpetual, worldwide, royalty-free, exclusive, sublicensable
+license to it. Your contribution becomes part of the Software under the LICENSE.
+You receive no royalty or other compensation for contributions.
