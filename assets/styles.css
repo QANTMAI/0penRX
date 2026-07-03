@@ -334,6 +334,8 @@ table.t th, table.t td { padding: .7rem .9rem; text-align: left; border-bottom: 
 table.t th { font-size: var(--t-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); background: var(--surface-2); }
 table.t tr:last-child td { border-bottom: none; }
 table.t tr:hover td { background: var(--surface-2); }
+table.t a { color: var(--primary); }
+table.t a:hover { text-decoration: underline; }
 .bin-map { margin-top: var(--sp-5); padding: var(--sp-4); background: var(--surface-2); border-radius: var(--r-lg); font-size: var(--t-sm); line-height: var(--lh-loose); }
 .bin-map code { font-family: var(--font-m); background: var(--surface); padding: .1rem .35rem; border-radius: var(--r-sm); border: 1px solid var(--border); }
 
