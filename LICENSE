@@ -1,21 +1,197 @@
-MIT License
+0penRX PROPRIETARY LICENSE — ALL RIGHTS RESERVED
+Version 1.0 — Effective 2026-07-03
 
-Copyright (c) 2026 QANTM AI
+Copyright (c) 2026 QANTM AI. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+NOTICE: THIS IS A PROPRIETARY, ROYALTY-BEARING LICENSE. IT IS NOT AN OPEN-SOURCE
+LICENSE. NO RIGHT TO USE THE SOFTWARE IS GRANTED FREE OF CHARGE. ANY USE OF THE
+SOFTWARE REQUIRES A SEPARATE, SIGNED, PAID LICENSE FROM THE LICENSOR AND THE
+PAYMENT OF ROYALTIES AS SET OUT BELOW. IF YOU DO NOT HAVE SUCH A SIGNED LICENSE,
+YOU HAVE NO RIGHT TO USE THE SOFTWARE FOR ANY PURPOSE OTHER THAN THE LIMITED
+VIEWING PERMITTED BY SECTION 4.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+1. DEFINITIONS
+
+1.1 "Licensor" means QANTM AI, the sole and exclusive owner of the Software.
+
+1.2 "Software" means the source code, object code, scripts, configuration,
+    build tooling, documentation, page templates, curated datasets authored by
+    Licensor (including the catalog and coupon data files), design assets, and
+    all other original works of authorship contained in this repository and
+    authored or owned by Licensor, together with all copies, modifications,
+    enhancements, and derivative works thereof. The Software EXCLUDES the
+    Third-Party Components and Public Data defined in Section 9.
+
+1.3 "You" or "Licensee" means any individual or legal entity that accesses,
+    copies, runs, deploys, modifies, distributes, or otherwise uses the Software.
+
+1.4 "Use" means any exercise of the rights reserved to the copyright owner under
+    applicable law, including without limitation: installing, executing, running,
+    hosting, serving, reproducing, copying, caching (other than transient browser
+    caching incident to permitted viewing), modifying, translating, adapting,
+    creating derivative works from, incorporating, linking, benchmarking for
+    commercial purposes, publicly performing, publicly displaying, distributing,
+    sublicensing, selling, renting, leasing, or offering as a service, whether or
+    not for a fee and whether for internal or external purposes.
+
+1.5 "Royalty" means the fee payable to Licensor for Use, at Licensor's then-current
+    published or individually negotiated rates as set out in a signed license
+    agreement.
+
+
+2. OWNERSHIP AND RESERVATION OF RIGHTS
+
+2.1 The Software is licensed, not sold. Title, ownership, and all intellectual
+    property rights in and to the Software remain exclusively with Licensor.
+
+2.2 ALL RIGHTS ARE RESERVED. No right, license, or interest of any kind is
+    granted by implication, estoppel, exhaustion, or otherwise, except the
+    limited, revocable viewing right expressly stated in Section 4 and any rights
+    expressly granted in a separate signed license agreement with Licensor.
+
+
+3. NO GRANT WITHOUT A SIGNED, PAID LICENSE
+
+3.1 This document by itself grants NO right to Use the Software. Any and all Use
+    requires (a) a separate written license agreement signed by an authorized
+    representative of Licensor, and (b) payment of the applicable Royalty.
+
+3.2 Any Use of the Software without such a signed, paid license is unlicensed,
+    is a material breach of this License, and infringes Licensor's copyright and
+    other rights, exposing the infringer to the full remedies available at law
+    and in equity, including statutory damages, actual damages, disgorgement of
+    profits, injunctive relief, and Licensor's costs and attorneys' fees.
+
+
+4. LIMITED VIEWING RIGHT (PUBLIC REPOSITORY)
+
+4.1 While Licensor makes this repository publicly readable, and solely to the
+    extent required by the terms of service of the hosting platform, You may view
+    the Software and create platform-native forks for the sole purpose of viewing.
+
+4.2 The viewing right in Section 4.1 does NOT permit any other Use. Without a
+    signed, paid license You may not run, deploy, host, serve, modify, adapt,
+    redistribute outside the hosting platform, incorporate into any product or
+    service, or make any commercial or production use of the Software or any
+    portion of it. Forking for viewing is not a license to Use.
+
+
+5. ROYALTIES
+
+5.1 Every Use of the Software gives rise to an obligation to pay Royalties to
+    Licensor. No Use is royalty-free.
+
+5.2 Before any Use, You must contact Licensor at info@qantm.ai to obtain a signed
+    license stating the scope of Use, the Royalty rate, the reporting period, and
+    the payment terms. Royalty rates are set by Licensor in its sole discretion
+    and may be per-seat, per-deployment, per-request, revenue-share, flat-fee, or
+    any combination thereof.
+
+5.3 Any Use commenced before a signed license is in place accrues Royalties at
+    Licensor's then-current standard commercial rate from the first day of such
+    Use, without prejudice to Licensor's other remedies for the unlicensed Use.
+
+5.4 Royalties are non-refundable and exclusive of taxes. Late amounts bear
+    interest at the lower of 1.5% per month or the maximum rate permitted by law.
+
+
+6. RECORDS AND AUDIT
+
+6.1 A licensed Licensee shall keep complete and accurate records sufficient to
+    verify Royalties due and shall report Use as required by its signed license.
+
+6.2 Licensor may, on reasonable notice and no more than twice per year, audit
+    such records. If an audit reveals an underpayment of more than five percent
+    (5%) for any period, Licensee shall bear the reasonable cost of the audit in
+    addition to the underpaid amounts and applicable interest.
+
+
+7. RESTRICTIONS
+
+Except to the extent expressly permitted by a signed license or by mandatory law
+that cannot be contractually waived, You shall NOT: (a) Use the Software without a
+signed, paid license; (b) remove, alter, or obscure any copyright, trademark, or
+proprietary notice; (c) reverse engineer, decompile, or disassemble any portion
+provided in non-source form; (d) sublicense, sell, rent, lease, lend, or offer the
+Software as a hosted or managed service; (e) use the Software to build or train a
+competing product or a machine-learning model; or (f) circumvent any technical or
+license-key mechanism.
+
+
+8. TERMINATION
+
+8.1 This License and any signed license terminate automatically and immediately
+    upon any breach, including any unlicensed Use or non-payment of Royalties.
+
+8.2 Upon termination You shall immediately cease all Use, permanently delete all
+    copies of the Software in Your possession or control, and certify such
+    deletion in writing on request. Sections 2, 3, 5, 6, 9, 10, 11, and 12
+    survive termination.
+
+
+9. THIRD-PARTY COMPONENTS AND PUBLIC DATA
+
+9.1 The Software depends on, but does not include and does not purport to
+    relicense, third-party open-source components (for example, and without
+    limitation, FastAPI, Uvicorn, Pydantic, and HTTPX), each of which is governed
+    solely by its own license. Nothing in this License enlarges or restricts Your
+    rights in those components.
+
+9.2 Drug, pricing, and reference information is derived from public and
+    governmental sources (for example, and without limitation, U.S. NLM RxNorm,
+    openFDA, and CMS NADAC). Such underlying public data is governed by those
+    sources' own terms and is not claimed as Licensor's proprietary Software;
+    Licensor's rights extend to its original selection, arrangement, curation,
+    schema, and presentation of that data.
+
+
+10. NO WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS, IMPLIED, OR STATUTORY, INCLUDING WITHOUT LIMITATION THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NONINFRINGEMENT, AND
+ANY WARRANTY THAT THE INFORMATION PROVIDED IS ACCURATE, CURRENT, OR SUITABLE FOR
+MEDICAL, PRICING, OR OTHER DECISIONS. THE SOFTWARE IS AN INFORMATION SERVICE AND
+IS NOT MEDICAL, LEGAL, INSURANCE, OR FINANCIAL ADVICE.
+
+
+11. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL LICENSOR BE LIABLE FOR
+ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES,
+OR FOR ANY LOSS OF PROFITS, REVENUE, DATA, OR GOODWILL, ARISING OUT OF OR RELATED
+TO THE SOFTWARE OR THIS LICENSE, WHETHER IN CONTRACT, TORT, OR OTHERWISE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. LICENSOR'S TOTAL AGGREGATE LIABILITY
+SHALL NOT EXCEED THE ROYALTIES ACTUALLY PAID BY YOU TO LICENSOR IN THE TWELVE (12)
+MONTHS PRECEDING THE CLAIM.
+
+
+12. GENERAL
+
+12.1 Governing Law. This License is governed by the laws of [[STATE/COUNTRY —
+     FILL IN]], without regard to its conflict-of-laws rules. The parties submit
+     to the exclusive jurisdiction of the courts located in that jurisdiction.
+
+12.2 Injunctive Relief. You acknowledge that unlicensed Use would cause Licensor
+     irreparable harm for which monetary damages are inadequate, and that Licensor
+     is entitled to seek injunctive relief without posting bond, in addition to
+     all other remedies.
+
+12.3 No Waiver; Severability. Failure to enforce any provision is not a waiver.
+     If any provision is held unenforceable, it shall be limited to the minimum
+     extent necessary and the remainder shall remain in full force.
+
+12.4 Entire Agreement. This License, together with any signed license agreement
+     executed by Licensor, is the entire agreement concerning the Software and
+     supersedes all prior understandings, including any prior open-source license
+     previously applied to the Software, which is hereby revoked as to all
+     versions to the maximum extent permitted by law.
+
+12.5 No Trademark License. This License grants no right to use the names,
+     logos, or trademarks of Licensor, including "QANTM AI" and "0penRX".
+
+
+LICENSING CONTACT
+To obtain a paid license and Royalty quote for any Use of the Software:
+    QANTM AI — info@qantm.ai

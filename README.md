@@ -80,4 +80,7 @@ See [docs/PLATFORM_RULES.md](docs/PLATFORM_RULES.md). Key invariants: no fabrica
 
 ## License
 
-See [LICENSE](LICENSE).
+**Proprietary — all rights reserved. Not open source.** Any use of this software
+requires a separate signed, paid, royalty-bearing license from QANTM AI. Viewing
+the public repository does not grant a right to run, deploy, modify, or
+redistribute it. To license it, contact **info@qantm.ai**. See [LICENSE](LICENSE).
