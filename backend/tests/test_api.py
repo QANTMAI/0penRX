@@ -41,6 +41,31 @@ def test_security_headers_present():
     assert h.get("Server") == "0penrx"  # stack not advertised
 
 
+def test_rate_limiting():
+    """Per-IP sliding window returns 429 + Retry-After past the limit; /health
+    is exempt so uptime/keep-warm probes are never throttled."""
+    import app as appmod
+
+    original = appmod._RATE_MAX
+    appmod._RATE_MAX = 3
+    appmod._rate_hits.clear()
+    try:
+        for _ in range(3):
+            assert client.get("/coupons", params={"drug": "x"}).status_code == 200
+        limited = client.get("/coupons", params={"drug": "x"})
+        assert limited.status_code == 429
+        assert "Retry-After" in limited.headers
+        # security headers still present on the 429
+        assert limited.headers.get("X-Content-Type-Options") == "nosniff"
+        # /health never throttles
+        appmod._rate_hits.clear()
+        for _ in range(6):
+            assert client.get("/health").status_code == 200
+    finally:
+        appmod._RATE_MAX = original
+        appmod._rate_hits.clear()
+
+
 def test_no_prices_endpoint():
     """Pricing is client-side only (CMS NADAC direct). The backend must NOT
     expose a /prices endpoint — guard against it silently returning."""

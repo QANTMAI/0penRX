@@ -101,10 +101,15 @@ privacy/PII.
    ready for the [hstspreload.org](https://hstspreload.org) permanence. Do **not**
    set `Cross-Origin-Embedder-Policy: require-corp` — it breaks nothing here but
    provides no benefit and can block future third-party assets.)
-2. **Least-privilege workflow tokens** — add `permissions:` (default `contents: read`)
-   to every workflow; elevate per-job only where needed. (Actions are already SHA-pinned ✅.)
-3. **Rate-limit the FastAPI backend** (e.g. `slowapi`) — the free-tier API has no
-   throttle; a per-IP limit blunts abuse/DoS. Cache-Control already `no-store`.
+   ✅ **The `_headers` file and `docs/HOSTING_MIGRATION.md` are now committed** — the
+   migration is scaffolded and ready; the cutover itself needs the Cloudflare/Netlify
+   account (a `(B)` infra action).
+2. ✅ **Least-privilege workflow tokens** — **done**. Every workflow declares
+   `permissions:` (`contents: read`, except `coupons.yml` which needs `contents: write`
+   and `codeql.yml` which needs `security-events: write`). Actions are SHA-pinned.
+3. ✅ **Rate-limit the FastAPI backend** — **done**. Dependency-free per-IP sliding
+   window (`RATE_LIMIT_MAX`/`RATE_LIMIT_WINDOW`, default 120/60s), 429 + `Retry-After`,
+   `/health` exempt for uptime probes. Locked by `test_rate_limiting`.
 4. **DNS hardening** (external): add a **CAA** record (after confirming the current
    issuer — GitHub Pages/Render use Let's Encrypt; an over-tight CAA breaks
    auto-renewal), enable **DNSSEC** only if the provider is one-click, and publish
@@ -121,14 +126,22 @@ privacy/PII.
   first, then tighten `script-src` toward `'nonce-…' 'strict-dynamic'` (drop any
   reliance on host allowlists). Styles may stay `'unsafe-inline'` — the 2026 strict-CSP
   mandate is script-scoped.
-- **SBOM in CI** — generate CycloneDX (current spec 1.7 / ECMA-424) via `cyclonedx-py`
-  for the backend deps; cheap and increasingly expected.
+- ✅ **SBOM in CI** — **done**. `.github/workflows/sbom.yml` generates a CycloneDX
+  SBOM for the backend deps via `cyclonedx-py` on dependency change / release,
+  uploaded as a build artifact.
 - **Artifact attestation** — if the backend is containerized, add
   `actions/attest-build-provenance` → SLSA Build L2, keyless via GitHub OIDC (free
-  on public repos), verify with `gh attestation verify`.
-- **SSH commit signing** — one-time setup, gets the native GitHub "Verified" badge,
-  no key management. (Skip `gitsign` — no Verified badge yet in 2026.)
+  **on public repos** — gated on going public), verify with `gh attestation verify`.
+- **SSH commit signing** — one-time **per-developer machine** setup (a `(B)` action),
+  gets the native GitHub "Verified" badge, no key management. (Skip `gitsign` — no
+  Verified badge yet in 2026.)
 - **OpenSSF Scorecard action** as a self-audit scoreboard (target 7+).
+
+> **Gated items (can't be code-completed here):** the header cutover, CodeQL-on-PR,
+> and SLSA attestation all require the repo to be **public** and/or a **third-party
+> account** (Cloudflare/Netlify); `nonce` CSP requires the header-capable host (a
+> `<meta>` CSP can't do nonces or reporting). These are staged and documented but
+> depend on the `(B)` infra/account decisions.
 
 ### Phase 3 — 2027+ watch list (mostly inherited from platforms)
 - **Post-quantum TLS**: hybrid **X25519MLKEM768** key exchange is already default in

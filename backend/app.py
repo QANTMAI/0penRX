@@ -16,12 +16,15 @@ import hmac as _hmac
 import json
 import os
 import re
+import time
+from collections import defaultdict, deque
 from datetime import date
 from urllib.parse import urlencode
 
 import httpx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 app = FastAPI(title="0penRX API", version="0.1.0")
 
@@ -64,9 +67,49 @@ _SECURITY_HEADERS = {
 }
 
 
+# ---- Per-IP rate limiting -------------------------------------------------
+# A read-only API on a single free-tier instance, so a lightweight in-memory
+# sliding-window limiter is appropriate (no external store needed). Blocks
+# scraping/DoS bursts while leaving normal use (a few requests per drug view)
+# untouched. Tunable via env; /health is exempt so uptime probes never throttle.
+_RATE_MAX = int(os.environ.get("RATE_LIMIT_MAX", "120"))  # requests per window
+_RATE_WINDOW = int(os.environ.get("RATE_LIMIT_WINDOW", "60"))  # seconds
+_rate_hits: dict[str, deque] = defaultdict(deque)
+
+
+def _client_ip(request) -> str:
+    # Render terminates TLS at a proxy, so the real client is in X-Forwarded-For.
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _rate_retry_after(request) -> int | None:
+    """Seconds to wait if the client is over the limit, else None (and record it)."""
+    now = time.monotonic()
+    dq = _rate_hits[_client_ip(request)]
+    cutoff = now - _RATE_WINDOW
+    while dq and dq[0] < cutoff:
+        dq.popleft()
+    if len(dq) >= _RATE_MAX:
+        return int(_RATE_WINDOW - (now - dq[0])) + 1
+    dq.append(now)
+    # Bound memory: drop idle IPs if the table grows large.
+    if len(_rate_hits) > 50000:
+        for ip in [k for k, v in _rate_hits.items() if not v]:
+            del _rate_hits[ip]
+    return None
+
+
 @app.middleware("http")
 async def security_headers(request, call_next):
-    response = await call_next(request)
+    retry = None if request.url.path == "/health" else _rate_retry_after(request)
+    if retry is not None:
+        response = JSONResponse({"detail": "rate limit exceeded"}, status_code=429)
+        response.headers["Retry-After"] = str(retry)
+    else:
+        response = await call_next(request)
     for k, v in _SECURITY_HEADERS.items():
         response.headers.setdefault(k, v)
     # Reduce fingerprinting: don't advertise the server stack.
