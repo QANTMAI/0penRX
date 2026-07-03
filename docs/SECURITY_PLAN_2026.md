@@ -118,30 +118,37 @@ privacy/PII.
 5. **External cert-expiry + uptime monitor** (UptimeRobot/cron-job.org) — managed
    renewal can fail silently; this is the safety net as cert lifetimes shrink (§4).
 
-### Phase 2 — 2026 completeness (when public / as time allows)
-- **Re-enable CodeQL on push/PR** (free code scanning on public repos) — closes the
-  SAST-never-gates-a-PR gap; the triggers are already stubbed in `codeql.yml`.
-- **CSP reporting → nonce migration**: once on a header-capable host, deploy CSP in
-  `Content-Security-Policy-Report-Only` with `report-to` + `Reporting-Endpoints`
-  first, then tighten `script-src` toward `'nonce-…' 'strict-dynamic'` (drop any
-  reliance on host allowlists). Styles may stay `'unsafe-inline'` — the 2026 strict-CSP
-  mandate is script-scoped.
-- ✅ **SBOM in CI** — **done**. `.github/workflows/sbom.yml` generates a CycloneDX
-  SBOM for the backend deps via `cyclonedx-py` on dependency change / release,
-  uploaded as a build artifact.
-- **Artifact attestation** — if the backend is containerized, add
-  `actions/attest-build-provenance` → SLSA Build L2, keyless via GitHub OIDC (free
-  **on public repos** — gated on going public), verify with `gh attestation verify`.
-- **SSH commit signing** — one-time **per-developer machine** setup (a `(B)` action),
-  gets the native GitHub "Verified" badge, no key management. (Skip `gitsign` — no
-  Verified badge yet in 2026.)
-- **OpenSSF Scorecard action** as a self-audit scoreboard (target 7+).
+### Phase 2 — 2026 completeness (repo is now PUBLIC — most items done)
+- ✅ **CodeQL on push/PR** — **done**. Activated in `codeql.yml`; runs Python +
+  JavaScript analysis on every push/PR to `main` + weekly. Closes the SAST gap.
+- ✅ **Secret scanning + push protection + private vulnerability reporting** — **done**
+  (enabled via the repo Security settings once public; free on public repos).
+- ✅ **SBOM in CI** — **done**. `.github/workflows/sbom.yml` (CycloneDX via `cyclonedx-py`).
+- ✅ **SLSA build attestation** — **done**. `.github/workflows/release-attest.yml` builds
+  the deployable site tarball + SBOM on release and produces keyless SLSA Build L2
+  provenance (GitHub OIDC + Sigstore, public Rekor log). Verify:
+  `gh attestation verify openrx-site.tar.gz -R QANTMAI/0penRX`.
+- **`nonce` CSP — not applicable to this site (documented, intentional).** Nonces /
+  `'strict-dynamic'` exist to safely allow *inline* or *third-party* scripts. 0penRX
+  has **zero inline scripts and zero third-party scripts** — every script is
+  same-origin, so `script-src 'self'` is already the strict policy and a nonce would
+  add complexity for no security gain. (`style-src 'unsafe-inline'` covers dynamic
+  numeric width attributes; securityheaders.com stopped penalizing style-inline in
+  2023.) If a header-capable host is adopted, add CSP **reporting** (`report-to` +
+  `Reporting-Endpoints`) — the one reporting feature `<meta>` can't deliver.
+- **SSH commit signing** — a **per-developer machine** action (cannot be done in the
+  repo). Each contributor, once: `ssh-keygen -t ed25519 -f ~/.ssh/git-signing`, add
+  the public key as a *Signing key* in GitHub → Settings → SSH keys, then
+  `git config --global gpg.format ssh` + `git config --global user.signingkey ~/.ssh/git-signing.pub`
+  + `git config --global commit.gpgsign true`. Yields the native "Verified" badge.
+- **OpenSSF Scorecard action** — optional self-audit scoreboard (target 7+); free on
+  public repos, low effort.
 
-> **Gated items (can't be code-completed here):** the header cutover, CodeQL-on-PR,
-> and SLSA attestation all require the repo to be **public** and/or a **third-party
-> account** (Cloudflare/Netlify); `nonce` CSP requires the header-capable host (a
-> `<meta>` CSP can't do nonces or reporting). These are staged and documented but
-> depend on the `(B)` infra/account decisions.
+> **Genuinely can't be code-completed (need an external account):** the **frontend
+> header cutover** — moving off GitHub Pages to Cloudflare Pages / Netlify — is the
+> only real HTTP-header path (`<meta>` can't set HSTS/X-Frame-Options/Permissions-
+> Policy/COOP). It is fully **scaffolded** (`_headers` + `docs/HOSTING_MIGRATION.md`);
+> executing it needs a Cloudflare/Netlify login + DNS access. Nothing else is gated.
 
 ### Phase 3 — 2027+ watch list (mostly inherited from platforms)
 - **Post-quantum TLS**: hybrid **X25519MLKEM768** key exchange is already default in

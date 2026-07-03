@@ -1,0 +1,62 @@
+name: Release attestation
+
+# On a published release, build the deployable static-site tarball + a CycloneDX
+# SBOM and produce SLSA build-provenance attestations — keyless via GitHub OIDC +
+# Sigstore, recorded in the public Rekor transparency log (free on public repos).
+# This gives anyone who forks / self-hosts / redistributes 0penRX a verifiable
+# guarantee of what was built, from which commit, by which workflow:
+#
+#   gh attestation verify openrx-site.tar.gz -R QANTMAI/0penRX
+#
+# Yields SLSA Build Level 2 (hosted runner + signed provenance).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write # upload assets to the release
+  id-token: write # OIDC token for keyless Sigstore signing
+  attestations: write # write the attestation
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Generate CycloneDX SBOM (backend deps)
+        run: |
+          python -m pip install --upgrade pip
+          pip install cyclonedx-bom
+          cyclonedx-py requirements backend/requirements.txt -o backend-sbom.cdx.json
+
+      - name: Build deployable site tarball (deterministic)
+        run: |
+          tar --sort=name --owner=0 --group=0 --numeric-owner --mtime='2026-01-01 00:00Z' \
+            -czf openrx-site.tar.gz \
+            index.html 404.html sitemap.xml robots.txt llms.txt manifest.webmanifest \
+            sw.js _headers CNAME .nojekyll assets drugs privacy .well-known \
+            c44addc09154544410eb831742ea4974.txt
+          sha256sum openrx-site.tar.gz backend-sbom.cdx.json
+
+      - name: Attest build provenance (SLSA Build L2)
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4
+        with:
+          subject-path: 'openrx-site.tar.gz'
+
+      - name: Attest SBOM to the artifact
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        with:
+          subject-path: 'openrx-site.tar.gz'
+          sbom-path: 'backend-sbom.cdx.json'
+
+      - name: Upload artifacts to the release
+        if: github.event_name == 'release'
+        run: gh release upload "${{ github.event.release.tag_name }}" openrx-site.tar.gz backend-sbom.cdx.json --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
