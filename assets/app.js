@@ -797,6 +797,16 @@ function init() {
 
   registerSW();
 
+  // Deep-link support: /#sources and /#coupons open those views on load, so the
+  // header nav on sub-pages (privacy, comparison guides, drug pages) can link
+  // straight into them as real anchors. Falls through to the default browse view.
+  const viewFromHash = () => {
+    const h = (location.hash || '').replace('#', '');
+    if (h === 'sources' || h === 'coupons' || h === 'browse') setView(h);
+  };
+  viewFromHash();
+  window.addEventListener('hashchange', viewFromHash);
+
   // Warm the Render backend so the first coupon lookup doesn't hit a cold start.
   // Fire-and-forget: the /health response is ignored; this just prevents the
   // free-tier container from being asleep when a user opens their first drug.
