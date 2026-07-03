@@ -258,6 +258,11 @@ def page_html(d) -> str:
       </svg>
       <span class="logo-txt">0PENRX<span class="logo-tag">Zero middlemen. Open prices. Your Rx.</span></span>
     </a>
+    <nav class="nav" aria-label="Sections">
+      <a class="ntab" href="/">Browse</a>
+      <a class="ntab" href="/#sources">Data Sources</a>
+      <a class="ntab" href="/#coupons">Coupon Guide</a>
+    </nav>
     <div class="hdr-r">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle light/dark theme"></button>
     </div>

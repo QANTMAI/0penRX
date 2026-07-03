@@ -1,6 +1,6 @@
-# CLAUDE.md — 0penRX
+# AGENTS.md — 0penRX
 
-This file is read by Claude Code (and other AI coding assistants) before touching this codebase. Follow all rules in `docs/PLATFORM_RULES.md`. What follows is a compressed working-memory guide.
+This file is read by AI coding assistants before touching this codebase. Follow all rules in `docs/PLATFORM_RULES.md`. What follows is a compressed working-memory guide.
 
 ## What this repo is
 
