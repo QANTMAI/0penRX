@@ -94,7 +94,7 @@ def description(d) -> str:
 def detail_static(d) -> str:
     ext = d["heroType"] == "ExternalLinkRouting"
     p = []
-    p.append(f'<div class="p-name">{esc(d["name"])}</div>')
+    p.append(f'<h1 class="p-name">{esc(d["name"])}</h1>')
     p.append(
         f'<div class="p-sub">{esc(d["generic"])} · {esc(_clean(d["company"]))} · {esc(d["category"])}</div>'
     )
@@ -126,7 +126,7 @@ def detail_static(d) -> str:
     if warn:
         p.append(f'<p class="eligibility-warn">{warn}</p>')
     if not ext and d.get("bin") == "015995":
-        p.append('<div class="label">Where to fill</div>')
+        p.append('<h2 class="label">Where to fill</h2>')
         p.append(
             '<div class="coupon"><div class="coupon-t">Pharmacy coupon — cash-pay only, verify before use</div>'
             '<div class="cfields">'
@@ -292,7 +292,7 @@ def page_html(d) -> str:
       <p>0penRX is provided for informational purposes only and does not constitute medical, legal, insurance, pharmacy, or pricing advice. Pricing, coupon, availability, and program information may change at any time and should always be verified directly with the pharmacy, manufacturer, or official program source before use. Cash-pay prices only.</p>
       <p>0penRX is an independent information service and is not affiliated with, endorsed by, or sponsored by any pharmaceutical manufacturer, pharmacy benefit manager, pharmacy, insurer, trade association, industry group, coupon network, or government agency.</p>
     </div>
-    <div class="foot-copy">&copy; 2026 QANTM AI. All rights reserved. · <a href="/privacy/">Privacy</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a></div>
+    <div class="foot-copy">&copy; 2026 QANTM AI. All rights reserved. · <a href="/privacy/">Privacy</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a> · <a href="/#sources">Data Sources</a> · <a href="/#coupons">Coupon Guide</a></div>
   </div>
 </footer>
 <script src="/assets/config.js"></script>
