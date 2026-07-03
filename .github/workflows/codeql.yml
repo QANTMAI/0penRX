@@ -1,23 +1,17 @@
 # CodeQL static analysis for 0penRX (Python + JavaScript).
 #
-# Manual-trigger only by default. CodeQL upload requires GitHub code scanning,
-# which is free on PUBLIC repositories but needs GitHub Advanced Security on
-# private ones. While this repo is private without GHAS, auto-running on every
-# push/PR would leave a permanently failing check, so triggers are limited to
-# manual dispatch. TO ACTIVATE once the repo is public (or GHAS code scanning is
-# enabled): add back the push/pull_request/schedule triggers shown below.
-#
-#   on:
-#     push:
-#       branches: ["main"]
-#     pull_request:
-#       branches: ["main"]
-#     schedule:
-#       - cron: "27 4 * * 1"
+# Code scanning is free on PUBLIC repositories. Now that this repo is public,
+# CodeQL runs on every push/PR to main + weekly, so SAST gates changes.
 
 name: "CodeQL"
 
 on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "27 4 * * 1"
   workflow_dispatch:
 
 permissions:
