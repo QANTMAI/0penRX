@@ -23,4 +23,4 @@
 
 ## Optional
 
-- [GitHub repository](https://github.com/QANTMAI/0penRX): Open source — vanilla JS, FastAPI backend, no build step.
+- [GitHub repository](https://github.com/QANTMAI/0penRX): Proprietary, all rights reserved — source-available for viewing only. Vanilla JS, FastAPI backend, no build step. The source code and data files may not be scraped, reused, or used to train AI/ML models without a signed license (see LICENSE Section 7A). Citing this site's public price info is welcome; copying the code is not.
