@@ -1,0 +1,25 @@
+# HTTP response headers for a header-capable host (Cloudflare Pages / Netlify).
+#
+# GitHub Pages CANNOT set real HTTP headers, so this file is INERT there (served
+# as a plain file). It activates automatically when the site is deployed on
+# Cloudflare Pages or Netlify — see docs/HOSTING_MIGRATION.md. These values are
+# the OWASP 2026 baseline and target an A+ on securityheaders.com / MDN Observatory.
+
+/*
+  Strict-Transport-Security: max-age=63072000; includeSubDomains
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://rxnav.nlm.nih.gov https://api.fda.gov https://data.medicaid.gov https://clinicaltables.nlm.nih.gov https://openrx-api.onrender.com; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=(), usb=(), interest-cohort=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+  X-Permitted-Cross-Domain-Policies: none
+
+# Long-cache the fingerprint-free static assets (safe: content-addressed by path).
+/assets/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Note: add `; preload` to Strict-Transport-Security ONLY after every subdomain
+# is HTTPS and you have committed to https://hstspreload.org submission (it is a
+# hard-to-reverse, browser-baked commitment).

@@ -275,7 +275,7 @@ def page_html(d) -> str:
     <div class="foot-legal">
       <p>0penRX is provided for informational purposes only and is not medical, legal, insurance, pharmacy, or pricing advice. Pricing, coupon, availability, and program information may change at any time and should be verified directly with the pharmacy, manufacturer, or official program source before use. Cash-pay prices only.</p>
     </div>
-    <div class="foot-copy">&copy; 2026 QANTM AI. All rights reserved.</div>
+    <div class="foot-copy">&copy; 2026 QANTM AI. All rights reserved. · <a href="/privacy/">Privacy</a></div>
   </div>
 </footer>
 <script src="/assets/config.js"></script>
@@ -290,8 +290,12 @@ def build(catalog):
     files = {}
     for d in catalog:
         files[os.path.join("drugs", d["slug"], "index.html")] = page_html(d)
-    # sitemap: homepage + every drug page
-    locs = [f"{SITE}/"] + [f"{SITE}/drugs/{d['slug']}/" for d in catalog]
+    # sitemap: homepage + every drug page + the privacy page
+    locs = (
+        [f"{SITE}/"]
+        + [f"{SITE}/drugs/{d['slug']}/" for d in catalog]
+        + [f"{SITE}/privacy/"]
+    )
     urls = "\n".join(
         f"  <url>\n    <loc>{loc}</loc>\n    <lastmod>{TODAY}</lastmod>\n"
         f"    <changefreq>weekly</changefreq>\n    <priority>{'1.0' if i == 0 else '0.8'}</priority>\n  </url>"

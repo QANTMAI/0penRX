@@ -744,6 +744,10 @@ function init() {
   const dp = document.getElementById('drugpage');
   if (dp) { renderDrugPage(dp); registerSW(); return; }
 
+  // Content pages (e.g. /privacy/) have neither the app grid nor a drug panel.
+  // Theme is already applied above; register the SW and stop before the SPA wiring.
+  if (!document.getElementById('grid')) { registerSW(); return; }
+
   renderFilters();
   renderGrid();
   renderCatalogVerified();

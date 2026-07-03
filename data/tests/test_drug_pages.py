@@ -47,13 +47,15 @@ def test_no_orphan_pages():
                 assert rel in valid, f"orphan drug page (slug not in catalog): {rel}"
 
 
-def test_sitemap_lists_homepage_plus_every_drug():
+def test_sitemap_lists_homepage_drugs_and_privacy():
     sitemap = FILES["sitemap.xml"]
     locs = set(re.findall(r"<loc>(.*?)</loc>", sitemap))
     assert "https://0penrx.org/" in locs
+    assert "https://0penrx.org/privacy/" in locs
     for d in CATALOG:
         assert f"https://0penrx.org/drugs/{d['slug']}/" in locs
-    assert len(locs) == len(CATALOG) + 1
+    # homepage + every drug + privacy
+    assert len(locs) == len(CATALOG) + 2
 
 
 def test_each_page_has_canonical_and_valid_jsonld():
