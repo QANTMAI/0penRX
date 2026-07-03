@@ -84,3 +84,10 @@ See [docs/PLATFORM_RULES.md](docs/PLATFORM_RULES.md). Key invariants: no fabrica
 requires a separate signed, paid, royalty-bearing license from QANTM AI. Viewing
 the public repository does not grant a right to run, deploy, modify, or
 redistribute it. To license it, contact **info@qantm.ai**. See [LICENSE](LICENSE).
+
+**No AI scraping or training on this repository.** Scraping, cloning, or ingesting
+this repo's **source code or data files** to train, fine-tune, ground, embed, or
+evaluate any AI/ML model is strictly forbidden without a signed, paid license
+([LICENSE](LICENSE) §7A). This applies to the **code**, not the public website:
+the live site at [0penrx.org](https://0penrx.org) is intentionally crawlable and
+may be cited by search engines and AI assistants per its `robots.txt`.
