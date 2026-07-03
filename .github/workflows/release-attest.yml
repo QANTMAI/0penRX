@@ -50,10 +50,13 @@ jobs:
           subject-path: 'openrx-site.tar.gz'
 
       - name: Attest SBOM to the artifact
-        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4
+        # actions/attest-sbom is deprecated; the unified actions/attest carries the
+        # CycloneDX SBOM as its predicate for the same result.
+        uses: actions/attest@a1948c3f048ba23858d222213b7c278aabede763 # v4.1.1
         with:
           subject-path: 'openrx-site.tar.gz'
-          sbom-path: 'backend-sbom.cdx.json'
+          predicate-type: 'https://cyclonedx.org/bom'
+          predicate-path: 'backend-sbom.cdx.json'
 
       - name: Upload artifacts to the release
         if: github.event_name == 'release'
