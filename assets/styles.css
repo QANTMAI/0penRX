@@ -124,7 +124,8 @@ ul { list-style: none; }
 }
 .hdr-in { max-width: var(--maxw); margin: 0 auto; padding: .6rem 1.5rem; display: flex; align-items: center; gap: 1rem; }
 .logo { display: flex; align-items: center; gap: .55rem; font-family: var(--font-d); font-size: var(--t-lg); color: var(--primary); white-space: nowrap; }
-.logo-tag { font-family: var(--font-b); font-size: var(--t-xs); font-weight: 400; color: var(--text-3); white-space: nowrap; }
+.logo-txt { display: flex; flex-direction: column; line-height: 1.05; }
+.logo-tag { font-family: var(--font-b); font-size: var(--t-xs); font-weight: 400; color: var(--text-3); white-space: nowrap; margin-top: 1px; }
 .nav { display: flex; gap: .2rem; margin-left: .5rem; }
 .ntab {
   padding: .38rem .85rem; border-radius: var(--r-md); font-size: var(--t-sm);
