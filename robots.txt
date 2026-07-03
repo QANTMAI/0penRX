@@ -1,6 +1,11 @@
 # 0penRX — public, read-only cash-pay drug-price reference.
 # Everything here is meant to be found: by search engines AND by AI assistants.
 # We explicitly ALLOW AI/LLM crawlers so 0penRX can be cited as a source.
+#
+# NOTE: this governs the live website only. The SOURCE CODE in the GitHub repo
+# is proprietary and may NOT be scraped or used to train AI — see /LICENSE
+# Section 7A. Citing the site's public price info is welcome; copying the code
+# or bulk data files is not.
 
 # ── All conventional crawlers ───────────────────────────────────────────────
 User-agent: *

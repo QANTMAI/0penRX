@@ -10,6 +10,13 @@ PAYMENT OF ROYALTIES AS SET OUT BELOW. IF YOU DO NOT HAVE SUCH A SIGNED LICENSE,
 YOU HAVE NO RIGHT TO USE THE SOFTWARE FOR ANY PURPOSE OTHER THAN THE LIMITED
 VIEWING PERMITTED BY SECTION 4.
 
+AI / TDM NOTICE: SCRAPING, CRAWLING, TEXT-AND-DATA MINING, AND AI/ML TRAINING OR
+INGESTION OF THIS REPOSITORY'S SOURCE CODE OR DATA FILES — BY ANY BOT, CRAWLER,
+OR AUTOMATED AGENT — IS STRICTLY FORBIDDEN WITHOUT A SIGNED, PAID LICENSE. SEE
+SECTION 7A. (This concerns the SOURCE REPOSITORY; the public website at
+0penrx.org may be crawled and cited per that site's robots.txt.) ALL RIGHTS ARE
+RESERVED AGAINST TDM (EU 2019/790 ART. 4 AND SIMILAR).
+
 
 1. DEFINITIONS
 
@@ -115,8 +122,50 @@ signed, paid license; (b) remove, alter, or obscure any copyright, trademark, or
 proprietary notice; (c) reverse engineer, decompile, or disassemble any portion
 provided in non-source form; (d) sublicense, sell, rent, lease, lend, or offer the
 Software as a hosted or managed service; (e) use the Software to build or train a
-competing product or a machine-learning model; or (f) circumvent any technical or
-license-key mechanism.
+competing product or a machine-learning model; (f) circumvent any technical or
+license-key mechanism; (g) scrape, crawl, spider, harvest, index, mirror, or
+otherwise access the Software or any of its code, text, or data by automated
+means for the purpose of collecting, copying, or ingesting it; or (h) use the
+Software or any portion of it as input to, or to train, fine-tune, pre-train,
+ground, retrieval-augment, embed, benchmark, evaluate, or otherwise develop any
+artificial-intelligence or machine-learning model, dataset, corpus, or system.
+
+
+7A. NO AI TRAINING, SCRAPING, OR TEXT-AND-DATA MINING — STRICTLY FORBIDDEN
+
+7A.1 Licensor expressly reserves all rights in the Software — meaning the source
+     code, build tooling, schema, and the raw catalog, coupon, and other data
+     files in this repository — against text and data mining (TDM), web scraping,
+     crawling, and artificial-intelligence or machine-learning training and
+     ingestion. This is a reservation of rights for the purposes of Article 4 of
+     Directive (EU) 2019/790 and any comparable law, and a human-readable opt-out.
+
+7A.2 It is STRICTLY FORBIDDEN, without a separate signed, paid license from
+     Licensor, for any person or automated agent — including any AI bot, crawler,
+     scraper, spider, or data-collection pipeline — to scrape, clone, copy, steal,
+     harvest, ingest, index, reproduce, or use any source code, data file, text,
+     or other content of the Software (including this GitHub repository and any
+     fork or mirror of it), whether for the training, fine-tuning, grounding,
+     retrieval-augmentation, evaluation, or operation of any AI or ML model or
+     dataset, or for any other purpose beyond the limited human viewing permitted
+     by Section 4.
+
+7A.3 Scope. This Section governs the Software (the repository and its code and
+     data files). It does NOT restrict the separate public website operated by
+     Licensor at 0penrx.org, whose rendered, published price information may be
+     crawled and cited by search engines and AI assistants to the extent that
+     site's own robots.txt permits. Permission to crawl the public website is not
+     permission to copy, redistribute, or train on the Software's source code or
+     bulk data files, and is not a waiver of this Section.
+
+7A.4 No technical access mechanism — including the public availability of this
+     repository — constitutes consent to the foregoing. This reservation is notice
+     of prohibition; ignoring it does not create a license and is evidence of
+     willful infringement.
+
+7A.5 Any AI/ML training or TDM use in breach of this Section is unlicensed Use
+     that accrues Royalties under Section 5 and exposes the infringer to the full
+     remedies in Sections 3.2 and 12.2.
 
 
 8. TERMINATION
@@ -126,7 +175,7 @@ license-key mechanism.
 
 8.2 Upon termination You shall immediately cease all Use, permanently delete all
     copies of the Software in Your possession or control, and certify such
-    deletion in writing on request. Sections 2, 3, 5, 6, 9, 10, 11, and 12
+    deletion in writing on request. Sections 2, 3, 5, 6, 7A, 9, 10, 11, and 12
     survive termination.
 
 
