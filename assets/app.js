@@ -688,7 +688,11 @@ async function copyCoupon(spec, btn) {
 // ---- View switching --------------------------------------------------------
 function setView(name) {
   state.view = name;
-  $$('.ntab').forEach(t => t.classList.toggle('on', t.dataset.nav === name));
+  $$('.ntab').forEach(t => {
+    const on = t.dataset.nav === name;
+    t.classList.toggle('on', on);
+    if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+  });
   $('.hero').hidden = name !== 'browse';
   $('#filterbar').hidden = name !== 'browse';
   $('#view-browse').hidden = name !== 'browse';
