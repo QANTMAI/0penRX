@@ -259,7 +259,7 @@ def page_html(d) -> str:
       <span class="logo-txt">0PENRX<span class="logo-tag">Zero middlemen. Open prices. Your Rx.</span></span>
     </a>
     <nav class="nav" aria-label="Sections">
-      <a class="ntab" href="/">Browse</a>
+      <a class="ntab on" href="/" aria-current="page">Browse</a>
       <a class="ntab" href="/#sources">Data Sources</a>
       <a class="ntab" href="/#coupons">Coupon Guide</a>
     </nav>
