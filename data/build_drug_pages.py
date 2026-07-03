@@ -285,21 +285,32 @@ def page_html(d) -> str:
 """
 
 
+# Standalone content pages (not per-drug). Each entry is
+# (path, lastmod, priority). Hand-authored HTML lives in the repo; the sitemap
+# is generated here so these stay listed. Keep in sync with the actual files.
+CONTENT_PAGES = [
+    ("privacy/", TODAY, "0.8"),
+    ("compare-platforms/", "2026-07-03", "0.7"),
+    ("uninsured-guide/", "2026-07-03", "0.7"),
+]
+
+
 def build(catalog):
     """Return {relative_path: contents} for every drug page + sitemap.xml."""
     files = {}
     for d in catalog:
         files[os.path.join("drugs", d["slug"], "index.html")] = page_html(d)
-    # sitemap: homepage + every drug page + the privacy page
-    locs = (
-        [f"{SITE}/"]
-        + [f"{SITE}/drugs/{d['slug']}/" for d in catalog]
-        + [f"{SITE}/privacy/"]
+    # sitemap: homepage + every drug page + the standalone content pages.
+    # Each entry is (loc, lastmod, priority).
+    entries = (
+        [(f"{SITE}/", TODAY, "1.0")]
+        + [(f"{SITE}/drugs/{d['slug']}/", TODAY, "0.8") for d in catalog]
+        + [(f"{SITE}/{path}", lastmod, prio) for path, lastmod, prio in CONTENT_PAGES]
     )
     urls = "\n".join(
-        f"  <url>\n    <loc>{loc}</loc>\n    <lastmod>{TODAY}</lastmod>\n"
-        f"    <changefreq>weekly</changefreq>\n    <priority>{'1.0' if i == 0 else '0.8'}</priority>\n  </url>"
-        for i, loc in enumerate(locs)
+        f"  <url>\n    <loc>{loc}</loc>\n    <lastmod>{lastmod}</lastmod>\n"
+        f"    <changefreq>weekly</changefreq>\n    <priority>{prio}</priority>\n  </url>"
+        for loc, lastmod, prio in entries
     )
     files["sitemap.xml"] = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
