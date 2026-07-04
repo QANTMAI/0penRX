@@ -746,11 +746,11 @@ function init() {
   // and skip all the home-page (grid/search/nav) wiring — those elements don't
   // exist here.
   const dp = document.getElementById('drugpage');
-  if (dp) { renderDrugPage(dp); registerSW(); return; }
+  if (dp) { renderDrugPage(dp); renderCatalogVerified(); registerSW(); return; }
 
   // Content pages (e.g. /privacy/) have neither the app grid nor a drug panel.
   // Theme is already applied above; register the SW and stop before the SPA wiring.
-  if (!document.getElementById('grid')) { registerSW(); return; }
+  if (!document.getElementById('grid')) { renderCatalogVerified(); registerSW(); return; }
 
   renderFilters();
   renderGrid();
