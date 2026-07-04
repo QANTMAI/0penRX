@@ -658,21 +658,37 @@ function renderSources() {
 }
 
 // ---- Coupon Guide view -----------------------------------------------------
-// Codes (pcn/group/member) are derived from BIN_INFO at render time, so this
-// guide can never drift from what the per-drug detail panel shows.
+// Universal cash-pay discount cards any uninsured person can use — no insurance,
+// no enrollment. GoodRx codes come from BIN_INFO (shared with the per-drug panel).
+// The other cards carry their own confirmed-static BIN/PCN/Group; the member ID is
+// dynamic on every discount card, so it is never invented — it reads "Printed on
+// your card". SingleCare (partner-specific group) and Optum Perks (codes not
+// confirmable) are shown link-only so no unverified code is handed to a pharmacist.
+// Pharmacy counts and "up to 80%" are each vendor's own published figures.
 const COUPONS = [
-  // Stats limited to GoodRx's own published figures (70,000+ pharmacies; up to 80% off).
-  { t: 'Cash-Pay Discount — GoodRx Network', stats: ['No insurance needed', '70,000+ pharmacies', 'Up to 80% off'], bin: '015995' },
+  { t: 'GoodRx Network', stats: ['No insurance needed', '70,000+ pharmacies', 'Up to 80% off'], bin: '015995', url: 'https://www.goodrx.com/discount-card' },
+  { t: 'ScriptSave WellRx', stats: ['No insurance needed', '65,000+ pharmacies', 'Up to 80% off'], bin: '006053', pcn: 'MSC', group: '977', member: 'Printed on your card', url: 'https://www.wellrx.com/prescription-discount-card/' },
+  { t: "America's Pharmacy", stats: ['No insurance needed', '62,000+ pharmacies', 'Up to 80% off'], bin: '003585', pcn: '78470', group: 'ARX0302', member: 'Printed on your card', url: 'https://www.americaspharmacy.com/card/' },
+  { t: 'SingleCare', stats: ['No insurance needed', '35,000+ pharmacies', 'Up to 80% off'], linkOnly: true, note: 'Group and member vary by card — get your free card:', url: 'https://www.singlecare.com/prescription-discount-card' },
+  { t: 'Optum Perks', stats: ['No insurance needed', '64,000+ pharmacies', 'Up to 80% off'], linkOnly: true, note: 'Codes are printed on each card — get your free card:', url: 'https://perks.optum.com/discount-card' },
 ];
 function renderCoupons() {
   $('#couponList').innerHTML = COUPONS.map(c => {
-    const { pcn, group, member } = binInfo(c.bin);
     const chips = c.stats.map(s => `<span class="stat-chip">${esc(s)}</span>`).join('');
-    return `<div class="coupon" style="margin-top:0">
+    const link = c.url ? `<a class="btn btn-sec coupon-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Get your free card ↗</a>` : '';
+    let body;
+    if (c.linkOnly) {
+      body = `${c.note ? `<p class="coupon-note">${esc(c.note)}</p>` : ''}${link}`;
+    } else {
+      const info = c.pcn ? { pcn: c.pcn, group: c.group, member: c.member } : binInfo(c.bin);
+      body = `${cfieldsHTML([['BIN', c.bin], ['PCN', info.pcn], ['Group', info.group], ['Member', info.member]])}
+    <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(info.pcn)}|${esc(info.group)}|${esc(info.member)}">${COPY_ICO} Copy to clipboard</button>
+    ${link}`;
+    }
+    return `<div class="coupon">
     <div class="coupon-t">${esc(c.t)}</div>
     <div class="coupon-stats">${chips}</div>
-    ${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', group], ['Member', member]])}
-    <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">${COPY_ICO} Copy to clipboard</button>
+    ${body}
   </div>`;
   }).join('');
 }
