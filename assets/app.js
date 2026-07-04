@@ -305,7 +305,7 @@ function couponCardHTML(c) {
     <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="row-tag mfr">${esc(c.program_type)}</span>` : ''}</div>
     ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
     ${hasCard ? `${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', grp], ['Member', mem]])}
-      <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">📋 Copy coupon</button>` : ''}
+      <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">${COPY_ICO} Copy coupon</button>` : ''}
     ${c.url ? `<a class="btn btn-sec" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Program site ↗</a>` : ''}
     ${c.state_restrictions?.length ? `<div class="live-note">Restricted in: ${esc(c.state_restrictions.join(', '))}</div>` : ''}
     ${c.expiration_date ? `<div class="row-note" style="margin-top:.4rem">Expires ${esc(c.expiration_date)}</div>` : ''}
@@ -319,7 +319,7 @@ function couponBlock(d) {
     return `<div class="coupon">
       <div class="coupon-t">Pharmacy coupon — cash-pay only, verify before use</div>
       ${cfieldsHTML([['BIN', d.bin], ['PCN', pcn], ['Group', group], ['Member', member]])}
-      <button class="copy-btn" data-copy="${esc(d.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">📋 Copy coupon</button>
+      <button class="copy-btn" data-copy="${esc(d.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">${COPY_ICO} Copy coupon</button>
     </div>`;
   }
   if (ext && d.partner) {
@@ -506,7 +506,7 @@ function enrichLive(d, token, gen) {
       let html = '<div class="label" style="margin:0 0 .55rem">FDA shortages</div>';
       if (sh.records.length) {
         html += sh.records.slice(0, 3).map(r =>
-          `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">⚠️ ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
+          `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${WARN_ICO} ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
         html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA drug shortages ↗</a>`;
       } else {
         html += `<div class="live-note">No active FDA shortage reported for “${esc(token)}.”</div>`;
@@ -661,15 +661,18 @@ function renderSources() {
 // Codes (pcn/group/member) are derived from BIN_INFO at render time, so this
 // guide can never drift from what the per-drug detail panel shows.
 const COUPONS = [
-  { t: 'Cash-Pay Discount — GoodRx Network', d: 'No insurance needed · 70,000+ pharmacies · 600+ generics · avg ~70% off retail', bin: '015995' },
+  // Stats limited to GoodRx's own published figures (70,000+ pharmacies; up to 80% off).
+  { t: 'Cash-Pay Discount — GoodRx Network', stats: ['No insurance needed', '70,000+ pharmacies', 'Up to 80% off'], bin: '015995' },
 ];
 function renderCoupons() {
   $('#couponList').innerHTML = COUPONS.map(c => {
     const { pcn, group, member } = binInfo(c.bin);
+    const chips = c.stats.map(s => `<span class="stat-chip">${esc(s)}</span>`).join('');
     return `<div class="coupon" style="margin-top:0">
-    <div class="coupon-t">${esc(c.t)} — ${esc(c.d)}</div>
+    <div class="coupon-t">${esc(c.t)}</div>
+    <div class="coupon-stats">${chips}</div>
     ${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', group], ['Member', member]])}
-    <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">📋 Copy to clipboard</button>
+    <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">${COPY_ICO} Copy to clipboard</button>
   </div>`;
   }).join('');
 }
@@ -677,7 +680,7 @@ function renderCoupons() {
 async function copyCoupon(spec, btn) {
   const [bin, pcn, grp, mem] = spec.split('|');
   const text = `BIN: ${bin}\nPCN: ${pcn}\nGroup: ${grp}\nMember: ${mem}`;
-  const done = () => { const t = btn.textContent; btn.textContent = '✅ Copied!'; setTimeout(() => btn.textContent = t, 2000); };
+  const done = () => { const t = btn.innerHTML; btn.innerHTML = CHECK_ICO + ' Copied!'; setTimeout(() => { btn.innerHTML = t; }, 2000); };
   try { await navigator.clipboard.writeText(text); done(); }
   catch {
     const ta = Object.assign(document.createElement('textarea'), { value: text, style: 'position:fixed;opacity:0' });
@@ -708,6 +711,10 @@ function setView(name) {
 // ---- Theme -----------------------------------------------------------------
 const SUN = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>';
 const MOON = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+// Inline UI icons (no emoji) — stroke currentColor so they inherit type color.
+const COPY_ICO = '<svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+const CHECK_ICO = '<svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+const WARN_ICO = '<svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
 function initTheme() {
   const btn = $('[data-theme-toggle]'), root = document.documentElement;
   // Persist an explicit choice; fall back to the OS preference when unset.
