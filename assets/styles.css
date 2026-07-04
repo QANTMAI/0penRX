@@ -186,6 +186,22 @@ ul { list-style: none; }
 .chip:hover { border-color: var(--primary); color: var(--primary); }
 .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
 
+/* Hero cross-links — discoverable, on-brand chips guiding to the comparison pages */
+.hero-links { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: center; margin-top: 1.5rem; }
+.hero-links-label { font-size: var(--t-sm); color: var(--text-2); }
+.hero-chip { display: inline-flex; align-items: center; gap: .35rem; padding: .375rem .8rem; border-radius: var(--r-full); font-size: var(--t-sm); font-weight: 600; border: 1px solid var(--border); color: var(--primary); transition: all var(--tr); }
+.hero-chip:hover { border-color: var(--primary); background: var(--primary-l); }
+
+/* Content-page utilities — replace repeated inline styles for a consistent system */
+.drug-page.wide { max-width: 1000px; }
+.price-note.good { border-left-color: var(--good); }
+.cell-sub { color: var(--text-3); font-size: var(--t-xs); }
+.inline-link { color: var(--primary); font-weight: 600; }
+.inline-link:hover { text-decoration: underline; }
+.note-sm { font-size: var(--t-sm); color: var(--text-2); line-height: 1.7; }
+.src-list { font-size: var(--t-sm); color: var(--text-2); line-height: 1.8; padding-left: 1.1em; list-style: disc; }
+.src-list li { margin-bottom: .25rem; }
+
 .main { max-width: var(--maxw); margin: 0 auto; padding: var(--sp-6); }
 
 /* ---- Section header (shared by all views) ------------------ */

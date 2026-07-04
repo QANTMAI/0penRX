@@ -19,6 +19,9 @@ Live at [0penrx.org](https://0penrx.org).
 
 ```
 index.html             Static frontend — GitHub Pages (0penrx.org)
+compare-platforms/     "Amazon + One Medical vs GoodRx + Companion" comparison (static)
+uninsured-guide/       Cash-pay healthcare platforms guide (static)
+privacy/               Privacy policy (static)
 assets/
   app.js               Main app: drug cards, detail panel, live data display
   catalog.js           Curated drug catalog (single source of truth for prices/programs)
@@ -37,9 +40,6 @@ sw.js                  Service worker — PWA shell cache (never caches API resp
 ```
 
 Each catalog entry carries integrity metadata — `status` (`active`/`limited`/`archived`), `eligibility` (e.g. `cash-pay`/`insured-only`/`medicare-only`), an optional `priceNote`, and a `verified` audit date. Two enforcement layers keep this honest: `catalog-validator.js` checks every entry at page load (savings math, enum validity, 90-day staleness), and `data/tests/test_catalog_validator.py` runs the same hard invariants in CI so bad data fails the build. The coupon dataset is rebuilt on a schedule (`.github/workflows/coupons.yml`, monthly + Jan-1) so expired offers aren't served as live. See [docs/SCHEMA.md](docs/SCHEMA.md) and [docs/PROVENANCE.md](docs/PROVENANCE.md).
-
-```
-```
 
 ## Data sources
 
