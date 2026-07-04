@@ -200,3 +200,23 @@ server log or analytics, and never add a third-party pixel.** A short, honest
 
 The backend already meets the 2026 baseline. The frontend meets it **after the
 Phase-1 host migration** — the single most impactful item on this plan.
+
+## 6. DNS-layer hardening & anti-abuse (do now — provider-side, no code)
+
+Verified absent on 2026-07-03 (`dig` returned no DS, no CAA, no MX). These are the
+only action items that do **not** wait on the host migration; set them at the domain
+registrar / DNS provider for `0penrx.org`.
+
+| Control | Status | Record to add |
+|---|---|---|
+| **DNSSEC** | ❌ absent | Enable DNSSEC at the DNS provider, then publish the generated **DS** record at the registrar. Prevents DNS spoofing / cache-poisoning — the single biggest unaddressed gap. |
+| **CAA** | ❌ absent | `0penrx.org. CAA 0 issue "letsencrypt.org"` (add the CA your host uses; Cloudflare also uses `pki.goog` / `ssl.com`), plus `0penrx.org. CAA 0 iodef "mailto:info@qantm.ai"`. Restricts who can mint certs for the domain. |
+| **Mail anti-spoof** (no mailbox on the domain) | ❌ absent | `0penrx.org. TXT "v=spf1 -all"` · null-MX `0penrx.org. MX 0 "."` · `_dmarc.0penrx.org. TXT "v=DMARC1; p=reject;"`. Stops spoofing of `@0penrx.org`. |
+
+**Spam / bad-actor summary:** the site has no user input, no accounts, no forms, and a
+read-only backend — the classic abuse vectors don't exist. Backend rate limiting is
+real (120/60s per IP, XFF-aware, memory-bounded, `429`+`Retry-After`). Residual risks
+are DNS-layer (fixed above) and volumetric/DDoS (absorbed by a Cloudflare front; also
+switch the limiter's client-IP source to `CF-Connecting-IP` behind Cloudflare). The
+2027+ items (PQ-TLS, CSP reporting, SLSA L3, shrinking cert lifetimes) are in §3
+Phase 3 and are inherited from the host once the migration lands.

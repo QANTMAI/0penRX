@@ -307,9 +307,9 @@ def page_html(d) -> str:
 # (path, lastmod, priority). Hand-authored HTML lives in the repo; the sitemap
 # is generated here so these stay listed. Keep in sync with the actual files.
 CONTENT_PAGES = [
-    ("privacy/", TODAY, "0.8"),
-    ("compare-platforms/", "2026-07-03", "0.7"),
-    ("uninsured-guide/", "2026-07-03", "0.7"),
+    ("compare-platforms/", "2026-07-03", "0.9"),
+    ("uninsured-guide/", "2026-07-03", "0.9"),
+    ("privacy/", TODAY, "0.5"),
 ]
 
 

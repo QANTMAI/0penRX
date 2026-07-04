@@ -20,6 +20,9 @@ on:
       - 'sitemap.xml'
       - 'llms.txt'
       - 'drugs/**'
+      - 'compare-platforms/**'
+      - 'uninsured-guide/**'
+      - 'privacy/**'
   workflow_dispatch:
 
 permissions:
