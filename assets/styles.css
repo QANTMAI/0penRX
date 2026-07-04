@@ -205,11 +205,15 @@ ul { list-style: none; }
 .main { max-width: var(--maxw); margin: 0 auto; padding: var(--sp-6); }
 
 /* ---- Section header (shared by all views) ------------------ */
-.sec-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--sp-5); flex-wrap: wrap; gap: var(--sp-3); }
+/* Default: heading + description stack, left-aligned (no stranded heading). */
+.sec-head { margin-bottom: var(--sp-5); }
+/* Only when the head carries a controls cluster (e.g. the sort dropdown) does it
+   become a two-column toolbar row. */
+.sec-head:has(.sec-head-r) { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: var(--sp-3); }
 .sec-head h2 { font-family: var(--font-d); font-size: var(--t-xl); letter-spacing: -.01em; }
 .sec-head.sub-head h2 { font-size: var(--t-lg); }
 .mt-section { margin-top: var(--sp-8); }
-.sec-head .sub { font-size: var(--t-sm); color: var(--text-2); max-width: 56ch; }
+.sec-head .sub { font-size: var(--t-sm); color: var(--text-2); max-width: 62ch; margin-top: var(--sp-2); }
 .sec-head-r { display: flex; gap: .6rem; align-items: center; }
 .count { font-size: var(--t-sm); color: var(--text-2); }
 .select { padding: .38rem .8rem; border: 1px solid var(--border); border-radius: var(--r-md); font-size: var(--t-sm); background: var(--surface); color: var(--text); }
