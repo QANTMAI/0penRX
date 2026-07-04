@@ -780,13 +780,24 @@ function init() {
   renderCatalogVerified();
 
   const input = $('#search'), clear = $('#searchClear'), sugg = $('#sugg');
+  // Keep the URL in sync with the query so searches are deep-linkable and
+  // shareable — this is what makes the WebSite SearchAction schema (/?q=<term>)
+  // real rather than decorative.
+  const syncQ = () => {
+    const u = new URL(location.href);
+    if (state.q) u.searchParams.set('q', state.q); else u.searchParams.delete('q');
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
+  };
   input.addEventListener('input', () => {
     state.q = input.value.trim();
     clear.classList.toggle('vis', !!state.q);
-    renderGrid(); renderSuggest();
+    renderGrid(); renderSuggest(); syncQ();
   });
-  input.addEventListener('keydown', e => { if (e.key === 'Escape') { input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); sugg.classList.remove('vis'); } });
-  clear.addEventListener('click', () => { input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); sugg.classList.remove('vis'); input.focus(); });
+  input.addEventListener('keydown', e => { if (e.key === 'Escape') { input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); sugg.classList.remove('vis'); syncQ(); } });
+  clear.addEventListener('click', () => { input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); sugg.classList.remove('vis'); syncQ(); input.focus(); });
+  // Deep link: /?q=<term> pre-fills the box and runs the search on load.
+  const q0 = new URLSearchParams(location.search).get('q');
+  if (q0) { input.value = q0; state.q = q0.trim(); clear.classList.toggle('vis', !!state.q); renderGrid(); }
   document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.classList.remove('vis'); });
 
   $('#sort').addEventListener('change', e => { state.sort = e.target.value; renderGrid(); });

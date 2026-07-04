@@ -54,7 +54,12 @@
       "name": "0penRX",
       "description": "Free cash-pay prescription price reference with live drug data from RxNorm, openFDA, and CMS NADAC, the GoodRx discount card, and manufacturer savings programs.",
       "inLanguage": "en-US",
-      "publisher": { "@id": "https://0penrx.org/#org" }
+      "publisher": { "@id": "https://0penrx.org/#org" },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://0penrx.org/?q={query}" },
+        "query-input": "required name=query"
+      }
     },
     {
       "@type": "Organization",

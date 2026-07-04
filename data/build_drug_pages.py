@@ -186,6 +186,20 @@ def jsonld(d) -> str:
         },
         {
             "@context": "https://schema.org",
+            "@type": "MedicalWebPage",
+            "name": f'{_clean(d["name"])} — cash-pay price and FDA data',
+            "url": url,
+            "lastReviewed": d.get("verified") or TODAY,
+            "specialty": "Pharmacy",
+            "about": {
+                "@type": "Drug",
+                "name": _clean(d["name"]),
+                "alternateName": d["generic"],
+            },
+            "publisher": {"@type": "Organization", "name": "0penRX", "url": f"{SITE}/"},
+        },
+        {
+            "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [
                 {
