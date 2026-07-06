@@ -20,6 +20,7 @@ import argparse
 import json
 import os
 import re
+import sys
 from datetime import datetime, timezone
 
 # Resolve paths relative to the repo root (this file lives in data/).
@@ -179,6 +180,12 @@ def build_records(catalog: list[dict], now: datetime | None = None) -> list[dict
     return records
 
 
+def _comparable(records: list[dict]) -> list[dict]:
+    """Drop the only non-deterministic field (ingested_at, a wall-clock stamp)
+    so a fresh build can be compared against the committed file for drift."""
+    return [{k: v for k, v in r.items() if k != "ingested_at"} for r in records]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Build the coupon dataset from the curated catalog."
@@ -188,10 +195,42 @@ def main() -> None:
         default=os.path.join("data", "coupons.jsonl"),
         help="Output JSONL path (default: data/coupons.jsonl)",
     )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Exit 1 if the committed --out file has drifted from a fresh build "
+        "(ignoring the ingested_at timestamp). Writes nothing.",
+    )
     args = parser.parse_args()
 
     catalog = load_catalog(CATALOG_PATH)
     records = build_records(catalog)
+
+    if args.check:
+        if not os.path.exists(args.out):
+            print(f"--check: {args.out} does not exist — run without --check first.")
+            sys.exit(1)
+        with open(args.out, encoding="utf-8") as f:
+            committed = [json.loads(line) for line in f if line.strip()]
+        fresh_cmp, committed_cmp = _comparable(records), _comparable(committed)
+        if fresh_cmp == committed_cmp:
+            print(f"{args.out} in sync ({len(records)} coupon records).")
+            sys.exit(0)
+        # Report the first drifting record for a precise failure.
+        detail = ""
+        if len(fresh_cmp) != len(committed_cmp):
+            detail = f" (fresh has {len(fresh_cmp)} records, committed has {len(committed_cmp)})"
+        else:
+            for fresh_rec, committed_rec in zip(fresh_cmp, committed_cmp):
+                if fresh_rec != committed_rec:
+                    detail = (
+                        f" (first drift at drug_slug={fresh_rec.get('drug_slug')!r})"
+                    )
+                    break
+        print(
+            f"{args.out} is STALE — rebuild with: python data/build_coupons.py{detail}"
+        )
+        sys.exit(1)
 
     out_dir = os.path.dirname(args.out)
     if out_dir:

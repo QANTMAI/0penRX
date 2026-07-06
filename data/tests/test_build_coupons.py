@@ -162,3 +162,32 @@ def test_catalog_to_jsonl_round_trip():
         f"coupons.jsonl contains slugs not in catalog "
         f"(stale records — rebuild with build_coupons.py): {sorted(extra)}"
     )
+
+
+def test_coupons_jsonl_no_field_drift():
+    """The committed coupons.jsonl must match a fresh build field-for-field
+    (ignoring the non-deterministic ingested_at stamp). Complements the slug-set
+    test above by catching a changed BIN/PCN/group/program_type/price *within* an
+    existing record. Mirrors `python data/build_coupons.py --check`."""
+    repo_root = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    )
+    catalog_path = os.path.join(repo_root, "assets", "catalog.js")
+    jsonl_path = os.path.join(repo_root, "data", "coupons.jsonl")
+
+    with open(jsonl_path, encoding="utf-8") as f:
+        committed = [json.loads(line) for line in f if line.strip()]
+
+    # expiration_date is the only other now-derived field (f"{year}-12-31"); pin
+    # `now` to the committed year so the comparison is stable across the Jan-1
+    # rollover window before the scheduled rebuild runs.
+    year = int(committed[0]["expiration_date"][:4])
+    now = datetime(year, 6, 1, tzinfo=timezone.utc)
+
+    catalog = build_coupons.load_catalog(catalog_path)
+    fresh = build_coupons.build_records(catalog, now=now)
+
+    assert build_coupons._comparable(fresh) == build_coupons._comparable(committed), (
+        "data/coupons.jsonl has drifted from the catalog — "
+        "rebuild with: python data/build_coupons.py"
+    )
