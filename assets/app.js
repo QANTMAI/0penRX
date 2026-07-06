@@ -24,6 +24,7 @@ function renderFilters() {
   const mk = (cat, label) => {
     const b = document.createElement('button');
     b.className = 'chip' + (state.cat === cat ? ' on' : '');
+    b.setAttribute('aria-pressed', state.cat === cat ? 'true' : 'false');
     b.dataset.cat = cat; b.textContent = label;
     b.addEventListener('click', () => { state.cat = cat; renderFilters(); renderGrid(); });
     bar.appendChild(b);
@@ -167,8 +168,7 @@ function tagsFor(d) {
 
 function cardHTML(d) {
   const pct = savPct(d);
-  return `<article class="card" role="listitem" tabindex="0" data-slug="${esc(d.slug)}"
-      aria-label="${esc(d.name)}, ${money(d.price)}, ${pct}% off">
+  return `<article class="card" data-slug="${esc(d.slug)}">
     <div class="card-top">
       <div>
         <div class="card-name">${esc(d.name)}</div>
@@ -247,13 +247,37 @@ function suggestLive(x) {
       <div class="si-main"><div class="si-name">${esc(x.display)}</div><div class="si-sub">Live lookup · RxNorm / openFDA / NADAC</div></div>
       <span class="sbadge gen">live</span></div>`;
 }
+// ARIA combobox state (WCAG 2.1.1 / 4.1.2): the visually-highlighted option is
+// tracked here and conveyed to AT via aria-activedescendant on the input.
+let suggIdx = -1;
+function closeSugg() {
+  const box = $('#sugg'), input = $('#search');
+  if (!box || !input) return;
+  box.classList.remove('vis');
+  input.setAttribute('aria-expanded', 'false');
+  input.removeAttribute('aria-activedescendant');
+  suggIdx = -1;
+}
+function moveSugg(delta) {
+  const box = $('#sugg'), input = $('#search');
+  const opts = [...box.querySelectorAll('.si')];
+  if (!opts.length) return;
+  if (suggIdx >= 0 && opts[suggIdx]) { opts[suggIdx].classList.remove('active'); opts[suggIdx].setAttribute('aria-selected', 'false'); }
+  suggIdx = (suggIdx + delta + opts.length) % opts.length;
+  const el = opts[suggIdx];
+  el.classList.add('active'); el.setAttribute('aria-selected', 'true');
+  input.setAttribute('aria-activedescendant', el.id);
+  el.scrollIntoView({ block: 'nearest' });
+}
 function renderSuggestBox(cat, liveList) {
   const box = $('#sugg'), input = $('#search');
   let html = '';
   if (cat.length) html += `<div class="sugg-head">In catalog</div>` + cat.map(suggestCatalog).join('');
   if (liveList.length) html += `<div class="sugg-head">Any drug · live lookup</div>` + liveList.map(suggestLive).join('');
-  if (!html) { box.classList.remove('vis'); input.setAttribute('aria-expanded', 'false'); return; }
+  if (!html) { closeSugg(); return; }
   box.innerHTML = html; box.classList.add('vis'); input.setAttribute('aria-expanded', 'true');
+  suggIdx = -1; input.removeAttribute('aria-activedescendant');
+  [...box.querySelectorAll('.si')].forEach((el, i) => { el.id = `sugg-opt-${i}`; el.setAttribute('aria-selected', 'false'); });
 }
 function renderSuggest() {
   const q = state.q.toLowerCase();
@@ -338,9 +362,12 @@ let _panelGen = 0;
 // The detail body — shared by the modal (openDetail) and the per-drug static
 // page (renderDrugPage) so the two are byte-identical. No close button here;
 // the modal prepends one, the page uses a back link in its header instead.
-function detailBodyHTML(d, token, ext) {
+function detailBodyHTML(d, token, ext, hTag = 'h2') {
+  // Real headings for screen-reader outline (WCAG 1.3.1): h1/h2 when rendered as
+  // a standalone drug page, h2/h3 inside the modal dialog.
+  const sub = hTag === 'h1' ? 'h2' : 'h3';
   return `
-    <div class="p-name">${esc(d.name)}</div>
+    <${hTag} class="p-name">${esc(d.name)}</${hTag}>
     <div class="p-sub">${esc(d.generic)} · ${esc(d.company)} · ${esc(d.category)}</div>
     <div class="p-hero">
       <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${ext ? 'manufacturer direct' : 'federal program / cash-pay'} · reference</div></div>
@@ -354,25 +381,25 @@ function detailBodyHTML(d, token, ext) {
       d.eligibility === 'mixed'         ? `<p class="eligibility-warn">⚠ Pricing channel varies — see price note for details</p>` : ''
     ) : ''}
 
-    ${(!ext && d.bin === '015995') ? `<div class="label">Where to fill</div>` : ''}
+    ${(!ext && d.bin === '015995') ? `<${sub} class="label">Where to fill</${sub}>` : ''}
     ${(!ext && d.bin === '015995') ? `<div class="row"><div class="row-l"><span class="row-tag grx">RX</span><div><div class="row-name">GoodRx cash-discount network</div><div class="row-note">cash coupon · BIN 015995</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}
 
     ${couponBlock(d)}
 
-    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
+    ${live.API_BASE ? `<${sub} class="label">Coupons &amp; assistance <span class="live-badge">programs</span></${sub}><div class="live-box" role="status" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
 
-    <div class="label">Live drug data <span class="live-badge">live</span></div>
-    <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(token || d.generic)}</strong> in RxNorm &amp; openFDA…</span></div>
-    <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
+    <${sub} class="label">Live drug data <span class="live-badge">live</span></${sub}>
+    <div class="live-box" role="status" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(token || d.generic)}</strong> in RxNorm &amp; openFDA…</span></div>
+    <div class="live-box" role="status" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
 
-    <div class="label">Safety &amp; supply <span class="live-badge">FDA</span></div>
-    <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
+    <${sub} class="label">Safety &amp; supply <span class="live-badge">FDA</span></${sub}>
+    <div class="live-box" role="status" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
 
-    <div class="label">Reported reactions <span class="live-badge">FAERS</span></div>
-    <div class="live-box" id="liveFaers"><span class="spinner"></span> <span style="color:var(--text-2)">Querying FDA adverse-event reports…</span></div>
+    <${sub} class="label">Reported reactions <span class="live-badge">FAERS</span></${sub}>
+    <div class="live-box" role="status" id="liveFaers"><span class="spinner"></span> <span style="color:var(--text-2)">Querying FDA adverse-event reports…</span></div>
 
-    <div class="label">Interactions <span class="live-badge">FDA label</span></div>
-    <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
+    <${sub} class="label">Interactions <span class="live-badge">FDA label</span></${sub}>
+    <div class="live-box" role="status" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
 
     <div class="p-acts">
       <a href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
@@ -383,9 +410,12 @@ function detailBodyHTML(d, token, ext) {
 }
 
 // Modal detail (home page): prepend a close button to the shared body.
+// The element that opened the dialog, so close can return focus to it (WCAG 2.4.3).
+let _dialogTrigger = null;
 function openDetail(slug) {
   const d = CATALOG.find(x => x.slug === slug);
   if (!d) return;
+  _dialogTrigger = document.activeElement;
   const ext = d.heroType === 'ExternalLinkRouting';
   const token = live.searchToken(d.generic) || live.searchToken(d.name);
 
@@ -411,7 +441,7 @@ function renderDrugPage(dp) {
   document.title = `${d.name} cash price & savings — 0penRX`;
   const ext = d.heroType === 'ExternalLinkRouting';
   const token = live.searchToken(d.generic) || live.searchToken(d.name);
-  dp.innerHTML = detailBodyHTML(d, token, ext);
+  dp.innerHTML = detailBodyHTML(d, token, ext, 'h1');
   document.addEventListener('click', e => {
     const copy = e.target.closest('[data-copy]');
     if (copy) copyCoupon(copy.dataset.copy, copy);
@@ -599,6 +629,7 @@ function enrichLive(d, token, gen) {
 
 // Detail panel for an off-catalog drug — no curated price, pure live data.
 function openLiveDetail(display, clean) {
+  _dialogTrigger = document.activeElement;
   const token = live.searchToken(clean) || clean.toUpperCase();
   const gslug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   $('#panelBody').innerHTML = `
@@ -632,7 +663,12 @@ function openLiveDetail(display, clean) {
   enrichLive({ generic: clean, name: display }, token, ++_panelGen);
 }
 
-function closeDetail() { $('#overlay').classList.remove('open'); }
+function closeDetail() {
+  $('#overlay').classList.remove('open');
+  // Return focus to the element that opened the dialog (WCAG 2.4.3).
+  if (_dialogTrigger && _dialogTrigger.isConnected) _dialogTrigger.focus();
+  _dialogTrigger = null;
+}
 
 // ---- Data Sources view -----------------------------------------------------
 const PROBE_KEY = { 'NLM RxNorm API': 'rxnorm', 'openFDA Drug NDC': 'openfda', 'CMS NADAC': 'nadac' };
@@ -696,7 +732,14 @@ function renderCoupons() {
 async function copyCoupon(spec, btn) {
   const [bin, pcn, grp, mem] = spec.split('|');
   const text = `BIN: ${bin}\nPCN: ${pcn}\nGroup: ${grp}\nMember: ${mem}`;
-  const done = () => { const t = btn.innerHTML; btn.innerHTML = CHECK_ICO + ' Copied!'; setTimeout(() => { btn.innerHTML = t; }, 2000); };
+  const done = () => {
+    const t = btn.innerHTML; btn.innerHTML = CHECK_ICO + ' Copied!'; setTimeout(() => { btn.innerHTML = t; }, 2000);
+    // Announce to screen readers (WCAG 4.1.3) — a shared polite status region.
+    let st = document.getElementById('a11yStatus');
+    if (!st) { st = document.createElement('div'); st.id = 'a11yStatus'; st.className = 'sr-only'; st.setAttribute('role', 'status'); document.body.appendChild(st); }
+    st.textContent = 'Coupon codes copied to clipboard';
+    setTimeout(() => { st.textContent = ''; }, 3000);
+  };
   try { await navigator.clipboard.writeText(text); done(); }
   catch {
     const ta = Object.assign(document.createElement('textarea'), { value: text, style: 'position:fixed;opacity:0' });
@@ -721,7 +764,7 @@ function setView(name) {
   if (name === 'sources' && !state.sourcesInit) { renderSources(); state.sourcesInit = true; }
   if (name === 'coupons' && !$('#couponList').children.length) renderCoupons();
   if (name === 'dashboard' && !_dashboardInit) { renderDashboard(); _dashboardInit = true; }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
 
 // ---- Theme -----------------------------------------------------------------
@@ -738,7 +781,11 @@ function initTheme() {
   let mode = (saved === 'dark' || saved === 'light')
     ? saved
     : (matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light');
-  const apply = () => { root.setAttribute('data-theme', mode); btn.innerHTML = mode === 'dark' ? SUN : MOON; };
+  const apply = () => {
+    root.setAttribute('data-theme', mode);
+    btn.innerHTML = mode === 'dark' ? SUN : MOON;
+    btn.setAttribute('aria-label', mode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  };
   apply();
   btn.addEventListener('click', () => {
     mode = mode === 'dark' ? 'light' : 'dark';
@@ -764,6 +811,18 @@ function renderCatalogVerified() {
 
 function init() {
   initTheme();
+
+  // Screen-reader note on links that open a new tab (WCAG 2.4.4/3.2.5 advisory):
+  // annotate current and future target=_blank links with visually-hidden text.
+  const annotateNewTab = root => root.querySelectorAll?.('a[target="_blank"]:not([data-newtab])').forEach(a => {
+    a.dataset.newtab = '1';
+    const s = document.createElement('span');
+    s.className = 'sr-only'; s.textContent = ' (opens in new tab)';
+    a.appendChild(s);
+  });
+  annotateNewTab(document);
+  new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) annotateNewTab(n); })))
+    .observe(document.body, { childList: true, subtree: true });
 
   // Per-drug static page (/drugs/<slug>/): render the detail, register the SW,
   // and skip all the home-page (grid/search/nav) wiring — those elements don't
@@ -793,12 +852,31 @@ function init() {
     clear.classList.toggle('vis', !!state.q);
     renderGrid(); renderSuggest(); syncQ();
   });
-  input.addEventListener('keydown', e => { if (e.key === 'Escape') { input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); sugg.classList.remove('vis'); syncQ(); } });
+  // ARIA combobox keyboard support: arrows move the highlighted suggestion,
+  // Enter activates it, Escape closes then clears (WCAG 2.1.1).
+  input.addEventListener('keydown', e => {
+    const open = sugg.classList.contains('vis');
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!open) { renderSuggest(); return; }
+      moveSugg(e.key === 'ArrowDown' ? 1 : -1);
+    } else if (e.key === 'Enter') {
+      if (open && suggIdx >= 0) {
+        e.preventDefault();
+        const el = sugg.querySelectorAll('.si')[suggIdx];
+        if (el) el.click();
+        closeSugg();
+      }
+    } else if (e.key === 'Escape') {
+      if (open) { closeSugg(); return; }
+      input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); syncQ();
+    }
+  });
   clear.addEventListener('click', () => { input.value = ''; state.q = ''; clear.classList.remove('vis'); renderGrid(); sugg.classList.remove('vis'); syncQ(); input.focus(); });
   // Deep link: /?q=<term> pre-fills the box and runs the search on load.
   const q0 = new URLSearchParams(location.search).get('q');
   if (q0) { input.value = q0; state.q = q0.trim(); clear.classList.toggle('vis', !!state.q); renderGrid(); }
-  document.addEventListener('click', e => { if (!e.target.closest('.search')) sugg.classList.remove('vis'); });
+  document.addEventListener('click', e => { if (!e.target.closest('.search')) closeSugg(); });
 
   $('#sort').addEventListener('change', e => { state.sort = e.target.value; renderGrid(); });
 
@@ -812,15 +890,23 @@ function init() {
     if (e.target.closest('[data-close]')) { closeDetail(); return; }
     if (copy) { copyCoupon(copy.dataset.copy, copy); return; }
     if (nav) { e.preventDefault(); setView(nav.dataset.nav); return; }
-    if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); if (!d) return; input.value = d.name; state.q = d.name; sugg.classList.remove('vis'); renderGrid(); openDetail(pick.dataset.pick); return; }
-    if (liveEl) { input.value = liveEl.dataset.live; state.q = liveEl.dataset.live; sugg.classList.remove('vis'); openLiveDetail(liveEl.dataset.live, liveEl.dataset.clean); return; }
+    if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); if (!d) return; input.value = d.name; state.q = d.name; closeSugg(); renderGrid(); openDetail(pick.dataset.pick); return; }
+    if (liveEl) { input.value = liveEl.dataset.live; state.q = liveEl.dataset.live; closeSugg(); openLiveDetail(liveEl.dataset.live, liveEl.dataset.clean); return; }
     if (open) { const slug = open.dataset.open || open.dataset.slug; openDetail(slug); return; }
-  });
-  $('#grid').addEventListener('keydown', e => {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('card')) { e.preventDefault(); openDetail(e.target.dataset.slug); }
   });
   $('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeDetail(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
+  // Focus trap while the dialog is open (WCAG 2.1.2 / 2.4.3): Tab and Shift+Tab
+  // cycle within the panel instead of escaping into the obscured page behind it.
+  $('#overlay').addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || !$('#overlay').classList.contains('open')) return;
+    const focusables = [...$('#panel').querySelectorAll('button, a[href], select, input, [tabindex]:not([tabindex="-1"])')]
+      .filter(el => el.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0], last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   // Warm a card's live data the instant the user signals intent (press or
   // keyboard focus), so the detail panel is already loading by the time it opens.

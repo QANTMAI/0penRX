@@ -35,6 +35,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"0penRX","item":"https://0penrx.org/"},{"@type":"ListItem","position":2,"name":"Uninsured Guide","item":"https://0penrx.org/uninsured-guide/"}]},{"@type":"MedicalWebPage","name":"Healthcare Platforms for the Uninsured","url":"https://0penrx.org/uninsured-guide/","lastReviewed":"2026-07-03","dateModified":"2026-07-03","publisher":{"@type":"Organization","name":"0penRX","url":"https://0penrx.org/"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Are there free prescription discount cards for the uninsured?","acceptedAnswer":{"@type":"Answer","text":"Yes. GoodRx, ScriptSave WellRx, America's Pharmacy, SingleCare, and Optum Perks are free universal discount cards any uninsured person can use with no enrollment."}},{"@type":"Question","name":"What is the cheapest way to get generics with no insurance?","acceptedAnswer":{"@type":"Answer","text":"Cost Plus Drugs (cost + 15% + fees, mail order), Amazon RxPass ($5/mo flat with Prime), the Walmart $4/$10 list, and free discount cards. The cheapest source varies by drug, so price-check before each fill."}},{"@type":"Question","name":"What is an FQHC and who qualifies?","acceptedAnswer":{"@type":"Answer","text":"A Federally Qualified Health Center is an HRSA-funded clinic offering income-based sliding-fee care. Eligibility is by income, not insurance status; find one at findahealthcenter.hrsa.gov."}},{"@type":"Question","name":"What is the best all-in-one option for one uninsured adult?","acceptedAnswer":{"@type":"Answer","text":"GoodRx Companion ($14.99/mo, 7-day trial) bundles 200+ free generics, $19 telehealth, and dental/vision/lab discounts with no Amazon account."}}]}]}</script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <header class="hdr">
   <div class="hdr-in">
     <a href="/" class="logo" aria-label="0PENRX home">
@@ -58,7 +59,7 @@
   </div>
 </header>
 <a class="drug-back" href="/">← Back to 0penRX</a>
-<main class="drug-page-wrap">
+<main id="main-content" class="drug-page-wrap">
   <article class="drug-page wide">
     <h1 class="p-name">Healthcare platforms for the uninsured</h1>
     <div class="p-sub">A cash-pay guide · Prices verified 2026-07-03</div>
@@ -68,109 +69,110 @@
     <h2 class="label">The major cash-pay platforms</h2>
     <div class="table-wrap">
       <table class="t">
+        <caption class="sr-only">Major cash-pay healthcare platforms compared</caption>
         <thead>
           <tr>
-            <th style="min-width:150px">Platform</th>
-            <th style="min-width:180px">Cost</th>
-            <th>Includes visits?</th>
-            <th>Best for</th>
-            <th>Limitations</th>
+            <th scope="col" style="min-width:150px">Platform</th>
+            <th scope="col" style="min-width:180px">Cost</th>
+            <th scope="col">Includes visits?</th>
+            <th scope="col">Best for</th>
+            <th scope="col">Limitations</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td><strong><a href="https://www.costplusdrugs.com" target="_blank" rel="noopener noreferrer">Cost Plus Drugs</a></strong><br><span class="cell-sub">costplusdrugs.com</span></td>
+            <th scope="row"><strong><a href="https://www.costplusdrugs.com" target="_blank" rel="noopener noreferrer">Cost Plus Drugs</a></strong><br><span class="cell-sub">costplusdrugs.com</span></th>
             <td>Cost + 15% + $5 pharmacy fee + ~$5.25 shipping (tiered). No membership.</td>
             <td>No — pharmacy only</td>
             <td>Transparent, low-markup generics by mail</td>
             <td>Mostly generics; ~2,000+ meds (not every drug); mail-order only</td>
           </tr>
           <tr>
-            <td><strong><a href="https://pharmacy.amazon.com/rxpass" target="_blank" rel="noopener noreferrer">Amazon RxPass</a></strong><br><span class="cell-sub">pharmacy.amazon.com</span></td>
+            <th scope="row"><strong><a href="https://pharmacy.amazon.com/rxpass" target="_blank" rel="noopener noreferrer">Amazon RxPass</a></strong><br><span class="cell-sub">pharmacy.amazon.com</span></th>
             <td>$5/mo flat + Prime ($139/yr)</td>
             <td>No — meds only</td>
             <td>Prime members wanting flat-fee common generics</td>
             <td>50+ generics only; excludes brand/insulin/controlled; not sent to CA/WA; no Medicaid/CHIP</td>
           </tr>
           <tr>
-            <td><strong><a href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer">Amazon Pharmacy (Prime Rx)</a></strong></td>
+            <th scope="row"><strong><a href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer">Amazon Pharmacy (Prime Rx)</a></strong></th>
             <td>$0 to use; up to 80% off generic / 40% off brand paying without insurance</td>
             <td>No — meds only</td>
             <td>Comparing per-drug cash prices; 60,000+ pharmacies</td>
             <td>Requires Prime for best pricing; savings are &ldquo;up to&rdquo; maximums</td>
           </tr>
           <tr>
-            <td><strong><a href="https://health.amazon.com/prime" target="_blank" rel="noopener noreferrer">One Medical</a></strong><br><span class="cell-sub">health.amazon.com</span></td>
+            <th scope="row"><strong><a href="https://health.amazon.com/prime" target="_blank" rel="noopener noreferrer">One Medical</a></strong><br><span class="cell-sub">health.amazon.com</span></th>
             <td>$9/mo or $99/yr (Prime); +$6/mo per extra member</td>
             <td>Yes — 24/7 virtual included; in-person billed separately</td>
             <td>Prime members wanting always-on primary care</td>
             <td>Requires Prime for that price; in-person visits cost extra</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx (free card)</a></strong><br><span class="cell-sub">goodrx.com</span></td>
+            <th scope="row"><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx (free card)</a></strong><br><span class="cell-sub">goodrx.com</span></th>
             <td>$0</td>
             <td>No — discount only</td>
             <td>Lowest local counter price, zero commitment</td>
             <td>Not insurance; savings vary widely by drug/pharmacy</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx Gold</a></strong></td>
+            <th scope="row"><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx Gold</a></strong></th>
             <td>$9.99/mo individual, $19.99/mo family</td>
             <td>No — discount only</td>
             <td>Regular fillers wanting deeper discounts</td>
             <td>Up to 90% off on thousands of meds; not every drug/pharmacy</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.goodrx.com/companion" target="_blank" rel="noopener noreferrer">GoodRx Companion</a></strong></td>
+            <th scope="row"><strong><a href="https://www.goodrx.com/companion" target="_blank" rel="noopener noreferrer">GoodRx Companion</a></strong></th>
             <td>$14.99/mo (after 7-day free trial)</td>
             <td>Yes — $19 telehealth (GoodRx Care)</td>
             <td>All-in-one cash bundle without joining Amazon</td>
             <td>New (May 2026); individual-only, no family plan</td>
           </tr>
           <tr>
-            <td><strong><a href="https://sesamecare.com" target="_blank" rel="noopener noreferrer">Sesame Care</a></strong><br><span class="cell-sub">sesamecare.com</span></td>
+            <th scope="row"><strong><a href="https://sesamecare.com" target="_blank" rel="noopener noreferrer">Sesame Care</a></strong><br><span class="cell-sub">sesamecare.com</span></th>
             <td>Visits from ~$37; Sesame Plus $10.99/mo or $99/yr</td>
             <td>Yes — telehealth and in-person marketplace</td>
             <td>One-off cash doctor visits, no insurance</td>
             <td>Prices vary by provider; membership needed for lowest rates</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.teladochealth.com/newsroom/press/teladoc-health-expands-access-to-care-through-walmarts-better-care-services" target="_blank" rel="noopener noreferrer">Teladoc via Walmart</a></strong><br><span class="cell-sub">Better Care Services</span></td>
+            <th scope="row"><strong><a href="https://www.teladochealth.com/newsroom/press/teladoc-health-expands-access-to-care-through-walmarts-better-care-services" target="_blank" rel="noopener noreferrer">Teladoc via Walmart</a></strong><br><span class="cell-sub">Better Care Services</span></th>
             <td>$89 per cash visit</td>
             <td>Yes — general medical telehealth</td>
             <td>A single virtual visit with no subscription</td>
             <td>Per-visit only; no meds included; launched 2026</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.hims.com" target="_blank" rel="noopener noreferrer">Hims &amp; Hers</a></strong><br><span class="cell-sub">hims.com / forhers.com</span></td>
+            <th scope="row"><strong><a href="https://www.hims.com" target="_blank" rel="noopener noreferrer">Hims &amp; Hers</a></strong><br><span class="cell-sub">hims.com / forhers.com</span></th>
             <td>Starting ~$16/mo (varies widely by condition) <span class="cell-sub">(reported)</span></td>
             <td>Yes — condition-specific telehealth + meds</td>
             <td>ED, hair, skin, mental health, weight care</td>
             <td>Not insurance; per-condition pricing; costs rise fast for some treatments</td>
           </tr>
           <tr>
-            <td><strong><a href="https://ro.co" target="_blank" rel="noopener noreferrer">Ro</a></strong><br><span class="cell-sub">ro.co</span></td>
+            <th scope="row"><strong><a href="https://ro.co" target="_blank" rel="noopener noreferrer">Ro</a></strong><br><span class="cell-sub">ro.co</span></th>
             <td>Varies; GLP-1 weight programs from ~$349/mo <span class="cell-sub">(reported)</span></td>
             <td>Yes — telehealth + meds</td>
             <td>Weight loss, men&rsquo;s health, specific programs</td>
             <td>Not insurance; higher-cost specialty programs; per-program pricing</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.walmart.com/cp/4-prescriptions/1078664" target="_blank" rel="noopener noreferrer">Walmart $4 / $10 list</a></strong></td>
+            <th scope="row"><strong><a href="https://www.walmart.com/cp/4-prescriptions/1078664" target="_blank" rel="noopener noreferrer">Walmart $4 / $10 list</a></strong></th>
             <td>$4 (30-day) / $10 (90-day) for select generics</td>
             <td>No — meds only</td>
             <td>Cheap staple generics, no signup</td>
             <td>Limited list (~300+ drugs); some categories excluded</td>
           </tr>
           <tr>
-            <td><strong><a href="https://findahealthcenter.hrsa.gov" target="_blank" rel="noopener noreferrer">FQHC (community health center)</a></strong><br><span class="cell-sub">findahealthcenter.hrsa.gov</span></td>
+            <th scope="row"><strong><a href="https://findahealthcenter.hrsa.gov" target="_blank" rel="noopener noreferrer">FQHC (community health center)</a></strong><br><span class="cell-sub">findahealthcenter.hrsa.gov</span></th>
             <td>Income-based sliding-fee scale</td>
             <td>Yes — primary/dental/behavioral care</td>
             <td>Low income; whole-person in-person care</td>
             <td>Discount only up to 200% of the poverty line; must visit a center</td>
           </tr>
           <tr>
-            <td><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">Other discount cards</a></strong><br><span class="cell-sub">incl. GoodRx card (BIN 015995)</span></td>
+            <th scope="row"><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">Other discount cards</a></strong><br><span class="cell-sub">incl. GoodRx card (BIN 015995)</span></th>
             <td>$0</td>
             <td>No — discount only</td>
             <td>Anyone, at 70,000+ pharmacies</td>
