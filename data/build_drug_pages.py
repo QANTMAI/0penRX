@@ -262,6 +262,7 @@ def page_html(d) -> str:
 <script type="application/ld+json">{jsonld(d)}</script>
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 <header class="hdr">
   <div class="hdr-in">
     <a href="/" class="logo" aria-label="0PENRX home">
@@ -285,7 +286,7 @@ def page_html(d) -> str:
   </div>
 </header>
 <a class="drug-back" href="/">← All 86 medications</a>
-<main class="drug-page-wrap">
+<main id="main-content" class="drug-page-wrap">
   <article class="drug-page" id="drugpage" data-slug="{esc(d["slug"])}">
           {detail_static(d)}
   </article>

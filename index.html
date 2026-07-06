@@ -100,6 +100,7 @@
 <!-- SEO:ITEMLIST:END -->
 </head>
 <body>
+<a class="skip-link" href="#main-content">Skip to content</a>
 
 <!-- ===== Header ===== -->
 <header class="hdr">
@@ -128,13 +129,14 @@
   </div>
 </header>
 
+<main id="main-content">
 <!-- ===== Hero + search ===== -->
 <section class="hero">
   <h1>Find your <em>lowest</em> prescription price</h1>
   <p>Search <strong>any</strong> drug for live FDA data — cost, shortages, recalls. Plus <strong>86 medications</strong> with curated cash-pay prices and coupons.</p>
   <div class="search">
     <svg class="search-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input class="search-in" type="search" id="search" placeholder="Search drug name, generic, or condition…" autocomplete="off" aria-label="Search medications" role="combobox" aria-expanded="false" aria-controls="sugg">
+    <input class="search-in" type="search" id="search" placeholder="Search drug name, generic, or condition…" autocomplete="off" aria-label="Search medications" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list">
     <button class="search-clear" id="searchClear" aria-label="Clear search">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
@@ -148,12 +150,12 @@
 </section>
 
 <!-- ===== Filter bar (Browse only) ===== -->
-<div class="filterbar" id="filterbar" aria-label="Filter by category">
+<div class="filterbar" id="filterbar" role="group" aria-label="Filter by category">
   <span class="filter-l">Filter</span>
 </div>
 
 <!-- ===== Main views ===== -->
-<main class="main">
+<div class="main">
 
   <!-- Browse -->
   <section id="view-browse">
@@ -169,7 +171,7 @@
         </select>
       </div>
     </div>
-    <div class="grid" id="grid" role="list"></div>
+    <div class="grid" id="grid"></div>
     <!-- SEO:CATALOG:START — generated from assets/catalog.js by data/build_static_seo.py; do not edit by hand.
          Shown only when JavaScript is off (the JS app renders the interactive grid above),
          so AI crawlers and no-JS agents can still read the full catalog as text. -->
@@ -277,7 +279,7 @@
   <!-- Data Sources -->
   <section id="view-sources" hidden>
     <div class="sec-head">
-      <h2>Data Sources &amp; APIs</h2>
+      <h1>Data Sources &amp; APIs</h1>
       <p class="sub">Every price traces to a public, partner, or referenced source — no black-box pricing. Badges show live reachability; verify at checkout.</p>
     </div>
     <div class="panel-card">
@@ -287,7 +289,8 @@
     <div class="sec-head sub-head"><h2>Pricing methodology</h2></div>
     <div class="table-wrap">
       <table class="t">
-        <thead><tr><th>Source</th><th>Model</th><th>Best for</th><th>Limits</th></tr></thead>
+        <caption class="sr-only">Pricing methodology by source</caption>
+        <thead><tr><th scope="col">Source</th><th scope="col">Model</th><th scope="col">Best for</th><th scope="col">Limits</th></tr></thead>
         <tbody>
           <tr><td><strong><a href="https://www.costplusdrugs.com" target="_blank" rel="noopener noreferrer">Cost Plus Drugs</a></strong></td><td>NADAC × 1.15 + $3 dispensing (+ shipping)</td><td>2,200+ generics</td><td>All 50 states</td></tr>
           <tr><td><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx (BIN 015995)</a></strong></td><td>PBM-negotiated via CVS Caremark network</td><td>Generics + brand coupons</td><td>Some programs exclude CA &amp; MA</td></tr>
@@ -308,7 +311,8 @@
     <p class="sub" style="margin:-.5rem 0 1rem">No <strong>free, CORS-accessible API</strong> exists for live manufacturer-program or retail pricing, so those programs link out to their official pages. The landscape below is documented for transparency.</p>
     <div class="table-wrap">
       <table class="t">
-        <thead><tr><th>Source</th><th>Coverage</th><th>Access</th><th>Status for a static site</th></tr></thead>
+        <caption class="sr-only">Manufacturer coupon and assistance data sources</caption>
+        <thead><tr><th scope="col">Source</th><th scope="col">Coverage</th><th scope="col">Access</th><th scope="col">Status for a static site</th></tr></thead>
         <tbody>
           <tr><td><strong><a href="https://www.needymeds.org" target="_blank" rel="noopener noreferrer">NeedyMeds</a></strong></td><td>~2,000 coupons · 375 PAPs</td><td>Licensed data feed (no free API)</td><td>Backend + license</td></tr>
           <tr><td><strong><a href="https://www.helpingpatients.org" target="_blank" rel="noopener noreferrer">PPA / helpingpatients.org</a></strong></td><td>~475 PAP programs</td><td>Free bulk list (CSV/HTML, no CORS)</td><td>Backend ingest</td></tr>
@@ -325,7 +329,7 @@
   <!-- Coupon Guide -->
   <section id="view-coupons" hidden>
     <div class="sec-head">
-      <h2>Coupon Guide</h2>
+      <h1>Coupon Guide</h1>
       <p class="sub">These universal discount cards are free and usable by any uninsured person — no insurance, no enrollment. The member ID is unique to each card, so tap &ldquo;Get your free card&rdquo; to claim yours. Manufacturer copay programs need insurance or enrollment, so they link out per drug instead. Verify before use; never use alongside insurance.</p>
     </div>
     <div class="coupon-list" id="couponList"></div>
@@ -483,6 +487,7 @@
     </div><!-- /.db-layout -->
   </section>
 
+</div><!-- /.main -->
 </main>
 
 <!-- ===== Detail overlay ===== -->
