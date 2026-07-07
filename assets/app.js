@@ -26,11 +26,47 @@ function renderFilters() {
     b.className = 'chip' + (state.cat === cat ? ' on' : '');
     b.setAttribute('aria-pressed', state.cat === cat ? 'true' : 'false');
     b.dataset.cat = cat; b.textContent = label;
-    b.addEventListener('click', () => { state.cat = cat; renderFilters(); renderGrid(); });
+    // Update the active chip in place (no rebuild) so the scroll position is kept.
+    b.addEventListener('click', () => { state.cat = cat; updateFilterActive(); renderGrid(); });
     bar.appendChild(b);
   };
   mk('all', 'All');
   cats.forEach(c => mk(c, c));
+}
+
+// Reflect the active category on the existing chips and scroll it into view.
+function updateFilterActive() {
+  const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $('#filterbar').querySelectorAll('.chip').forEach(c => {
+    const on = c.dataset.cat === state.cat;
+    c.classList.toggle('on', on);
+    c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on) c.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: smooth ? 'smooth' : 'auto' });
+  });
+}
+
+// Scroll-strip affordances: fade edges + arrow buttons appear only on the side
+// with more to scroll; arrows page the strip for mouse users (touch/keyboard
+// scroll natively). A ResizeObserver keeps state correct across view switches.
+function setupFilterStrip() {
+  const track = $('#filterbar'), prev = $('#fsPrev'), next = $('#fsNext');
+  if (!track || !prev || !next) return;
+  const update = () => {
+    const max = track.scrollWidth - track.clientWidth;
+    const noScroll = max <= 1, atStart = track.scrollLeft <= 1, atEnd = track.scrollLeft >= max - 1;
+    track.classList.toggle('at-start', noScroll || atStart);
+    track.classList.toggle('at-end', noScroll || atEnd);
+    prev.hidden = noScroll || atStart;
+    next.hidden = noScroll || atEnd;
+  };
+  const page = dir => track.scrollBy({ left: dir * Math.round(track.clientWidth * 0.7),
+    behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  prev.addEventListener('click', () => page(-1));
+  next.addEventListener('click', () => page(1));
+  track.addEventListener('scroll', update, { passive: true });
+  new ResizeObserver(update).observe(track);
+  track.scrollLeft = 0; // some engines render an overflowing flex item scrolled to the end on first layout
+  update();
 }
 
 // ---- Reference links (the old federal rxgov.hhs.gov portal is offline) ------
@@ -756,7 +792,7 @@ function setView(name) {
     if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
   });
   $('.hero').hidden = name !== 'browse';
-  $('#filterbar').hidden = name !== 'browse';
+  $('#filterstrip').hidden = name !== 'browse';
   $('#view-browse').hidden = name !== 'browse';
   $('#view-sources').hidden = name !== 'sources';
   $('#view-coupons').hidden = name !== 'coupons';
@@ -857,6 +893,7 @@ function init() {
   }
 
   renderFilters();
+  setupFilterStrip();
   renderGrid();
   renderCatalogVerified();
 
