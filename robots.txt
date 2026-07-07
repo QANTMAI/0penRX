@@ -52,6 +52,23 @@ User-agent: Meta-ExternalAgent
 Allow: /
 User-agent: FacebookBot
 Allow: /
+# Google Vertex AI grounding fetcher
+User-agent: Google-CloudVertexBot
+Allow: /
+# DuckDuckGo AI (DuckAssist)
+User-agent: DuckAssistBot
+Allow: /
+# Cohere (retrieval + training)
+User-agent: cohere-ai
+Allow: /
+User-agent: cohere-training-data-crawler
+Allow: /
+# You.com answer engine
+User-agent: YouBot
+Allow: /
+# ByteDance / TikTok AI
+User-agent: Bytespider
+Allow: /
 # Microsoft Copilot is served from the Bing index — bingbot is allowed by * above,
 # which is the single gate for Copilot and other Bing-grounded answer engines.
 
