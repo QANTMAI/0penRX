@@ -284,50 +284,48 @@
   <section id="view-sources" hidden>
     <div class="sec-head">
       <h1>Data Sources &amp; APIs</h1>
-      <p class="sub">Every price traces to a public, partner, or referenced source — no black-box pricing. Badges show live reachability; verify at checkout.</p>
+      <p class="sub">Every price traces to a public, partner, or referenced source — no black-box pricing. Badges show each source&rsquo;s access model; green dots show which government databases are answering right now.</p>
     </div>
+
+    <p class="price-note good"><strong>Where these prices come from:</strong> U.S. government drug databases (FDA, CMS, NIH), official manufacturer program pages, and the GoodRx discount network — hand-checked, with every catalog entry dated (last full audit 2026-06-17; entries re-verified since carry their own dates). Always confirm the final price at the pharmacy. Full audit trail: <a href="https://github.com/QANTMAI/0penRX/blob/main/docs/PROVENANCE.md" target="_blank" rel="noopener noreferrer">provenance</a>.</p>
+
     <div class="panel-card">
       <div class="src-grid" id="srcGrid"></div>
+      <noscript><p class="sub">Source list requires JavaScript — the full register is in <a href="https://github.com/QANTMAI/0penRX/blob/main/docs/SOURCES.md">docs/SOURCES.md</a>.</p></noscript>
     </div>
 
     <div class="sec-head sub-head"><h2>Pricing methodology</h2></div>
     <div class="table-wrap">
       <table class="t">
         <caption class="sr-only">Pricing methodology by source</caption>
-        <thead><tr><th scope="col">Source</th><th scope="col">Model</th><th scope="col">Best for</th><th scope="col">Limits</th></tr></thead>
+        <thead><tr><td></td><th scope="col">Model</th><th scope="col">Best for</th><th scope="col">Coverage &amp; limits</th></tr></thead>
         <tbody>
-          <tr><td><strong><a href="https://www.costplusdrugs.com" target="_blank" rel="noopener noreferrer">Cost Plus Drugs</a></strong></td><td>Cost + 15% + $5 pharmacy fee (+ shipping)</td><td>2,000+ generics (reported)</td><td>All 50 states</td></tr>
-          <tr><td><strong><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx (BIN 015995)</a></strong></td><td>PBM-negotiated via CVS Caremark network</td><td>Generics + brand coupons</td><td>Some programs exclude CA &amp; MA</td></tr>
-          <tr><td><strong><a href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer">Amazon Pharmacy</a></strong></td><td>Prime Rx benefit</td><td>Generic + Prime members</td><td>Prime required for best price</td></tr>
-          <tr><td><strong><a href="https://data.medicaid.gov/datasets?keyword=nadac" target="_blank" rel="noopener noreferrer">CMS NADAC</a></strong></td><td>Weekly acquisition-cost survey (live)</td><td>Real per-unit generic cost baseline</td><td>Acquisition cost, not a retail price</td></tr>
-          <tr><td><strong><a href="https://www.amcp.org/about/managed-care-pharmacy-101/managed-care-glossary" target="_blank" rel="noopener noreferrer">WAC reference</a></strong></td><td>Wholesale Acquisition Cost = manufacturer list</td><td>Savings-% baseline only</td><td>Not a consumer price</td></tr>
+          <tr><th scope="row">0penRX estimate</th><td>NADAC × 1.15 + $3 dispensing</td><td>Ballpark cash price for any generic</td><td>Estimate only — labeled as such in the app; not a quote</td></tr>
+          <tr><th scope="row"><a href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer">Amazon Pharmacy</a></th><td>Prime Rx benefit</td><td>Generic + Prime members</td><td>Prime required for best price</td></tr>
+          <tr><th scope="row"><a href="https://data.medicaid.gov/datasets?keyword=nadac" target="_blank" rel="noopener noreferrer">CMS NADAC</a></th><td>Weekly acquisition-cost survey (live)</td><td>Real per-unit generic cost baseline</td><td>Acquisition cost, not a retail price</td></tr>
+          <tr><th scope="row"><a href="https://www.costplusdrugs.com" target="_blank" rel="noopener noreferrer">Cost Plus Drugs</a></th><td>Cost + 15% + $5 pharmacy fee (+ shipping)</td><td>Low-markup mail-order generics</td><td>All 50 states; 2,000+ generics (reported)</td></tr>
+          <tr><th scope="row"><a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx (BIN 015995)</a></th><td>PBM-negotiated via CVS Caremark network</td><td>Generics + brand coupons</td><td>Card works nationwide; MA &amp; CA restrict some brand-drug coupons</td></tr>
+          <tr><th scope="row"><a href="https://www.amcp.org/about/managed-care-pharmacy-101/managed-care-glossary" target="_blank" rel="noopener noreferrer">WAC reference</a></th><td>Wholesale Acquisition Cost = manufacturer list (FDB exited AWP publishing in 2011)</td><td>Savings-% baseline only</td><td>Not a consumer price</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p class="sub" style="margin:1rem 0">Several universal discount-card networks are true cash-pay coupons any uninsured patient can use — GoodRx (codes below), ScriptSave WellRx, America&rsquo;s Pharmacy, SingleCare, and Optum Perks (<a href="/#coupons">see the Coupon Guide</a>). Manufacturer copay programs need insurance or enrollment, so they are <strong>not</strong> shown as coupons — each links out per drug instead.</p>
-    <div class="bin-map">
-      <strong>Cash-pay discount card</strong><br>
-      <code>BIN 015995 / PCN GDC / Group MAHA / Member RXFINDER</code> — GoodRx Health LLC (CVS Caremark network, 70,000+ pharmacies)
+    <p class="sub mt-block">Several universal discount-card networks are true cash-pay coupons any uninsured patient can use — GoodRx (codes below), ScriptSave WellRx, America&rsquo;s Pharmacy, SingleCare, and Optum Perks (<a href="/#coupons">see the Coupon Guide</a>). Manufacturer copay programs need insurance or enrollment, so they are <strong>not</strong> shown as coupons — each links out per drug instead.</p>
+    <h3 class="label">Cash-pay discount card — GoodRx network</h3>
+    <div class="coupon">
+      <div class="coupon-t">GoodRx Health LLC (CVS Caremark network, 70,000+ pharmacies)</div>
+      <div class="cfields">
+        <div class="cf"><div class="cf-l">BIN</div><div class="cf-v">015995</div></div>
+        <div class="cf"><div class="cf-l">PCN</div><div class="cf-v">GDC</div></div>
+        <div class="cf"><div class="cf-l">Group</div><div class="cf-v">MAHA</div></div>
+        <div class="cf"><div class="cf-l">Member</div><div class="cf-v">RXFINDER</div></div>
+      </div>
+      <button class="copy-btn" data-copy="015995|GDC|MAHA|RXFINDER">Copy to clipboard</button>
     </div>
 
     <div class="sec-head sub-head mt-section"><h2>Manufacturer coupon &amp; assistance data</h2></div>
-    <p class="sub" style="margin:-.5rem 0 1rem">No <strong>free, CORS-accessible API</strong> exists for live manufacturer-program or retail pricing, so those programs link out to their official pages. The landscape below is documented for transparency.</p>
-    <div class="table-wrap">
-      <table class="t">
-        <caption class="sr-only">Manufacturer coupon and assistance data sources</caption>
-        <thead><tr><th scope="col">Source</th><th scope="col">Coverage</th><th scope="col">Access</th><th scope="col">Status for a static site</th></tr></thead>
-        <tbody>
-          <tr><td><strong><a href="https://www.needymeds.org" target="_blank" rel="noopener noreferrer">NeedyMeds</a></strong></td><td>~2,000 coupons · 375 PAPs</td><td>Licensed data feed (no free API)</td><td>Backend + license</td></tr>
-          <tr><td><strong><a href="https://www.helpingpatients.org" target="_blank" rel="noopener noreferrer">PPA / helpingpatients.org</a></strong></td><td>~475 PAP programs</td><td>Free bulk list (CSV/HTML, no CORS)</td><td>Backend ingest</td></tr>
-          <tr><td><strong><a href="https://www.rxassist.org" target="_blank" rel="noopener noreferrer">RxAssist</a></strong></td><td>Manufacturer PAP directory</td><td>Scrapeable HTML (bot-blocked)</td><td>Backend scrape</td></tr>
-          <tr><td><strong><a href="https://developer.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx Partner API v2</a></strong></td><td>800+ programs · live prices</td><td>Approval + key + HMAC (server-to-server)</td><td>Backend proxy (key pending)</td></tr>
-          <tr><td><strong><a href="https://www.covermymeds.com" target="_blank" rel="noopener noreferrer">CoverMyMeds</a></strong></td><td>Copay + prior-auth</td><td>Partnership API</td><td>Backend + agreement</td></tr>
-          <tr><td><strong><a href="https://www.fdbhealth.com" target="_blank" rel="noopener noreferrer">FDB MedKnowledge · BPGLookup</a></strong></td><td>WAC/AWP · BIN/PCN translation</td><td>Commercial license/subscription</td><td>Commercial</td></tr>
-        </tbody>
-      </table>
-    </div>
-    <p class="sub" style="margin-top:1rem">Manufacturer copay cards cannot be used with Medicare or Medicaid (anti-kickback), and Massachusetts &amp; California restrict coupons for brand drugs with a generic equivalent. Always verify a program before use.</p>
+    <p class="sub">No free public feed of manufacturer coupons or assistance programs exists, so each catalog drug links to its official program page instead. The full source register — including licensed and gated datasets we have evaluated — lives in <a href="https://github.com/QANTMAI/0penRX/blob/main/docs/SOURCES.md" target="_blank" rel="noopener noreferrer">docs/SOURCES.md</a>.</p>
+    <div class="disclaimer-box">Manufacturer copay cards cannot be used with Medicare or Medicaid (anti-kickback rules), and Massachusetts &amp; California restrict coupons for brand drugs with a generic equivalent. Always verify a program at the pharmacy before use.</div>
   </section>
 
   <!-- Coupon Guide -->
