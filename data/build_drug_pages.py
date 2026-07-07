@@ -82,11 +82,19 @@ def goodrx_url(d) -> str:
 
 
 def description(d) -> str:
+    if d.get("priceBasis") == "medicare-negotiated":
+        basis = (
+            f"{_clean(d['name'])} ({d['generic']}) Medicare Part D negotiated price "
+            f"{money(d['price'])} — not a cash-pay price. "
+        )
+    else:
+        basis = (
+            f"{_clean(d['name'])} ({d['generic']}) cash-pay reference price "
+            f"{money(d['price'])} — {savpct(d)}% off {money(d['retail'])} retail. "
+        )
     return (
-        f"{_clean(d['name'])} ({d['generic']}) cash-pay reference price "
-        f"{money(d['price'])} — {savpct(d)}% off {money(d['retail'])} retail. "
-        f"Live FDA identity, cost, shortage and recall data, plus the GoodRx card "
-        f"and savings programs. Reference price — verify before use."
+        f"{basis}Live FDA identity, cost, shortage and recall data, plus the GoodRx "
+        f"card and savings programs. Reference price — verify before use."
     )
 
 
@@ -98,16 +106,20 @@ def detail_static(d) -> str:
     p.append(
         f'<div class="p-sub">{esc(d["generic"])} · {esc(_clean(d["company"]))} · {esc(d["category"])}</div>'
     )
-    hero_sub = "manufacturer direct" if ext else "GoodRx cash-pay"
+    hero_sub = (
+        "Medicare Part D price · not a cash price"
+        if d.get("priceBasis") == "medicare-negotiated"
+        else f"{'manufacturer direct' if ext else 'GoodRx cash-pay'} · reference"
+    )
     sav_block = (
         f'<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">{savpct(d)}% savings</div>'
         f'<div class="p-hero-vs">vs {money(d["retail"])} WAC list</div></div>'
-        if d["retail"] > d["price"]
+        if d["retail"] > d["price"] and d.get("priceBasis") != "medicare-negotiated"
         else ""
     )
     p.append(
         f'<div class="p-hero"><div><div class="p-big">{money(d["price"])}</div>'
-        f'<div class="p-hero-sub">{hero_sub} · reference</div></div>{sav_block}</div>'
+        f'<div class="p-hero-sub">{hero_sub}</div></div>{sav_block}</div>'
     )
     if d.get("status") == "limited":
         p.append('<span class="status-badge status-limited">Limited Access</span>')
@@ -187,7 +199,9 @@ def jsonld(d) -> str:
                 "availability": "https://schema.org/InStock"
                 if d.get("status") == "active"
                 else "https://schema.org/LimitedAvailability",
-                "description": "cash-pay reference price — verify before use",
+                "description": "Medicare Part D negotiated price — not a cash-pay price"
+                if d.get("priceBasis") == "medicare-negotiated"
+                else "cash-pay reference price — verify before use",
             },
         },
         {
