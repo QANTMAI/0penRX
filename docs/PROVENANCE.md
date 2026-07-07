@@ -59,6 +59,12 @@ The validator fails loud (console errors) on: missing required fields, `price > 
 
 GoodRx product pages were also confirmed to resolve for every catalog slug (including dosage-form variants and redirects, e.g. `alphagan` → `alphagan-p`).
 
+**Seed provenance** — the catalog was originally seeded in mid-2026 from the
+federal MFN drug-price portal, which has since gone offline. No price relies on
+that seed today: the 2026-06-17 five-agent audit re-verified every entry against
+current manufacturer program pages and GoodRx-network prices, and later
+additions carry their own per-entry sources (see PR history).
+
 **2026-07-06 addendum** — six drugs added with fetched-source verification (Jardiance, metformin, fluticasone/salmeterol, montelukast, Eliquis, warfarin — see PR #96 for per-drug sources), bringing the catalog to 92; Ozempic and Humira entries re-verified against manufacturer notices (PR #88). The Wegovy spot-check above reflects the June catalog; the current entry is Wegovy® Pen at $199 (NovoCare new-patient price through Dec 31, 2026).
 
 ## 4. AWP benchmark — compendia landscape (reference context)

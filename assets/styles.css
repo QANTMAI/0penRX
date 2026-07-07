@@ -263,6 +263,7 @@ ul { list-style: none; }
 .sec-head h1, .sec-head h2 { font-family: var(--font-d); font-size: var(--t-xl); letter-spacing: -.01em; }
 .sec-head.sub-head h2 { font-size: var(--t-lg); }
 .mt-section { margin-top: var(--sp-8); }
+.mt-block { margin: 1rem 0; }
 .sec-head .sub { font-size: var(--t-sm); color: var(--text-2); max-width: 62ch; margin-top: var(--sp-2); }
 .sec-head-r { display: flex; gap: .6rem; align-items: center; }
 .count { font-size: var(--t-sm); color: var(--text-2); }
@@ -397,11 +398,14 @@ ul { list-style: none; }
 
 /* ---- Data Sources page ------------------------------------- */
 .panel-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-5); margin-bottom: var(--sp-5); }
-.src-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); gap: var(--sp-4); }
+.src-grid { display: flex; flex-direction: column; gap: var(--sp-4); }
+.src-group { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr)); gap: var(--sp-4); }
+.src-group-label { font-size: var(--t-md); font-weight: 700; color: var(--text); margin-top: var(--sp-2); }
+.src-group-label:first-child { margin-top: 0; }
+.src-group-note { font-size: var(--t-xs); font-weight: 500; color: var(--text-3); }
 .src-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-4); display: flex; flex-direction: column; gap: .45rem; transition: border-color var(--tr); }
 .src-card:hover { border-color: var(--primary); }
 .src-name { font-weight: 600; font-size: var(--t-sm); display: flex; align-items: center; gap: .5rem; }
-.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .src-status { font-size: var(--t-xs); padding: .15rem .5rem; border-radius: var(--r-full); font-weight: 600; align-self: flex-start; }
 .src-status.f { background: var(--good-l); color: var(--good); }
 .src-status.k { background: var(--gold-l); color: var(--gold); }
@@ -410,7 +414,8 @@ ul { list-style: none; }
 .src-url { font-size: var(--t-xs); color: var(--primary); word-break: break-all; }
 .src-live { font-size: var(--t-xs); font-weight: 600; }
 .src-live.ok { color: var(--good); }
-.src-live.down { color: var(--accent); }
+.src-live.down { color: #b00020; font-weight: 700; }
+[data-theme="dark"] .src-live.down { color: #ff8a80; }
 .src-live.checking { color: var(--text-3); }
 
 .table-wrap { overflow-x: auto; border: 1px solid var(--divider); border-radius: var(--r-lg); }
@@ -423,8 +428,6 @@ table.t tr:last-child td { border-bottom: none; }
 table.t tr:hover td { background: var(--surface-2); }
 table.t a { color: var(--primary); }
 table.t a:hover { text-decoration: underline; }
-.bin-map { margin-top: var(--sp-5); padding: var(--sp-4); background: var(--surface-2); border-radius: var(--r-lg); font-size: var(--t-sm); line-height: var(--lh-loose); }
-.bin-map code { font-family: var(--font-m); background: var(--surface); padding: .1rem .35rem; border-radius: var(--r-sm); border: 1px solid var(--border); }
 
 /* ---- Coupon Guide page ------------------------------------- */
 .coupon-list { max-width: 640px; display: flex; flex-direction: column; gap: var(--sp-4); }

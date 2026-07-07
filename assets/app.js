@@ -731,25 +731,35 @@ function closeDetail() {
 }
 
 // ---- Data Sources view -----------------------------------------------------
-const PROBE_KEY = { 'NLM RxNorm API': 'rxnorm', 'openFDA Drug NDC': 'openfda', 'CMS NADAC': 'nadac' };
+// Probes exist for the three government APIs the browser calls directly
+// (keyed on the stable card id, so renaming a card can't silently kill one).
+const PROBED_IDS = new Set(['rxnorm', 'openfda', 'nadac']);
 
+function srcCardHTML(s) {
+  const probe = PROBED_IDS.has(s.id) ? s.id : null;
+  const statusCls = s.s === 'f' ? 'f' : s.s === 'k' ? 'k' : 'a';
+  const host = new URL(s.u).hostname.replace(/^www\./, '');
+  return `<div class="src-card">
+    <div class="src-name">${esc(s.n)}</div>
+    <span class="src-status ${statusCls}">${esc(s.b)}</span>
+    <div class="src-desc">${esc(s.d)}</div>
+    ${probe ? `<div class="src-live checking" data-probe="${probe}"><span class="spinner"></span> checking…</div>` : ''}
+    <a class="src-url" href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(host)}</a>
+  </div>`;
+}
 function renderSources() {
-  $('#srcGrid').innerHTML = API_SOURCES.map(s => {
-    const probe = PROBE_KEY[s.n];
-    const statusCls = s.s === 'f' ? 'f' : s.s === 'k' ? 'k' : 'a';
-    return `<div class="src-card">
-      <div class="src-name"><span class="dot" style="background:${esc(s.c)}"></span>${esc(s.n)}</div>
-      <span class="src-status ${statusCls}">${esc(s.b)}</span>
-      <div class="src-desc">${esc(s.d)}</div>
-      ${probe ? `<div class="src-live checking" data-probe="${probe}"><span class="spinner"></span> checking…</div>` : ''}
-      <a class="src-url" href="${esc(s.u)}" target="_blank" rel="noopener noreferrer">${esc(s.u)}</a>
-    </div>`;
-  }).join('');
-  // Live reachability probes for the three APIs we actually call.
+  const live_ = API_SOURCES.filter(s => s.g === 'live');
+  const doc_ = API_SOURCES.filter(s => s.g === 'doc');
+  $('#srcGrid').innerHTML = `
+    <h3 class="src-group-label">Powers this site <span class="src-group-note">— used at runtime; the three government APIs your browser calls carry a live check</span></h3>
+    <div class="src-group">${live_.map(srcCardHTML).join('')}</div>
+    <h3 class="src-group-label">Documented pricing sources <span class="src-group-note">— we link out; no data feed</span></h3>
+    <div class="src-group">${doc_.map(srcCardHTML).join('')}</div>`;
+  // Re-probed on every visit to the view (not once per session).
   $$('[data-probe]').forEach(async el => {
     const ok = await live.checkSource(el.dataset.probe);
     el.className = 'src-live ' + (ok ? 'ok' : 'down');
-    el.innerHTML = ok ? '● live · reachable' : '● unreachable right now';
+    el.innerHTML = ok ? '● live · reachable' : '⚠ unreachable right now';
   });
 }
 
@@ -836,8 +846,15 @@ async function copyCoupon(spec, btn) {
 }
 
 // ---- View switching --------------------------------------------------------
+const VIEW_TITLES = {
+  browse: '0PENRX — Find your lowest prescription price',
+  sources: 'Data Sources & APIs — 0penRX',
+  coupons: 'Coupon Guide — 0penRX',
+  dashboard: 'Catalog dashboard — 0penRX',
+};
 function setView(name) {
   state.view = name;
+  if (VIEW_TITLES[name]) document.title = VIEW_TITLES[name];
   $$('.ntab').forEach(t => {
     const on = t.dataset.nav === name;
     t.classList.toggle('on', on);
@@ -849,7 +866,7 @@ function setView(name) {
   $('#view-sources').hidden = name !== 'sources';
   $('#view-coupons').hidden = name !== 'coupons';
   $('#view-dashboard').hidden = name !== 'dashboard';
-  if (name === 'sources' && !state.sourcesInit) { renderSources(); state.sourcesInit = true; }
+  if (name === 'sources') renderSources(); // rebuilt each visit so probes re-run
   if (name === 'coupons' && !$('#couponList').children.length) renderCoupons();
   if (name === 'dashboard' && !_dashboardInit) { renderDashboard(); _dashboardInit = true; }
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
