@@ -388,7 +388,7 @@ function couponCardHTML(c) {
   const hasCard = !!c.bin;
   const pcn = c.pcn || UNAVAILABLE, grp = c.group || UNAVAILABLE, mem = c.member_id || UNAVAILABLE;
   return `<div class="coupon" style="margin-top:0">
-    <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="row-tag mfr">${esc(c.program_type)}</span>` : ''}</div>
+    <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="badge lo">${esc(c.program_type.replace(/-/g, ' '))}</span>` : ''}</div>
     ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
     ${hasCard ? `${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', grp], ['Member', mem]])}
       <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">${COPY_ICO} Copy coupon</button>` : ''}
