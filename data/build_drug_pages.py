@@ -138,15 +138,21 @@ def detail_static(d) -> str:
     if warn:
         p.append(f'<p class="eligibility-warn">{warn}</p>')
     if not ext and d.get("bin") == "015995":
-        p.append('<h2 class="label">Where to fill</h2>')
+        p.append('<h2 class="label">Cash discount card</h2>')
         p.append(
-            '<div class="coupon"><div class="coupon-t">Pharmacy coupon — cash-pay only, verify before use</div>'
+            f'<div class="coupon"><div class="coupon-t">GoodRx cash-discount network <span class="row-price">{money(d["price"])}</span></div>'
             '<div class="cfields">'
             '<div class="cf"><div class="cf-l">BIN</div><div class="cf-v">015995</div></div>'
             '<div class="cf"><div class="cf-l">PCN</div><div class="cf-v">GDC</div></div>'
             '<div class="cf"><div class="cf-l">Group</div><div class="cf-v">MAHA</div></div>'
             '<div class="cf"><div class="cf-l">Member</div><div class="cf-v">RXFINDER</div></div>'
             "</div></div>"
+        )
+        p.append(
+            '<p class="note-sm">Free, no signup. The cheapest card varies by drug &amp; pharmacy — price-check '
+            '<a href="https://www.singlecare.com/prescription-discount-card" target="_blank" rel="noopener noreferrer">SingleCare ↗</a>, '
+            '<a href="https://www.wellrx.com/prescription-discount-card/" target="_blank" rel="noopener noreferrer">ScriptSave WellRx ↗</a> and '
+            '<a href="https://perks.optum.com/discount-card" target="_blank" rel="noopener noreferrer">Optum Perks ↗</a> too.</p>'
         )
     elif ext and d.get("partner"):
         url = PARTNER_URL.get(d["partner"], "")

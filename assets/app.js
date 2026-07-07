@@ -403,7 +403,7 @@ function couponBlock(d) {
   if (!ext && d.bin) {
     const { pcn, group, member } = binInfo(d.bin);
     return `<div class="coupon">
-      <div class="coupon-t">Pharmacy coupon — cash-pay only, verify before use</div>
+      <div class="coupon-t">GoodRx cash-discount network <span class="row-price">${money(d.price)}</span></div>
       ${cfieldsHTML([['BIN', d.bin], ['PCN', pcn], ['Group', group], ['Member', member]])}
       <button class="copy-btn" data-copy="${esc(d.bin)}|${esc(pcn)}|${esc(group)}|${esc(member)}">${COPY_ICO} Copy coupon</button>
     </div>`;
@@ -443,10 +443,10 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
       d.eligibility === 'mixed'         ? `<p class="eligibility-warn">⚠ Pricing channel varies — see price note for details</p>` : ''
     ) : ''}
 
-    ${(!ext && d.bin === '015995') ? `<${sub} class="label">Where to fill</${sub}>` : ''}
-    ${(!ext && d.bin === '015995') ? `<div class="row"><div class="row-l"><span class="row-tag grx">RX</span><div><div class="row-name">GoodRx cash-discount network</div><div class="row-note">cash coupon · BIN 015995</div></div></div><span class="row-price">${money(d.price)}</span></div>` : ''}
+    ${(!ext && d.bin === '015995') ? `<${sub} class="label">Cash discount card</${sub}>` : ''}
 
     ${couponBlock(d)}
+    ${(!ext && d.bin === '015995') ? `<p class="note-sm">Free, no signup. The cheapest card varies by drug &amp; pharmacy — price-check <a href="https://www.singlecare.com/prescription-discount-card" target="_blank" rel="noopener noreferrer">SingleCare ↗</a>, <a href="https://www.wellrx.com/prescription-discount-card/" target="_blank" rel="noopener noreferrer">ScriptSave WellRx ↗</a> and <a href="https://perks.optum.com/discount-card" target="_blank" rel="noopener noreferrer">Optum Perks ↗</a> too.</p>` : ''}
 
     ${live.API_BASE ? `<${sub} class="label">Coupons &amp; assistance <span class="live-badge">programs</span></${sub}><div class="live-box" role="status" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
 
