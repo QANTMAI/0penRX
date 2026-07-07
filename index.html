@@ -517,6 +517,18 @@
   </div>
 </footer>
 
+<!-- Privacy transparency notice (landing page). A dismissible trust notice, NOT a
+     consent gate: the site sets no cookies and runs no tracking, so no consent is
+     required and it never blocks the page. Revealed by app.js only when the visitor
+     hasn't dismissed it before (remembered in localStorage). -->
+<div class="privacy-notice" id="privacyNotice" role="region" aria-label="Privacy notice" hidden>
+  <p class="pn-text">
+    <strong class="pn-title">Private by design.</strong>
+    0penRX asks for nothing and tracks nothing — no accounts, no cookies, no analytics, no ads, and we never sell your data. The only things saved are your theme choice and this dismissal, on your device. <a href="/privacy/">Read the full privacy policy</a>.
+  </p>
+  <button class="btn btn-pri pn-ack" id="privacyAck" type="button">Got it</button>
+</div>
+
 <!-- Hosted backend (FastAPI on Render): activates the Coupons & assistance feature. -->
 <script src="assets/config.js"></script>
 <script type="module" src="assets/app.js"></script>
