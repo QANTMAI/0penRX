@@ -75,7 +75,7 @@ function setupFilterStrip() {
 // tablets") return zero DailyMed results; the bare brand name always resolves to
 // the drug's own label — a single match 302-redirects straight to it, and a
 // multi-match shows a results page scoped to the brand. We query the first brand
-// token (strip ®/™ and any form/strength suffix). Verified ≥1 result for all 88.
+// token (strip ®/™ and any form/strength suffix). Verified ≥1 result for all 88 at the 2026-06 audit.
 const dailyMedQuery = d => d.name.replace(/[®™]/g, '').trim().split(/[\s(]/)[0];
 const dailyMed = d =>
   `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(dailyMedQuery(d))}`;
@@ -429,7 +429,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <${hTag} class="p-name">${esc(d.name)}</${hTag}>
     <div class="p-sub">${esc(d.generic)} · ${esc(d.company)} · ${esc(d.category)}</div>
     <div class="p-hero">
-      <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${ext ? 'manufacturer direct' : 'federal program / cash-pay'} · reference</div></div>
+      <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${ext ? 'manufacturer direct' : 'GoodRx cash-pay'} · reference</div></div>
       ${d.retail > d.price ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
     </div>
     ${d.status === 'limited' ? `<span class="status-badge status-limited">Limited Access</span>` : d.status === 'archived' ? `<span class="status-badge status-archived">Archived · Verify Availability</span>` : ''}

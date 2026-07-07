@@ -11,10 +11,10 @@ export const API_SOURCES = [
   {n:"openFDA Drug NDC",c:"#007a50",s:"f",b:"FREE · No Key",d:"NDC codes, dosage forms, active ingredients, labeler and manufacturer info.",u:"https://api.fda.gov/drug/ndc.json"},
   {n:"CMS NADAC",c:"#0050a0",s:"f",b:"FREE · No Key",d:"National Avg Drug Acquisition Cost — weekly CMS data. Base for Cost Plus Drugs pricing formula.",u:"https://data.medicaid.gov/datasets?keyword=nadac"},
   {n:"GoodRx API (BIN 015995)",c:"#00467f",s:"a",b:"Partner Approval",d:"Adjudication via CVS Caremark network. PCN: GDC, Group: MAHA. Negotiated coupon rates at 70K+ pharmacies.",u:"https://developer.goodrx.com"},
-  {n:"Cost Plus Drugs (GraphQL)",c:"#007a72",s:"k",b:"Cloudflare-Gated",d:"Shopify storefront GraphQL — Cloudflare protected. 2,200+ drugs at NADAC×1.15+$3+$5 model. Community MCP server available.",u:"https://www.costplusdrugs.com"},
+  {n:"Cost Plus Drugs (GraphQL)",c:"#007a72",s:"k",b:"Cloudflare-Gated",d:"Shopify storefront GraphQL — Cloudflare protected. 2,000+ drugs (reported) at their cost + 15% + $5 pharmacy fee (+ shipping) model. Community MCP server available.",u:"https://www.costplusdrugs.com"},
   {n:"Curated Reference Prices",c:"#6000b0",s:"a",b:"Reference · verify before use",d:"Manufacturer program and GoodRx-network reference prices, hand-curated from official program pages and public price lists. The MFN federal portal this catalog was seeded from is now offline; prices are labeled reference and should be verified at the pharmacy.",u:"https://0penrx.org/docs/PROVENANCE.md"},
   {n:"LillyDirect API",c:"#d04000",s:"a",b:"Manufacturer",d:"Eli Lilly direct-pay for Zepbound & Mounjaro. Eligibility verification at go.lilly.com.",u:"https://www.lillydirect.com"},
   {n:"Amazon Pharmacy",c:"#232f3e",s:"a",b:"Partner Program",d:"PillPack/Amazon Health pricing API. Prime Rx benefit. Competitive generic and brand pricing.",u:"https://pharmacy.amazon.com"},
-  {n:"Sanofi Patient Connection",c:"#c00020",s:"a",b:"Manufacturer",d:"Lantus, Admelog, Toujeo, Trulicity direct pricing. $35 insulin cap.",u:"https://www.sanofipatientconnection.com"},
+  {n:"Sanofi Patient Connection",c:"#c00020",s:"a",b:"Manufacturer",d:"Lantus, Admelog, Toujeo direct pricing. $35 insulin cap.",u:"https://www.sanofipatientconnection.com"},
   {n:"AstraZeneca Direct",c:"#003087",s:"a",b:"Manufacturer",d:"Farxiga, Xigduo XR, Bevespi, Airsupra — manufacturer-direct via AZ&Me savings; no pharmacy BIN.",u:"https://www.azandmeapp.com"},
 ];

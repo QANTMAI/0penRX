@@ -36,7 +36,7 @@ Routing URLs (`PARTNER_URL` in both files) were each verified to resolve (HTTP 2
 
 ## 3. Curated brand / reference prices
 
-The 86-drug catalog (`assets/catalog.js`) carries **reference** cash-pay prices and WAC list prices. These are hand-curated snapshots, labeled throughout the UI as *"reference — verify before use,"* not a live retail quote. WAC list is the manufacturer wholesale price (savings-% baseline only, not a consumer price).
+The 92-drug catalog (`assets/catalog.js`) carries **reference** cash-pay prices and WAC list prices. These are hand-curated snapshots, labeled throughout the UI as *"reference — verify before use,"* not a live retail quote. WAC list is the manufacturer wholesale price (savings-% baseline only, not a consumer price).
 
 Each catalog entry carries integrity metadata, validated at page load by `assets/catalog-validator.js`:
 
@@ -51,13 +51,15 @@ The validator fails loud (console errors) on: missing required fields, `price > 
 
 **Last full audit: 2026-06-17** — a 5-agent web-research pass over all 86 drugs corrected 42 entries (discontinuations, INN suffixes, program-name fixes, dose-tier price notes, eligibility flags). See git history for the itemized changelog.
 
-**Verification spot-checks** (read live from GoodRx in a real browser during audit; matched our catalog exactly):
+**Verification spot-checks** (as of the 2026-06-17 audit — read live from GoodRx in a real browser; matched the then-current catalog exactly):
 
 - Premarin Vaginal Cream — **$236.65** ✓
 - Wegovy (semaglutide tablet) — **$149** ✓
 - Xeljanz — **$1,518** ✓
 
 GoodRx product pages were also confirmed to resolve for every catalog slug (including dosage-form variants and redirects, e.g. `alphagan` → `alphagan-p`).
+
+**2026-07-06 addendum** — six drugs added with fetched-source verification (Jardiance, metformin, fluticasone/salmeterol, montelukast, Eliquis, warfarin — see PR #96 for per-drug sources), bringing the catalog to 92; Ozempic and Humira entries re-verified against manufacturer notices (PR #88). The Wegovy spot-check above reflects the June catalog; the current entry is Wegovy® Pen at $199 (NovoCare new-patient price through Dec 31, 2026).
 
 ## 4. AWP benchmark — compendia landscape (reference context)
 
