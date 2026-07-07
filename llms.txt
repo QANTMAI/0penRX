@@ -1,12 +1,12 @@
 # 0penRX
 
-> Free, no-account, no-tracking cash-pay prescription price-transparency web app. Search any drug for live FDA/CMS data (identity, NDC, real acquisition cost, shortages, recalls) and find curated cash-pay reference prices, the GoodRx universal discount card, and manufacturer savings programs for 86 high-cost brand-name and biosimilar medications. Prices are reference values — verify at the pharmacy before use.
+> Free, no-account, no-tracking cash-pay prescription price-transparency web app. Search any drug for live FDA/CMS data (identity, NDC, real acquisition cost, shortages, recalls) and find curated cash-pay reference prices, the GoodRx universal discount card, and manufacturer savings programs for 92 high-cost brand-name and biosimilar medications. Prices are reference values — verify at the pharmacy before use.
 
 0penRX is operated by QANTM AI and is independent — not affiliated with any pharmacy, PBM, insurer, manufacturer, or government agency. It exists to help uninsured and cash-paying patients see real prices without middlemen, accounts, or tracking. This file is a content map for AI assistants; the live site renders the full drug catalog client-side.
 
 ## Site
 
-- [0penRX home](https://0penrx.org/): Search any drug; browse 86 curated medications with cash-pay reference prices, savings vs. retail, GoodRx card (BIN 015995), and per-drug live FDA data.
+- [0penRX home](https://0penrx.org/): Search any drug; browse 92 curated medications with cash-pay reference prices, savings vs. retail, GoodRx card (BIN 015995), and per-drug live FDA data.
 - [Data Sources](https://0penrx.org/#sources): The live APIs behind every figure — NLM RxNorm (identity), openFDA (NDC, shortages, recalls, FAERS, label interactions), CMS NADAC (real per-unit acquisition cost).
 - [Coupon Guide](https://0penrx.org/#coupons): How the universal GoodRx cash-discount card (BIN 015995) works, and why manufacturer copay cards that exclude cash-pay patients are routed to their official programs instead.
 - [Compare Platforms](https://0penrx.org/compare-platforms/): Independent head-to-head table comparing Amazon Pharmacy + One Medical against GoodRx + Companion on cost, prerequisites, prescription coverage, telehealth, discounts, network, and limitations. Vendor prices attributed with sources and a verify-before-signup caveat.
@@ -15,7 +15,7 @@
 ## What 0penRX covers
 
 - Live drug data for ANY marketed drug: RxNorm identity/RxCUI, openFDA NDC + labeler + dosage form + active ingredients, CMS NADAC acquisition cost + a Cost-Plus-style estimate (NADAC × 1.15 + $3), FDA shortages, recalls, FAERS adverse-event reports (reporting volume, not incidence), and drug-label interaction text — each with a clickable source link.
-- 86 curated brand-name and biosimilar medications (avg ~64% off retail) across: Other Brand, Autoimmune/Biologic, Insulin, Diabetes, GLP-1/Weight Loss, Respiratory, Hormone Therapy, Oncology/Specialty, Migraine, Blood Thinner, Smoking Cessation, Growth Hormone, Cholesterol. Examples: Ozempic, Wegovy, Mounjaro, Zepbound, Humira, Enbrel, Farxiga, Xarelto, insulins.
+- 92 curated brand-name and biosimilar medications (avg ~64% off retail) across: Other Brand, Autoimmune/Biologic, Insulin, Diabetes, GLP-1/Weight Loss, Respiratory, Hormone Therapy, Oncology/Specialty, Migraine, Blood Thinner, Smoking Cessation, Growth Hormone, Cholesterol. Examples: Ozempic, Wegovy, Mounjaro, Zepbound, Humira, Enbrel, Farxiga, Xarelto, insulins.
 - One cash-usable coupon: the GoodRx universal network card (BIN 015995, PCN GDC, Group MAHA, Member RXFINDER) — usable by any uninsured patient at 70,000+ pharmacies.
 - Honest data posture: no fabricated values; reference prices are labeled "verify before use"; NADAC is acquisition cost (not retail); IRA Medicare-negotiated prices are flagged as Medicare-only.
 

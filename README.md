@@ -10,7 +10,7 @@ Live at [0penrx.org](https://0penrx.org).
 
 ## What it is
 
-- **86 curated brand-name and biosimilar medications** with cash-pay prices, manufacturer programs, and GoodRx coupon codes.
+- **92 curated brand-name and biosimilar medications** with cash-pay prices, manufacturer programs, and GoodRx coupon codes.
 - **Live drug data** — identity, NDC, active ingredients, shortage alerts, and recalls via RxNorm, openFDA, and CMS NADAC, fetched at runtime.
 - **GoodRx BIN 015995** (PCN GDC / Group MAHA / Member RXFINDER) is the only cash coupon shown directly — verified as a true cash-pay card usable by any uninsured patient at 70,000+ pharmacies. All manufacturer copay/assistance programs (which require commercial insurance or per-patient enrollment) route to their official program pages.
 - Prices are **reference values** — always verify at the pharmacy before use.
