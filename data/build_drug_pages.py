@@ -30,7 +30,7 @@ CATALOG_PATH = os.path.join(_REPO_ROOT, "assets", "catalog.js")
 DRUGS_DIR = os.path.join(_REPO_ROOT, "drugs")
 SITEMAP = os.path.join(_REPO_ROOT, "sitemap.xml")
 SITE = "https://0penrx.org"
-TODAY = "2026-06-30"  # sitemap lastmod; bump on regeneration
+TODAY = "2026-07-06"  # sitemap lastmod; bump on regeneration
 
 sys.path.insert(0, _DATA_DIR)
 from build_coupons import PARTNER_URL, load_catalog  # noqa: E402
@@ -223,7 +223,7 @@ def jsonld(d) -> str:
     return body.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
-def page_html(d) -> str:
+def page_html(d, total: int) -> str:
     url = f"{SITE}/drugs/{d['slug']}/"
     title = f"{_clean(d['name'])} cash price & savings — 0penRX"
     desc = description(d)
@@ -285,7 +285,7 @@ def page_html(d) -> str:
     </div>
   </div>
 </header>
-<a class="drug-back" href="/">← All 86 medications</a>
+<a class="drug-back" href="/">← All {total} medications</a>
 <main id="main-content" class="drug-page-wrap">
   <article class="drug-page" id="drugpage" data-slug="{esc(d["slug"])}">
           {detail_static(d)}
@@ -332,7 +332,9 @@ def build(catalog):
     """Return {relative_path: contents} for every drug page + sitemap.xml."""
     files = {}
     for d in catalog:
-        files[os.path.join("drugs", d["slug"], "index.html")] = page_html(d)
+        files[os.path.join("drugs", d["slug"], "index.html")] = page_html(
+            d, len(catalog)
+        )
     # sitemap: homepage + every drug page + the standalone content pages.
     # Each entry is (loc, lastmod, priority).
     entries = (
