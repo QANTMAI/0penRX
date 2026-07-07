@@ -834,6 +834,28 @@ function init() {
   // Theme is already applied above; register the SW and stop before the SPA wiring.
   if (!document.getElementById('grid')) { renderCatalogVerified(); registerSW(); return; }
 
+  // Privacy transparency notice (home page only). A non-blocking trust notice —
+  // no consent is required (the site sets no cookies and runs no tracking), so it
+  // never traps focus or blocks the page. Shown once, then remembered on-device
+  // (functional first-party storage, disclosed in the privacy policy).
+  const pn = document.getElementById('privacyNotice');
+  if (pn) {
+    const acked = (() => { try { return localStorage.getItem('orx-privacy-ack'); } catch { return null; } })();
+    if (!acked) {
+      pn.hidden = false;
+      let onKey;
+      const dismissNotice = () => {
+        if (pn.contains(document.activeElement)) $('#search')?.focus();
+        pn.hidden = true;
+        document.removeEventListener('keydown', onKey);
+        try { localStorage.setItem('orx-privacy-ack', '1'); } catch { /* private mode: shown again next visit */ }
+      };
+      onKey = e => { if (e.key === 'Escape') dismissNotice(); };
+      $('#privacyAck').addEventListener('click', dismissNotice);
+      document.addEventListener('keydown', onKey);
+    }
+  }
+
   renderFilters();
   renderGrid();
   renderCatalogVerified();
