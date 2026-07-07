@@ -874,8 +874,16 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
 /* ---- Responsive -------------------------------------------- */
 @media (max-width: 720px) { .logo-tag { display: none; } }
 @media (max-width: 600px) {
-  .nav { display: none; }
-  .hdr-in { padding: .55rem 1rem; }
+  /* Nav becomes a full-width horizontally-scrollable strip (not hidden), so every
+     section stays reachable on phones — previously only the footer linked them. */
+  .hdr-in { flex-wrap: wrap; padding: .55rem 1rem; }
+  .nav {
+    order: 3; width: 100%; margin-left: 0; gap: .3rem;
+    overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding-bottom: .1rem;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .ntab { flex: 0 0 auto; white-space: nowrap; }
   .hero { padding: 2rem 1rem 1rem; }
   .main, .wrap { padding-left: 1rem; padding-right: 1rem; }
   .cfields { grid-template-columns: 1fr 1fr; }

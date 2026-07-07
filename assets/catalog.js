@@ -14,7 +14,7 @@ export const API_SOURCES = [
    d:"Serves the manufacturer-coupon and assistance-program data shown on every drug page. Open source; stores nothing about you.",
    u:"https://github.com/QANTMAI/0penRX"},
   {id:"nadac", g:"live", s:"f", n:"CMS NADAC", b:"FREE · No Key",
-   d:"What pharmacies actually pay for generics — a weekly U.S. government survey. Base for our Cost-Plus-style estimate (NADAC × 1.15 + $3).",
+   d:"What pharmacies actually pay for generics — a weekly U.S. government survey. Base for our own cash-price estimate (NADAC + 15% + a $3 dispensing assumption — lower than Cost Plus's actual $5 fee).",
    u:"https://data.medicaid.gov/datasets?keyword=nadac"},
   {id:"curated", g:"live", s:"a", n:"Curated reference prices", b:"Reference · verify before use",
    d:"The 92 catalog prices — hand-collected from official manufacturer program pages and the GoodRx network, each entry dated. Originally seeded from a federal price portal that has since shut down; every price has been re-verified by hand since (last full audit 2026-06-17).",

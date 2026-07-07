@@ -441,7 +441,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <div class="p-sub">${esc(d.generic)} · ${esc(d.company)} · ${esc(d.category)}</div>
     <div class="p-hero">
       <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${d.priceBasis === 'medicare-negotiated' ? 'Medicare Part D price · not a cash price' : `${ext ? 'manufacturer direct' : 'GoodRx cash-pay'} · reference`}</div></div>
-      ${d.retail > d.price && d.priceBasis !== 'medicare-negotiated' ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
+      ${d.retail > d.price && d.priceBasis !== 'medicare-negotiated' ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} <abbr title="Wholesale Acquisition Cost — the manufacturer's published list price, not a consumer price">WAC</abbr> list</div></div>` : ''}
     </div>
     ${d.status === 'limited' ? `<span class="status-badge status-limited">Limited Access</span>` : d.status === 'archived' ? `<span class="status-badge status-archived">Archived · Verify Availability</span>` : ''}
     ${d.priceNote ? `<p class="price-note">${esc(d.priceNote)}</p>` : ''}
@@ -472,7 +472,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <div class="live-box" role="status" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
 
     <div class="p-acts">
-      <a href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
+      <a id="fdaLabelLink" href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
       <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
     </div>
@@ -570,6 +570,13 @@ function enrichLive(d, token, gen) {
       el.innerHTML =
         `<dl class="kv">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl>
          <a class="src-link" href="${esc(src)}" target="_blank" rel="noopener noreferrer">Source: ${fv ? 'openFDA NDC' : 'RxNorm'} ↗</a>`;
+      // Progressive enhancement: once we have the real product NDC, point the
+      // "FDA label" button at that specific product instead of a brand-name
+      // search (the static link stays as the no-JS fallback).
+      if (fv?.productNdc) {
+        const fdaBtn = document.getElementById('fdaLabelLink');
+        if (fdaBtn) fdaBtn.href = `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(fv.productNdc)}`;
+      }
     })
     .catch(() => { if (!alive()) return; const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
 
@@ -583,7 +590,7 @@ function enrichLive(d, token, gen) {
     }
     const est = live.nadacEstimate(n.perUnit, 30);
     el.innerHTML = `
-      <div class="label" style="margin:0 0 .55rem">Generic acquisition cost (CMS NADAC)</div>
+      <h3 class="label" style="margin:0 0 .55rem">Generic acquisition cost (CMS NADAC)</h3>
       <dl class="kv">
         <dt>Description</dt><dd>${esc(n.description)}</dd>
         <dt>NADAC / unit</dt><dd><strong>${money(n.perUnit)}</strong> per ${esc(n.unit || 'unit')}</dd>
@@ -604,7 +611,7 @@ function enrichLive(d, token, gen) {
       const rc = rcRes.status === 'fulfilled' ? rcRes.value : { records: [] };
       const fmtDate = s => s && /^\d{8}$/.test(s) ? `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}` : (s || '—');
 
-      let html = '<div class="label" style="margin:0 0 .55rem">FDA shortages</div>';
+      let html = '<h3 class="label" style="margin:0 0 .55rem">FDA shortages</h3>';
       if (sh.records.length) {
         html += sh.records.slice(0, 3).map(r =>
           `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${WARN_ICO} ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.form ? ` · ${esc(r.form)}` : ''}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
@@ -614,7 +621,7 @@ function enrichLive(d, token, gen) {
       }
       html += `<a class="src-link" style="margin-top:.4rem" href="https://www.ashp.org/drug-shortages" target="_blank" rel="noopener noreferrer">ASHP Drug Shortage Database (authoritative) ↗</a>`;
 
-      html += '<div class="label" style="margin:1rem 0 .55rem">Recent recalls</div>';
+      html += '<h3 class="label" style="margin:1rem 0 .55rem">Recent recalls</h3>';
       if (rc.records.length) {
         html += rc.records.slice(0, 3).map(r =>
           `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${esc(r.classification)} · ${esc(r.status)} <span style="color:var(--text-2);font-weight:400">(${fmtDate(r.date)})</span></div><div class="row-note">${esc((r.reason || '').slice(0, 120))}${(r.reason || '').length > 120 ? '…' : ''}${r.firm ? ` — ${esc(r.firm)}` : ''}</div></div></div></div>`).join('');
@@ -931,10 +938,14 @@ function renderCatalogVerified() {
   if (!el) return;
   const dates = CATALOG.map(d => d.verified).filter(Boolean).sort();
   if (!dates.length) return;
-  const oldest = dates[0]; // ISO YYYY-MM-DD sorts lexically
-  const nice = new Date(oldest + 'T00:00:00Z').toLocaleDateString('en-US',
+  // Entries are verified individually, so show the span (oldest–newest verified
+  // date) rather than one date that could read as a single publish/stale date.
+  const fmt = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US',
     { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-  el.textContent = `Catalog last verified ${nice}.`;
+  const oldest = dates[0], newest = dates[dates.length - 1]; // ISO sorts lexically
+  el.textContent = oldest === newest
+    ? `Catalog entries verified ${fmt(oldest)}.`
+    : `Catalog entries verified ${fmt(oldest)}–${fmt(newest)}.`;
 }
 
 function init() {
