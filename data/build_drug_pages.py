@@ -154,6 +154,7 @@ def detail_static(d) -> str:
     )
     p.append(
         '<div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. '
+        "Discount-card prices vary by pharmacy and location, so the price at your counter may differ. "
         "Do not combine with Medicare, Medicaid, or any government health program.</div>"
     )
     return "\n          ".join(p)

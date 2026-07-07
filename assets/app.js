@@ -248,8 +248,31 @@ function renderGrid() {
   if (!list.length) {
     grid.innerHTML = '';
     if (state.q) {
-      $('#emptyTitle').textContent = `“${state.q}” isn't in the cash-price catalog`;
-      $('#emptyMsg').innerHTML = `Only our ${CATALOG.length} featured drugs carry curated cash prices — but <strong>${esc(state.q)}</strong> is still searchable. Pick it under <em>“Any drug · live lookup”</em> in the search box above for live FDA data (NDC, real cost, shortages, recalls).`;
+      // Widely-prescribed generics that aren't in the curated catalog: instead of
+      // a generic miss, tell the user plainly that these are exactly the drugs the
+      // low-cost programs are built for. Names only — no prices are asserted.
+      const COMMON_GENERICS = ['metformin', 'lisinopril', 'atorvastatin', 'amlodipine', 'omeprazole',
+        'losartan', 'albuterol', 'levothyroxine', 'sertraline', 'gabapentin'];
+      const qNorm = state.q.trim().toLowerCase();
+      const isCommonGeneric = COMMON_GENERICS.some(g => qNorm === g || qNorm.startsWith(g + ' '));
+      const programLinks = `<a href="https://www.walmart.com/cp/4-prescriptions/1078664" target="_blank" rel="noopener noreferrer">Walmart's $4/$10 list</a>,
+        <a href="https://www.costplusdrugs.com" target="_blank" rel="noopener noreferrer">Cost Plus Drugs</a>,
+        <a href="https://www.goodrx.com" target="_blank" rel="noopener noreferrer">GoodRx</a>, or
+        <a href="https://pharmacy.amazon.com" target="_blank" rel="noopener noreferrer">Amazon Pharmacy</a> —
+        and see the <a href="/uninsured-guide/#meds-only">medication programs compared</a>. Prices vary by pharmacy and location.`;
+      if (isCommonGeneric) {
+        $('#emptyTitle').textContent = `“${state.q}” is a common low-cost generic`;
+        $('#emptyMsg').innerHTML = `It isn't in our curated catalog, but widely-prescribed generics like this are usually inexpensive without insurance. Pick it under <em>“Any drug · live lookup”</em> in the search box above for live FDA data (NDC, acquisition cost, shortages, recalls).
+          <span class="empty-programs">Then check the low-cost programs built for exactly these drugs:
+          ${programLinks}</span>`;
+      } else {
+        $('#emptyTitle').textContent = `“${state.q}” isn't in the cash-price catalog`;
+        // Not a dead end: point to live lookup AND the low-cost generic programs —
+        // common generics are exactly where the walk-in/mail programs shine.
+        $('#emptyMsg').innerHTML = `Only our ${CATALOG.length} featured drugs carry curated cash prices — but <strong>${esc(state.q)}</strong> is still searchable. Pick it under <em>“Any drug · live lookup”</em> in the search box above for live FDA data (NDC, real cost, shortages, recalls).
+          <span class="empty-programs">If it's a common generic, it may also be on a low-cost program — check
+          ${programLinks}</span>`;
+      }
     } else {
       $('#emptyTitle').textContent = 'No results';
       $('#emptyMsg').textContent = 'Try a different filter.';
@@ -442,7 +465,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
       <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
     </div>
-    <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
+    <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Discount-card prices vary by pharmacy and location, so the price at your counter may differ. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
 }
 
 // Modal detail (home page): prepend a close button to the shared body.
@@ -691,7 +714,7 @@ function openLiveDetail(display, clean) {
       <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx ↗</a>
       <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus ↗</a>
     </div>
-    <div class="disclaimer-box">Cash-pay reference data from public sources — verify with the pharmacy before use. Not medical advice.</div>`;
+    <div class="disclaimer-box">Cash-pay reference data from public sources — verify with the pharmacy before use. Prices vary by pharmacy and location. Not medical advice.</div>`;
   const ov = $('#overlay');
   ov.classList.add('open');
   $('#panel').scrollTop = 0;

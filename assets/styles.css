@@ -320,6 +320,10 @@ ul { list-style: none; }
 .state { text-align: center; padding: 4rem 1.5rem; color: var(--text-2); }
 .state svg { margin: 0 auto 1rem; color: var(--text-3); }
 .state h3 { color: var(--text); margin-bottom: .4rem; font-family: var(--font-d); font-size: var(--t-lg); }
+.state p { max-width: 62ch; margin: 0 auto; }
+/* Low-cost program fallback links inside the search empty state. */
+.empty-programs { display: block; margin-top: .8rem; font-size: var(--t-sm); }
+.empty-programs a { color: var(--primary); font-weight: 600; text-decoration: underline; }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; vertical-align: -2px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
