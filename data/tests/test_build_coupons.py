@@ -63,8 +63,8 @@ def test_copay_card_record():
     assert record["eligibility"] is None
     assert record["state_restrictions"] == ["MA", "CA"]
     assert record["url"] == "https://www.amgenassist360.com"
-    assert record["effective_date"] == "2026-01-01"
-    assert record["expiration_date"] == "2026-12-31"
+    assert record["effective_date"] is None
+    assert record["expiration_date"] is None
     assert record["status"] == "active"
     assert record["source"] == "catalog"
     assert record["source_url"] == "https://0penrx.org"
@@ -178,10 +178,10 @@ def test_coupons_jsonl_no_field_drift():
     with open(jsonl_path, encoding="utf-8") as f:
         committed = [json.loads(line) for line in f if line.strip()]
 
-    # expiration_date is the only other now-derived field (f"{year}-12-31"); pin
-    # `now` to the committed year so the comparison is stable across the Jan-1
-    # rollover window before the scheduled rebuild runs.
-    year = int(committed[0]["expiration_date"][:4])
+    # ingested_at is now the only now-derived field, and _comparable() strips it,
+    # so the exact `now` doesn't affect the assertion; pin it to the committed
+    # year for a stable, meaningful value.
+    year = int(committed[0]["ingested_at"][:4])
     now = datetime(year, 6, 1, tzinfo=timezone.utc)
 
     catalog = build_coupons.load_catalog(catalog_path)

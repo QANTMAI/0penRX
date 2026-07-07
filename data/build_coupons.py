@@ -140,7 +140,6 @@ def build_record(drug: dict, now: datetime) -> dict | None:
         bin_out = pcn = group = member_id = None
         program_name = partner
 
-    year = now.year
     return {
         "program_name": program_name,
         "manufacturer": manufacturer,
@@ -157,8 +156,12 @@ def build_record(drug: dict, now: datetime) -> dict | None:
         "url": PARTNER_URL.get(partner),
         "source": "catalog",
         "source_url": "https://0penrx.org",
-        "effective_date": f"{year}-01-01",
-        "expiration_date": f"{year}-12-31",
+        # Manufacturer copay-card BINs and assistance programs are open-ended —
+        # there is no published per-program calendar expiry. A synthetic year-end
+        # date would read as a verified "Expires" in the UI and (via the backend
+        # expiry filter) silently drop every coupon on Jan 1, so leave these null.
+        "effective_date": None,
+        "expiration_date": None,
         # MA/CA restrict pharmacy copay-card programs (anti-coupon state laws).
         # They do NOT apply to manufacturer-direct assistance programs (no BIN).
         "state_restrictions": ["MA", "CA"]

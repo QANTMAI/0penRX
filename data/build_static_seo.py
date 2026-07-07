@@ -103,9 +103,19 @@ def build_noscript(catalog: list[dict]) -> str:
         sav = d.get("savings", 0)
         note = d.get("priceNote")
         extra = f" <em>({html.escape(note)})</em>" if note else ""
+        if d.get("priceBasis") == "medicare-negotiated":
+            price_desc = f"Medicare Part D price {price} (not a cash-pay price)"
+        elif d.get("eligibility") == "insured-only":
+            price_desc = (
+                f"insurance-only copay price {price} (requires commercial insurance)"
+            )
+        elif d.get("eligibility") == "medicare-only":
+            price_desc = f"Medicare-only price {price}"
+        else:
+            price_desc = f"cash-pay reference {price}, {sav}% off retail {retail}"
         rows.append(
             f"<li><strong>{name}</strong> ({gen}) — {co} · {cat} — "
-            f"cash-pay reference {price}, {sav}% off retail {retail}{extra}</li>"
+            f"{price_desc}{extra}</li>"
         )
     lis = "\n      ".join(rows)
     return (

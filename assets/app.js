@@ -211,7 +211,10 @@ function cardHTML(d) {
         <div class="card-gen">${esc(d.generic)}</div>
         <div class="card-co">${esc(d.company)}</div>
       </div>
-      ${pct > 0 ? `<span class="badge ${savClass(pct)}">${pct}% off</span>` : ''}
+      ${d.priceBasis === 'medicare-negotiated' ? `<span class="badge lo">Medicare price</span>`
+        : d.eligibility === 'insured-only' ? `<span class="badge lo">Insurance only</span>`
+        : d.eligibility === 'medicare-only' ? `<span class="badge lo">Medicare only</span>`
+        : pct > 0 ? `<span class="badge ${savClass(pct)}">${pct}% off</span>` : ''}
     </div>
     <div>
       <div class="price-row"><span class="price">${money(d.price)}</span>${d.retail > d.price ? `<span class="price-was">${money(d.retail)}</span>` : ''}</div>
@@ -429,8 +432,8 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <${hTag} class="p-name">${esc(d.name)}</${hTag}>
     <div class="p-sub">${esc(d.generic)} · ${esc(d.company)} · ${esc(d.category)}</div>
     <div class="p-hero">
-      <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${ext ? 'manufacturer direct' : 'GoodRx cash-pay'} · reference</div></div>
-      ${d.retail > d.price ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
+      <div><div class="p-big">${money(d.price)}</div><div class="p-hero-sub">${d.priceBasis === 'medicare-negotiated' ? 'Medicare Part D price · not a cash price' : `${ext ? 'manufacturer direct' : 'GoodRx cash-pay'} · reference`}</div></div>
+      ${d.retail > d.price && d.priceBasis !== 'medicare-negotiated' ? `<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">${savPct(d)}% savings</div><div class="p-hero-vs">vs ${money(d.retail)} WAC list</div></div>` : ''}
     </div>
     ${d.status === 'limited' ? `<span class="status-badge status-limited">Limited Access</span>` : d.status === 'archived' ? `<span class="status-badge status-archived">Archived · Verify Availability</span>` : ''}
     ${d.priceNote ? `<p class="price-note">${esc(d.priceNote)}</p>` : ''}
