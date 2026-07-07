@@ -142,16 +142,13 @@
     </button>
     <div class="sugg" id="sugg" role="listbox"></div>
   </div>
-  <div class="hero-links">
-    <span class="hero-links-label">Compare cash-pay options:</span>
-    <a class="hero-chip" href="/compare-platforms/">Amazon vs GoodRx →</a>
-    <a class="hero-chip" href="/uninsured-guide/">Full platform guide →</a>
-  </div>
 </section>
 
-<!-- ===== Filter bar (Browse only) ===== -->
-<div class="filterbar" id="filterbar" role="group" aria-label="Filter by category">
-  <span class="filter-l">Filter</span>
+<!-- ===== Category filter (Browse only) — single-row horizontal scroll strip ===== -->
+<div class="filterstrip" id="filterstrip">
+  <button class="fs-arrow fs-prev" id="fsPrev" type="button" aria-label="Scroll categories left" tabindex="-1" hidden>‹</button>
+  <div class="fs-track" id="filterbar" role="group" aria-label="Filter by category"></div>
+  <button class="fs-arrow fs-next" id="fsNext" type="button" aria-label="Scroll categories right" tabindex="-1" hidden>›</button>
 </div>
 
 <!-- ===== Main views ===== -->

@@ -209,20 +209,37 @@ ul { list-style: none; }
 .si-price { font-weight: 700; color: var(--primary); font-size: var(--t-sm); white-space: nowrap; }
 
 /* ---- Toolbar / filters ------------------------------------- */
-.filterbar { max-width: var(--maxw); margin: 0 auto; padding: .6rem 1.5rem; display: flex; gap: .4rem; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--divider); }
-.filter-l { font-size: var(--t-sm); color: var(--text-2); margin-right: .25rem; }
+/* Category filter — single-row horizontal scroll strip (all categories in one
+   calm row; fades + arrows appear only where there is more to scroll). */
+.filterstrip { max-width: var(--maxw); margin: 0 auto; padding: .55rem 1.5rem; display: flex; align-items: center; gap: .3rem; border-bottom: 1px solid var(--divider); }
+.fs-track {
+  display: flex; gap: .4rem; align-items: center; flex: 1; min-width: 0;
+  overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+  scroll-padding-inline: 1.5rem; /* keep focused/active chips clear of the fade edges */
+  scrollbar-width: none; /* Firefox */
+  /* fade both edges; JS drops the fade on whichever edge is fully scrolled */
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
+          mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
+}
+.fs-track::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+.fs-track.at-start { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent 100%); mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent 100%); }
+.fs-track.at-end { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 100%); mask-image: linear-gradient(to right, transparent 0, #000 1.5rem, #000 100%); }
+.fs-track.at-start.at-end { -webkit-mask-image: none; mask-image: none; } /* fits with no scroll */
+.fs-arrow {
+  flex: 0 0 auto; width: 28px; height: 28px; border-radius: var(--r-full);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--surface); border: 1px solid var(--border); color: var(--text-2);
+  font-size: 1.25rem; line-height: 1; cursor: pointer; transition: all var(--tr);
+}
+.fs-arrow:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-l); }
+@media (prefers-reduced-motion: reduce) { .fs-track { scroll-behavior: auto; } }
+
 .chip {
-  padding: .375rem .8rem; border-radius: var(--r-full); font-size: var(--t-sm); font-weight: 500;
+  flex: 0 0 auto; padding: .375rem .8rem; border-radius: var(--r-full); font-size: var(--t-sm); font-weight: 500;
   border: 1px solid transparent; background: var(--surface-2); color: var(--text-2); transition: all var(--tr); white-space: nowrap;
 }
 .chip:hover { background: var(--primary-l); color: var(--primary); }
 .chip.on { background: var(--primary); border-color: var(--primary); color: #fff; }
-
-/* Hero cross-links — discoverable, on-brand chips guiding to the comparison pages */
-.hero-links { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: center; margin-top: 1.5rem; }
-.hero-links-label { font-size: var(--t-sm); color: var(--text-2); }
-.hero-chip { display: inline-flex; align-items: center; gap: .35rem; padding: .375rem .8rem; border-radius: var(--r-full); font-size: var(--t-sm); font-weight: 600; border: 1px solid var(--border); color: var(--primary); transition: all var(--tr); }
-.hero-chip:hover { border-color: var(--primary); background: var(--primary-l); }
 
 /* Content-page utilities — replace repeated inline styles for a consistent system */
 .drug-page.wide { max-width: 1000px; }
