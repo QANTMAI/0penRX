@@ -391,6 +391,10 @@ ul { list-style: none; }
 .copy-btn:hover { background: var(--primary-h); }
 .ico { flex-shrink: 0; vertical-align: -.15em; }
 .p-acts { display: flex; gap: .4rem; margin-top: .9rem; flex-wrap: wrap; }
+/* Live-lookup cost hero: lead with the price actions, not clinical data. */
+.p-hero-live { flex-direction: column; align-items: stretch; gap: .8rem; }
+.p-acts-lead { margin-top: 0; }
+.p-acts-lead .btn { flex: 1 1 140px; justify-content: center; padding: .6rem 1rem; }
 
 .disclaimer-box { padding: var(--sp-4); background: var(--surface-3); border-radius: var(--r-lg); font-size: var(--t-sm); color: var(--text-2); line-height: var(--lh-loose); margin-top: var(--sp-5); }
 .disclaimer-box strong { color: var(--text); }
