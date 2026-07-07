@@ -523,7 +523,7 @@ function prefetchDrug(slug) {
   live.getRxNorm(d.generic);
   live.getOpenFda(d.generic, d.name);
   live.getNadac(d.generic);
-  live.getDrugShortages(d.generic);
+  live.getDrugShortages(d.generic, d.name);
   live.getDrugRecalls(d.generic);
   live.getAdverseEvents(d.generic);
   live.getLabelInteractions(d.generic, d.name);
@@ -585,7 +585,7 @@ function enrichLive(d, token, gen) {
     .catch(() => { if (!alive()) return; const el = $('#liveNadac'); if (el) el.innerHTML = `<div class="live-err">NADAC lookup unavailable.</div>`; });
 
   // FDA shortages + recalls (openFDA drug/shortages + drug/enforcement).
-  Promise.allSettled([live.getDrugShortages(d.generic), live.getDrugRecalls(d.generic)])
+  Promise.allSettled([live.getDrugShortages(d.generic, d.name), live.getDrugRecalls(d.generic)])
     .then(([shRes, rcRes]) => {
       if (!alive()) return;
       const el = $('#liveSafety'); if (!el) return;
@@ -596,7 +596,7 @@ function enrichLive(d, token, gen) {
       let html = '<div class="label" style="margin:0 0 .55rem">FDA shortages</div>';
       if (sh.records.length) {
         html += sh.records.slice(0, 3).map(r =>
-          `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${WARN_ICO} ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
+          `<div class="row" style="margin-bottom:.3rem"><div class="row-l"><div><div class="row-name">${WARN_ICO} ${esc(r.status)}</div><div class="row-note">${esc(r.name)}${r.form ? ` · ${esc(r.form)}` : ''}${r.updated ? ` · updated ${esc(r.updated)}` : ''}</div></div></div></div>`).join('');
         html += `<a class="src-link" href="${esc(sh.sourceUrl)}" target="_blank" rel="noopener noreferrer">Source: openFDA drug shortages ↗</a>`;
       } else {
         html += `<div class="live-note">No active FDA shortage reported for “${esc(token)}.”</div>`;
