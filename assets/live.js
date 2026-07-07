@@ -241,17 +241,38 @@ export function nadacEstimate(perUnit, qty = 30) {
 
 // ---- openFDA drug shortages (FDA shortage database) ------------------------
 const OPENFDA_SHORTAGES = 'https://api.fda.gov/drug/shortages.json';
-export async function getDrugShortages(generic) {
+// Coarse formulation bucket. openFDA groups every product sharing an active
+// moiety under one generic_name (e.g. injectable Ozempic and oral Rybelsus are
+// both "semaglutide"), so a shortage record's dosage form must be checked before
+// it's shown on a given product's page. Only the injectable/oral split is used
+// to filter — they never legitimately overlap; anything else returns '' so the
+// record is kept (fail-open: never hide a real shortage on an uncertain match).
+function formBucket(s) {
+  const t = (s || '').toLowerCase();
+  if (/inject|\bpen\b|syringe|\bvial\b|cartridge|subcutaneous|kwikpen|prefilled/.test(t)) return 'injectable';
+  if (/tablet|capsule|\boral\b|\btab\b|\bcap\b/.test(t)) return 'oral';
+  return '';
+}
+export async function getDrugShortages(generic, productForm) {
   const token = fdaToken(generic);
   if (!token) return { records: [] };
   try {
     const url = `${OPENFDA_SHORTAGES}?search=generic_name:${token}&limit=10${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`;
     const data = await fetchJSON(url);
-    const records = (data?.results || []).map(r => ({
+    let records = (data?.results || []).map(r => ({
       name: r.generic_name || r.proprietary_name || token,
       status: r.status || '—',
       updated: r.update_date || r.initial_posting_date || null,
+      form: r.dosage_form || '',
     }));
+    // Formulation scope: only drop a record when this product's form AND the
+    // record's form are both confidently known and are the opposite bucket.
+    const want = formBucket(productForm);
+    if (want) records = records.filter(r => { const b = formBucket(r.form); return !b || b === want; });
+    // De-duplicate rows that render identically (openFDA returns one record per
+    // NDC/strength; the display keeps only name/status/updated/form).
+    const seen = new Set();
+    records = records.filter(r => { const k = `${r.name}|${r.status}|${r.updated}|${r.form}`; return seen.has(k) ? false : (seen.add(k), true); });
     return { records, total: data?.meta?.results?.total || records.length,
       sourceUrl: `${OPENFDA_SHORTAGES}?search=generic_name:${token}` };
   } catch {
@@ -299,20 +320,47 @@ export async function getAdverseEvents(generic) {
 }
 
 // ---- openFDA label drug_interactions (narrative, NOT a pairwise checker) ----
+// Active-ingredient tokens for a catalog generic ("/", "+" or " and " separate
+// the moieties; each is reduced to its head word so salts/forms like "HCl" or
+// "ER" don't matter).
+function ingredientTokens(generic) {
+  return String(generic || '').split(/\s+and\s+|[/+&]/i).map(s => fdaToken(s)).filter(Boolean);
+}
+// Active-ingredient count for an openFDA label row.
+function labelIngredientCount(row) {
+  const subs = row?.openfda?.substance_name;
+  if (Array.isArray(subs) && subs.length) return subs.length;
+  const gn = (row?.openfda?.generic_name || [])[0] || '';
+  return gn.split(/\s+and\s+|[/+,]/i).map(s => s.trim()).filter(Boolean).length || 1;
+}
 export async function getLabelInteractions(generic, brand) {
   const g = fdaToken(generic), b = fdaToken(brand);
+  const want = ingredientTokens(generic);
+  if (!want.length) return null;
   const tries = [
-    g && `search=openfda.generic_name:${g}&limit=1`,
-    b && `search=openfda.brand_name:${b}&limit=1`,
+    g && `search=openfda.generic_name:${g}&limit=25`,
+    b && `search=openfda.brand_name:${b}&limit=10`,
   ].filter(Boolean);
   for (const q of tries) {
     try {
       const data = await fetchJSON(`https://api.fda.gov/drug/label.json?${q}${OPENFDA_KEY ? `&api_key=${encodeURIComponent(OPENFDA_KEY)}` : ''}`);
-      const di = data?.results?.[0]?.drug_interactions;
-      if (di && di.length) {
-        const text = (Array.isArray(di) ? di.join(' ') : String(di)).replace(/\s+/g, ' ').trim();
-        return { text, sourceUrl: `https://api.fda.gov/drug/label.json?${q.replace('&limit=1', '')}` };
-      }
+      const rows = (data?.results || []).filter(r => r.drug_interactions && r.drug_interactions.length);
+      // openFDA's name search matches every product sharing a moiety — a
+      // single-ingredient drug returns fixed-dose combinations too (e.g.
+      // "metformin" -> ZITUVIMET = sitagliptin+metformin) and result order is
+      // not relevance-ranked. Require the label's active-ingredient SET to equal
+      // the catalog drug's, so a combo can't lend its interaction text to a mono
+      // drug and the wrong combo can't stand in for the right one
+      // (dapagliflozin+metformin vs dapagliflozin+saxagliptin). No match -> null
+      // so the UI shows the honest "no interaction text" note.
+      const pick = rows.find(r => {
+        const names = [...(r.openfda?.generic_name || []), ...(r.openfda?.substance_name || [])].join(' ').toLowerCase();
+        return labelIngredientCount(r) === want.length && want.every(t => names.includes(t));
+      });
+      if (!pick) continue;
+      const di = pick.drug_interactions;
+      const text = (Array.isArray(di) ? di.join(' ') : String(di)).replace(/\s+/g, ' ').trim();
+      return { text, sourceUrl: `https://api.fda.gov/drug/label.json?${q.replace(/&limit=\d+/, '')}` };
     } catch { /* try next */ }
   }
   return null;
