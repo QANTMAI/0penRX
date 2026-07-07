@@ -175,7 +175,8 @@ ul { list-style: none; }
 .hero { padding: 3.25rem 1.5rem 1.25rem; text-align: center; max-width: 760px; margin: 0 auto; }
 .hero h1 { font-family: var(--font-d); font-size: var(--t-hero); line-height: 1.08; margin-bottom: .6rem; letter-spacing: -.01em; }
 .hero h1 em { color: var(--primary); font-style: italic; }
-.hero p { font-size: var(--t-lg); color: var(--text-2); max-width: 54ch; margin: 0 auto 1.75rem; }
+.hero p { font-size: var(--t-lg); color: var(--text-2); max-width: 54ch; margin: 0 auto .4rem; }
+.hero .hero-sub { font-size: var(--t-md); color: var(--text-3); margin: 0 auto 1.75rem; }
 
 /* ---- Search + autocomplete --------------------------------- */
 .search { max-width: 640px; margin: 0 auto; position: relative; }
@@ -268,11 +269,15 @@ ul { list-style: none; }
 .select { padding: .38rem .8rem; border: 1px solid var(--border); border-radius: var(--r-md); font-size: var(--t-sm); background: var(--surface); color: var(--text); }
 
 /* ---- Card grid + drug card --------------------------------- */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: var(--sp-4); }
+/* Exactly two equal columns side by side; equal heights come from the grid row
+   stretch + the card's flex column (foot pinned to the bottom). Collapses to a
+   single column on small screens. */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+@media (max-width: 600px) { .grid { grid-template-columns: 1fr; } }
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-xl);
-  padding: var(--sp-5); box-shadow: var(--shadow-sm); cursor: pointer;
-  display: flex; flex-direction: column; gap: var(--sp-3); transition: box-shadow var(--tr), transform var(--tr), border-color var(--tr);
+  padding: var(--sp-4); box-shadow: var(--shadow-sm); cursor: pointer;
+  display: flex; flex-direction: column; gap: .6rem; transition: box-shadow var(--tr), transform var(--tr), border-color var(--tr);
 }
 .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); border-color: var(--primary); }
 .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
@@ -299,7 +304,9 @@ ul { list-style: none; }
 [data-theme="dark"] .tag.amz { background: #211300; color: #f0a83a; }
 [data-theme="dark"] .tag.mfr { background: #190a2e; color: #c489ff; }
 [data-theme="dark"] .tag.mfn { background: #112309; color: #84d24a; }
-.card-foot { display: flex; gap: .4rem; margin-top: .15rem; flex-wrap: wrap; }
+.card-foot { display: flex; gap: .4rem; margin-top: auto; padding-top: .15rem; flex-wrap: wrap; }
+/* Compact buttons inside cards (still ≥24px targets per WCAG 2.5.8). */
+.card-foot .btn { padding: .34rem .7rem; font-size: var(--t-xs); }
 .btn { padding: .48rem .9rem; border-radius: var(--r-md); font-size: var(--t-sm); font-weight: 600; transition: all var(--tr); display: inline-flex; align-items: center; gap: .35rem; }
 .btn-pri { background: var(--primary); color: #fff; }
 .btn-pri:hover { background: var(--primary-h); }
