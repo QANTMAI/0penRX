@@ -154,7 +154,8 @@ def detail_static(d) -> str:
     )
     p.append(
         '<p class="note-sm">More ways to save: <a href="/#coupons">Coupon Guide</a> · '
-        '<a href="/#store-programs">Walmart $4 program</a> · <a href="/uninsured-guide/">Uninsured Guide</a></p>'
+        '<a href="/#store-programs">Walmart $4 program</a> · <a href="/compare-platforms/">Compare Platforms</a> · '
+        '<a href="/uninsured-guide/">Uninsured Guide</a></p>'
     )
     p.append(
         '<div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. '
