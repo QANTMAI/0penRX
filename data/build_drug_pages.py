@@ -153,6 +153,10 @@ def detail_static(d) -> str:
         f'<a href="{esc(goodrx_url(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a></div>'
     )
     p.append(
+        '<p class="note-sm">More ways to save: <a href="/#coupons">Coupon Guide</a> · '
+        '<a href="/#store-programs">Walmart $4 program</a> · <a href="/uninsured-guide/">Uninsured Guide</a></p>'
+    )
+    p.append(
         '<div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. '
         "Discount-card prices vary by pharmacy and location, so the price at your counter may differ. "
         "Do not combine with Medicare, Medicaid, or any government health program.</div>"

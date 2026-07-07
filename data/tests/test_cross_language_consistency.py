@@ -140,3 +140,32 @@ def test_catalog_partners_in_partner_url():
         + repr(missing)
         + "\nAdd them to PARTNER_URL in both assets/app.js and data/build_coupons.py."
     )
+
+
+def _parse_goodrx_slug_js(js: str) -> dict[str, str]:
+    block = _js_object_block(js, "GOODRX_SLUG")
+    pairs = dict(re.findall(r"'([a-z0-9-]+)'\s*:\s*'([a-z0-9-]+)'", block))
+    assert pairs, "Parsed no entries out of GOODRX_SLUG — has its format changed?"
+    return pairs
+
+
+def _load_build_drug_pages():
+    path = REPO / "data" / "build_drug_pages.py"
+    spec = importlib.util.spec_from_file_location("build_drug_pages", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_goodrx_slug_overrides_match():
+    """The GoodRx slug-override map exists in JS (modal links) and Python (static
+    drug-page links). Drift would send the modal and the static page for the SAME
+    drug to two different GoodRx URLs, so the copies must be identical."""
+    js = APP_JS.read_text(encoding="utf-8")
+    js_map = _parse_goodrx_slug_js(js)
+    py_map = _load_build_drug_pages().GOODRX_SLUG
+    assert js_map == py_map, (
+        f"GOODRX_SLUG drift between app.js and build_drug_pages.py:\n"
+        f"  only in JS: { {k: v for k, v in js_map.items() if py_map.get(k) != v} }\n"
+        f"  only in PY: { {k: v for k, v in py_map.items() if js_map.get(k) != v} }"
+    )

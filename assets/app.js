@@ -465,6 +465,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
       <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
     </div>
+    <p class="note-sm">More ways to save: <a href="/#coupons">Coupon Guide</a> · <a href="/#store-programs">Walmart $4 program</a> · <a href="/uninsured-guide/">Uninsured Guide</a></p>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Discount-card prices vary by pharmacy and location, so the price at your counter may differ. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
 }
 
@@ -1036,7 +1037,13 @@ function init() {
   // straight into them as real anchors. Falls through to the default browse view.
   const viewFromHash = () => {
     const h = (location.hash || '').replace('#', '');
-    if (h === 'sources' || h === 'coupons' || h === 'browse') setView(h);
+    if (h === 'sources' || h === 'coupons' || h === 'browse' || h === 'dashboard') setView(h);
+    else if (h === 'store-programs') {
+      // Deep-link to the Coupon Guide's store-programs section (e.g. /#store-programs).
+      setView('coupons');
+      setTimeout(() => $('#store-programs')?.scrollIntoView({
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60);
+    }
   };
   viewFromHash();
   window.addEventListener('hashchange', viewFromHash);
