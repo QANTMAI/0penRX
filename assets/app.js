@@ -204,6 +204,8 @@ function tagsFor(d) {
 
 function cardHTML(d) {
   const pct = savPct(d);
+  // The price shown is a starting/introductory dose — higher doses cost more.
+  const startingDose = !!d.priceNote && /starting dose|introductory|first \d+ fills|intro price/i.test(d.priceNote);
   return `<article class="card" data-slug="${esc(d.slug)}">
     <div class="card-top">
       <div>
@@ -211,7 +213,8 @@ function cardHTML(d) {
         <div class="card-gen">${esc(d.generic)}</div>
         <div class="card-co">${esc(d.company)}</div>
       </div>
-      ${d.priceBasis === 'medicare-negotiated' ? `<span class="badge lo">Medicare price</span>`
+      ${d.status === 'archived' ? `<span class="badge lo">Archived</span>`
+        : d.priceBasis === 'medicare-negotiated' ? `<span class="badge lo">Medicare price</span>`
         : d.eligibility === 'insured-only' ? `<span class="badge lo">Insurance only</span>`
         : d.eligibility === 'medicare-only' ? `<span class="badge lo">Medicare only</span>`
         : pct > 0 ? `<span class="badge ${savClass(pct)}">${pct}% off</span>` : ''}
@@ -219,6 +222,7 @@ function cardHTML(d) {
     <div>
       <div class="price-row"><span class="price">${money(d.price)}</span>${d.retail > d.price ? `<span class="price-was">${money(d.retail)}</span>` : ''}</div>
       <div class="price-lbl">${d.heroType === 'ExternalLinkRouting' ? 'manufacturer program' : 'GoodRx cash'} · reference</div>
+      ${startingDose ? `<div class="price-lbl" style="color:var(--gold)">starting dose — higher doses cost more</div>` : ''}
     </div>
     <div class="tags">${tagsFor(d)}</div>
     <div class="card-foot">
@@ -237,10 +241,14 @@ function filteredList() {
     return okCat && okQ;
   });
   const s = state.sort;
-  if (s === 'savings') list.sort((a, b) => b.savings - a.savings);
-  else if (s === 'plo') list.sort((a, b) => a.price - b.price);
-  else if (s === 'phi') list.sort((a, b) => b.price - a.price);
-  else list.sort((a, b) => a.name.localeCompare(b.name));
+  const cmp = s === 'savings' ? (a, b) => b.savings - a.savings
+    : s === 'plo' ? (a, b) => a.price - b.price
+    : s === 'phi' ? (a, b) => b.price - a.price
+    : (a, b) => a.name.localeCompare(b.name);
+  // Archived drugs (no longer sold) always sink to the bottom, whatever the sort,
+  // so a stale entry can't top the highest-savings list.
+  const arch = d => (d.status === 'archived' ? 1 : 0);
+  list.sort((a, b) => arch(a) - arch(b) || cmp(a, b));
   return list;
 }
 
@@ -1114,18 +1122,17 @@ function renderDashboardKPI() {
   const total = CATALOG.length;
   document.getElementById('dbKpi-1').textContent = total;
 
-  const savingsList = CATALOG.map(d =>
-    typeof d.savings === 'number' ? d.savings : savPct(d)
-  );
-  const avgSav = Math.round(savingsList.reduce((a, b) => a + b, 0) / savingsList.length);
+  // Avg / top savings must reflect what a cash-pay patient can actually get, so
+  // exclude archived drugs (no longer sold) and Medicare-negotiated prices
+  // (flagged "not a cash price"). Total count above stays the full catalog.
+  const sv = d => (typeof d.savings === 'number' ? d.savings : savPct(d));
+  const base = CATALOG.filter(d => d.status !== 'archived' && d.priceBasis !== 'medicare-negotiated');
+
+  const avgSav = Math.round(base.reduce((a, d) => a + sv(d), 0) / base.length);
   document.getElementById('dbKpi-2').textContent = avgSav + '%';
 
-  const topDrug = CATALOG.reduce((best, d) => {
-    const s = typeof d.savings === 'number' ? d.savings : savPct(d);
-    const bs = typeof best.savings === 'number' ? best.savings : savPct(best);
-    return s > bs ? d : best;
-  });
-  const topPct = typeof topDrug.savings === 'number' ? topDrug.savings : savPct(topDrug);
+  const topDrug = base.reduce((best, d) => (sv(d) > sv(best) ? d : best));
+  const topPct = sv(topDrug);
   document.getElementById('dbKpi-3').textContent = topPct + '%';
   const lbl3 = document.getElementById('dbKpiLbl-3');
   if (lbl3) lbl3.textContent = esc(topDrug.name);
