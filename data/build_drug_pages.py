@@ -323,7 +323,7 @@ def page_html(d, total: int) -> str:
 # is generated here so these stay listed. Keep in sync with the actual files.
 CONTENT_PAGES = [
     ("compare-platforms/", "2026-07-03", "0.9"),
-    ("uninsured-guide/", "2026-07-03", "0.9"),
+    ("uninsured-guide/", "2026-07-06", "0.9"),
     ("privacy/", TODAY, "0.5"),
 ]
 
