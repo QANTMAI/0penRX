@@ -263,7 +263,6 @@ ul { list-style: none; }
 .sec-head h1, .sec-head h2 { font-family: var(--font-d); font-size: var(--t-xl); letter-spacing: -.01em; }
 .sec-head.sub-head h2 { font-size: var(--t-lg); }
 .mt-section { margin-top: var(--sp-8); }
-.mt-block { margin: 1rem 0; }
 .sec-head .sub { font-size: var(--t-sm); color: var(--text-2); max-width: 62ch; margin-top: var(--sp-2); }
 .sec-head-r { display: flex; gap: .6rem; align-items: center; }
 .count { font-size: var(--t-sm); color: var(--text-2); }
