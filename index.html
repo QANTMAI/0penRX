@@ -120,8 +120,8 @@
       <a class="ntab" href="/compare-platforms/">Compare Platforms</a>
       <a class="ntab" href="/uninsured-guide/">Uninsured Guide</a>
       <!-- Dashboard is an internal operator/metrics view, hidden from the consumer
-           nav for v1.0. The #view-dashboard section and its JS remain in place;
-           re-add this button (or deep-link setView('dashboard')) to expose it. -->
+           nav for v1.0. The #view-dashboard section and its JS remain in place and
+           are reachable via the /#dashboard deep link; re-add this button to expose it. -->
     </nav>
     <div class="hdr-r">
       <button class="icon-btn" data-theme-toggle aria-label="Toggle light/dark theme"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
@@ -338,7 +338,7 @@
     </div>
     <div class="coupon-list" id="couponList"></div>
 
-    <div class="sec-head sub-head mt-section"><h2>Store programs — no card needed</h2></div>
+    <div class="sec-head sub-head mt-section" id="store-programs"><h2>Store programs — no card needed</h2></div>
     <p class="sub">Some pharmacies publish flat cash prices on select generics. No coupon, card, or signup — just walk in with a prescription.</p>
     <div class="coupon-list" id="storeList"></div>
 
