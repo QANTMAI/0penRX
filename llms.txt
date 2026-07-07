@@ -8,7 +8,7 @@
 
 - [0penRX home](https://0penrx.org/): Search any drug; browse 92 curated medications with cash-pay reference prices, savings vs. retail, GoodRx card (BIN 015995), and per-drug live FDA data.
 - [Data Sources](https://0penrx.org/#sources): The live APIs behind every figure — NLM RxNorm (identity), openFDA (NDC, shortages, recalls, FAERS, label interactions), CMS NADAC (real per-unit acquisition cost).
-- [Coupon Guide](https://0penrx.org/#coupons): How the universal GoodRx cash-discount card (BIN 015995) works, and why manufacturer copay cards that exclude cash-pay patients are routed to their official programs instead.
+- [Coupon Guide](https://0penrx.org/#coupons): How the universal GoodRx cash-discount card (BIN 015995) — usable by anyone, no insurance — differs from manufacturer copay cards (which require commercial insurance) and manufacturer direct self-pay programs (e.g. NovoCare, LillyDirect; open to anyone). Every drug is priced at what a cash-pay patient can actually get.
 - [Compare Platforms](https://0penrx.org/compare-platforms/): Independent four-way table comparing Amazon Pharmacy + One Medical, Costco Pharmacy + Sesame, GoodRx + Companion, and Walmart's $4 generics program on cost, prerequisites, prescription coverage, telehealth, delivery, and limitations. Vendor prices attributed with sources and a verify-before-signup caveat.
 - [Uninsured Guide](https://0penrx.org/uninsured-guide/): A cash-pay guide to healthcare platforms for the uninsured — decision-first tables of Cost Plus Drugs, Costco Pharmacy, Amazon (RxPass/One Medical), GoodRx (free/Gold/Companion), Sesame, Teladoc via Walmart, Walmart, and FQHC sliding-fee clinics, plus free discount cards and suggested stacks. Prices attributed to vendor sources with a verify-before-signup caveat.
 
@@ -17,7 +17,7 @@
 - Live drug data for ANY marketed drug: RxNorm identity/RxCUI, openFDA NDC + labeler + dosage form + active ingredients, CMS NADAC acquisition cost + a Cost-Plus-style estimate (NADAC × 1.15 + $3), FDA shortages, recalls, FAERS adverse-event reports (reporting volume, not incidence), and drug-label interaction text — each with a clickable source link.
 - 92 curated brand-name and biosimilar medications (avg ~64% off retail) across: Other Brand, Autoimmune/Biologic, Insulin, Diabetes, GLP-1/Weight Loss, Respiratory, Hormone Therapy, Oncology/Specialty, Migraine, Blood Thinner, Smoking Cessation, Growth Hormone, Cholesterol. Examples: Ozempic, Wegovy, Mounjaro, Zepbound, Humira, Enbrel, Farxiga, Xarelto, insulins.
 - One cash-usable coupon: the GoodRx universal network card (BIN 015995, PCN GDC, Group MAHA, Member RXFINDER) — usable by any uninsured patient at 70,000+ pharmacies.
-- Honest data posture: no fabricated values; reference prices are labeled "verify before use"; NADAC is acquisition cost (not retail); IRA Medicare-negotiated prices are flagged as Medicare-only.
+- Honest data posture: no fabricated values; reference prices are labeled "verify before use"; NADAC is acquisition cost (not retail). Every price is labeled by class — universal cash-discount-card price (GoodRx; anyone, no insurance), manufacturer direct self-pay (e.g. NovoCare, LillyDirect; anyone), or IRA Medicare-negotiated (flagged "not a cash price"). Manufacturer copay cards that require commercial insurance are never presented as a cash price.
 
 ## Data provenance
 
