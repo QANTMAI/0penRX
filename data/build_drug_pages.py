@@ -113,7 +113,7 @@ def detail_static(d) -> str:
     )
     sav_block = (
         f'<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">{savpct(d)}% savings</div>'
-        f'<div class="p-hero-vs">vs {money(d["retail"])} WAC list</div></div>'
+        f'<div class="p-hero-vs">vs {money(d["retail"])} <abbr title="Wholesale Acquisition Cost — the manufacturer&#39;s published list price, not a consumer price">WAC</abbr> list</div></div>'
         if d["retail"] > d["price"] and d.get("priceBasis") != "medicare-negotiated"
         else ""
     )
