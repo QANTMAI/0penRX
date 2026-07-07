@@ -567,7 +567,7 @@ function enrichLive(d, token, gen) {
     if (!alive()) return;
     const el = $('#liveNadac'); if (!el) return;
     if (!n) {
-      el.innerHTML = `<div class="live-err">No CMS NADAC record found for “${esc(token)}” (often the case for brand-only biologics).</div>`;
+      el.innerHTML = `<div class="live-err">No CMS NADAC record found for “${esc(token)}” — NADAC surveys generics, so brand-name and biologic drugs often aren’t listed. Use the price links above.</div>`;
       return;
     }
     const est = live.nadacEstimate(n.perUnit, 30);
@@ -698,23 +698,35 @@ function openLiveDetail(display, clean) {
     </button>
     <div class="p-name">${esc(display)}</div>
     <div class="p-sub">Live lookup · RxNorm / openFDA / CMS NADAC</div>
-    <div class="p-hero" style="background:var(--surface-2)">
-      <div><div class="p-hero-sub" style="opacity:1;color:var(--text-2)">Not in the curated cash-pay catalog — showing sourced reference data below. Verify the final price at the pharmacy.</div></div>
+
+    <div class="p-hero p-hero-live">
+      <div>
+        <div class="label" style="margin:0 0 .3rem;color:var(--primary)">What it costs</div>
+        <div class="p-hero-sub" style="opacity:1">Not in our curated catalog — check the live cash price:</div>
+      </div>
+      <div class="p-acts p-acts-lead">
+        <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx price ↗</a>
+        <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-pri" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus price ↗</a>
+      </div>
     </div>
-    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
+
+    <div class="label">Estimated cash price <span class="live-badge">CMS NADAC</span></div>
+    <div class="live-box" role="status" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
+
     <div class="label">Live drug data <span class="live-badge">live</span></div>
-    <div class="live-box" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(clean)}</strong> in RxNorm &amp; openFDA…</span></div>
-    <div class="live-box" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
+    <div class="live-box" role="status" id="liveIdentity"><span class="spinner"></span> <span style="color:var(--text-2)">Looking up <strong>${esc(clean)}</strong> in RxNorm &amp; openFDA…</span></div>
+
     <div class="label">Safety &amp; supply <span class="live-badge">FDA</span></div>
-    <div class="live-box" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
+    <div class="live-box" role="status" id="liveSafety"><span class="spinner"></span> <span style="color:var(--text-2)">Checking FDA shortages &amp; recalls…</span></div>
+
     <div class="label">Reported reactions <span class="live-badge">FAERS</span></div>
-    <div class="live-box" id="liveFaers"><span class="spinner"></span> <span style="color:var(--text-2)">Querying FDA adverse-event reports…</span></div>
+    <div class="live-box" role="status" id="liveFaers"><span class="spinner"></span> <span style="color:var(--text-2)">Querying FDA adverse-event reports…</span></div>
+
     <div class="label">Interactions <span class="live-badge">FDA label</span></div>
-    <div class="live-box" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
-    <div class="p-acts">
-      <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx ↗</a>
-      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus ↗</a>
-    </div>
+    <div class="live-box" role="status" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
+
+    ${live.API_BASE ? `<div class="label">Coupons &amp; assistance <span class="live-badge">programs</span></div><div class="live-box" role="status" id="liveCoupons"><span class="spinner"></span> <span style="color:var(--text-2)">Loading assistance programs… <span style="opacity:.7">(a few seconds if the server was idle)</span></span></div>` : ''}
+
     <div class="disclaimer-box">Cash-pay reference data from public sources — verify with the pharmacy before use. Prices vary by pharmacy and location. Not medical advice.</div>`;
   const ov = $('#overlay');
   ov.classList.add('open');
