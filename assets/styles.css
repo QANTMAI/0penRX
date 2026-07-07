@@ -354,8 +354,6 @@ ul { list-style: none; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .75rem .85rem; border: 1px solid var(--divider); border-radius: var(--r-lg); margin-bottom: .4rem; transition: border-color var(--tr); }
 .row:hover { border-color: var(--primary); }
 .row-l { display: flex; align-items: center; gap: .65rem; min-width: 0; }
-.row-tag { width: 30px; height: 30px; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: var(--t-2xs); color: #fff; flex-shrink: 0; }
-.row-tag.grx { background: #00467f; } .row-tag.cpd { background: #017a72; } .row-tag.amz { background: #232f3e; } .row-tag.mfn { background: #6000b0; } .row-tag.mfr { background: #3a6a00; }
 .row-name { font-weight: 600; font-size: var(--t-sm); }
 .row-note { font-size: var(--t-xs); color: var(--text-2); }
 .row-price { font-weight: 700; color: var(--primary); white-space: nowrap; }
