@@ -761,7 +761,8 @@ function renderSources() {
 // confirmable) are shown link-only so no unverified code is handed to a pharmacist.
 // Pharmacy counts and "up to 80%" are each vendor's own published figures.
 const COUPONS = [
-  { t: 'GoodRx Network', stats: ['No insurance needed', '70,000+ pharmacies', 'Up to 80% off'], bin: '015995', url: 'https://www.goodrx.com/discount-card' },
+  { t: 'GoodRx Network', stats: ['No insurance needed', '70,000+ pharmacies', 'Up to 80% off'], bin: '015995', url: 'https://www.goodrx.com/discount-card',
+    note: 'Also accepted at Walmart and Sam’s Club — per GoodRx, network pharmacies are contractually required to honor these prices. Exceptions: Walmart takes no discount cards on opioid prescriptions (since June 1, 2018), and coupons for any controlled substance are at the pharmacist’s discretion.' },
   { t: 'ScriptSave WellRx', stats: ['No insurance needed', '65,000+ pharmacies', 'Up to 80% off'], bin: '006053', pcn: 'MSC', group: '977', member: 'Printed on your card', url: 'https://www.wellrx.com/prescription-discount-card/' },
   { t: "America's Pharmacy", stats: ['No insurance needed', '62,000+ pharmacies', 'Up to 80% off'], bin: '003585', pcn: '78470', group: 'ARX0302', member: 'Printed on your card', url: 'https://www.americaspharmacy.com/card/' },
   { t: 'SingleCare', stats: ['No insurance needed', '35,000+ pharmacies', 'Up to 80% off'], linkOnly: true, note: 'Group and member vary by card — get your free card:', url: 'https://www.singlecare.com/prescription-discount-card' },
@@ -778,7 +779,7 @@ function renderCoupons() {
       const info = c.pcn ? { pcn: c.pcn, group: c.group, member: c.member } : binInfo(c.bin);
       body = `${cfieldsHTML([['BIN', c.bin], ['PCN', info.pcn], ['Group', info.group], ['Member', info.member]])}
     <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(info.pcn)}|${esc(info.group)}|${esc(info.member)}">${COPY_ICO} Copy to clipboard</button>
-    ${link}`;
+    ${c.note ? `<p class="coupon-note">${esc(c.note)}</p>` : ''}${link}`;
     }
     return `<div class="coupon">
     <div class="coupon-t">${esc(c.t)}</div>
@@ -786,6 +787,33 @@ function renderCoupons() {
     ${body}
   </div>`;
   }).join('');
+
+  renderStorePrograms();
+}
+
+// Store cash-price programs — no card, code, or signup. Kept separate from the
+// discount cards above so nobody hunts for a BIN that doesn't exist. Every
+// figure is from Walmart's own program terms (list PDF effective 2025-03-24)
+// and program page, verified 2026-07-06. Walmart+ "Rx for Less" is deliberately
+// absent — Walmart discontinued it May 31, 2022.
+const STORE_PROGRAMS = [
+  {
+    t: 'Walmart $4 Prescriptions',
+    stats: ['No card or signup', 'About 100 generics', '30-day from $4 · 90-day from $10'],
+    note: 'Flat cash prices at the pharmacy counter on select generics (some tiers are $9/$24 or $15/$38). Antibiotics, antihistamines, steroids, and brand-name drugs are not included. Not available in North Dakota; prices are higher in some states, including California and Minnesota. First fill must be in person; a $10 90-day mail option is available. Walmart also accepts GoodRx-style discount cards — except on opioid prescriptions.',
+    url: 'https://www.walmart.com/cp/4-prescriptions/1078664',
+    cta: 'See the drug list ↗',
+  },
+];
+function renderStorePrograms() {
+  const el = $('#storeList');
+  if (!el) return;
+  el.innerHTML = STORE_PROGRAMS.map(p => `<div class="coupon">
+    <div class="coupon-t">${esc(p.t)}</div>
+    <div class="coupon-stats">${p.stats.map(s => `<span class="stat-chip">${esc(s)}</span>`).join('')}</div>
+    <p class="coupon-note">${esc(p.note)}</p>
+    <a class="btn btn-sec coupon-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.cta)}</a>
+  </div>`).join('');
 }
 
 async function copyCoupon(spec, btn) {
