@@ -19,7 +19,7 @@ Live at [0penrx.org](https://0penrx.org).
 
 ```
 index.html             Static frontend — GitHub Pages (0penrx.org)
-compare-platforms/     "Amazon + One Medical vs GoodRx + Companion" comparison (static)
+compare-platforms/     "Amazon vs Costco vs GoodRx vs Walmart" four-way comparison (static)
 uninsured-guide/       Cash-pay healthcare platforms guide (static)
 privacy/               Privacy policy (static)
 assets/
