@@ -28,7 +28,7 @@ assets/
   catalog-validator.js Load-time integrity checks (price math, enums, staleness)
   live.js              Live data fetchers: RxNorm, openFDA, CMS NADAC
   styles.css           Design system
-  config.js            Runtime config (API_BASE — not committed; set per deployment)
+  config.js            Runtime config (API_BASE — committed with the public backend URL; override per deployment)
 backend/
   app.py               FastAPI backend — /coupons, /coupons/goodrx, /health
 data/

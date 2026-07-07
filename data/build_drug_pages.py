@@ -98,7 +98,7 @@ def detail_static(d) -> str:
     p.append(
         f'<div class="p-sub">{esc(d["generic"])} · {esc(_clean(d["company"]))} · {esc(d["category"])}</div>'
     )
-    hero_sub = "manufacturer direct" if ext else "federal program / cash-pay"
+    hero_sub = "manufacturer direct" if ext else "GoodRx cash-pay"
     sav_block = (
         f'<div><div class="p-hero-vs" style="color:var(--good);font-weight:700">{savpct(d)}% savings</div>'
         f'<div class="p-hero-vs">vs {money(d["retail"])} WAC list</div></div>'
