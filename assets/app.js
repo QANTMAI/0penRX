@@ -933,12 +933,6 @@ function initTheme() {
 // Surface the catalog freshness date in the footer from the data itself (the
 // oldest `verified` date across the catalog), so it can never go stale relative
 // to the data the way a hardcoded string would.
-function renderCatalogVerified() {
-  // The verified-date span is intentionally not shown; strip it from the footer
-  // on every page (kept as a no-op-safe removal so the call sites stay valid).
-  const el = $('#catalogVerified');
-  if (el) el.remove();
-}
 
 function init() {
   initTheme();
@@ -959,11 +953,11 @@ function init() {
   // and skip all the home-page (grid/search/nav) wiring — those elements don't
   // exist here.
   const dp = document.getElementById('drugpage');
-  if (dp) { renderDrugPage(dp); renderCatalogVerified(); registerSW(); return; }
+  if (dp) { renderDrugPage(dp); registerSW(); return; }
 
   // Content pages (e.g. /privacy/) have neither the app grid nor a drug panel.
   // Theme is already applied above; register the SW and stop before the SPA wiring.
-  if (!document.getElementById('grid')) { renderCatalogVerified(); registerSW(); return; }
+  if (!document.getElementById('grid')) { registerSW(); return; }
 
   // Privacy transparency notice (home page only). A non-blocking trust notice —
   // no consent is required (the site sets no cookies and runs no tracking), so it
@@ -990,7 +984,6 @@ function init() {
   renderFilters();
   setupFilterStrip();
   renderGrid();
-  renderCatalogVerified();
 
   const input = $('#search'), clear = $('#searchClear'), sugg = $('#sugg');
   // Keep the URL in sync with the query so searches are deep-linkable and

@@ -490,7 +490,6 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
 .foot-legal { border-top: 1px solid var(--divider); padding-top: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-3); max-width: 92ch; }
 .foot-legal p { font-size: var(--t-xs); color: var(--text-3); line-height: var(--lh-normal); }
 .foot-copy { font-size: var(--t-xs); color: var(--text-3); }
-.foot-verified { color: var(--text-2); }
 
 /* No-JS catalog fallback (inside <noscript>) — only ever shown when JavaScript
    is off; the JS app renders the interactive grid instead. Kept readable. */
