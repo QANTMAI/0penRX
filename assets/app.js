@@ -580,8 +580,9 @@ function enrichLive(d, token, gen) {
     })
     .catch(() => { if (!alive()) return; const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
 
-  // NADAC: real acquisition cost + estimated cash price.
-  live.getNadac(d.generic).then(n => {
+  // NADAC: real acquisition cost + estimated cash price. Pass the display name
+  // (carries the "(Inhalant)"-style form) so a wrong-form row can be dropped.
+  live.getNadac(d.generic, d.name).then(n => {
     if (!alive()) return;
     const el = $('#liveNadac'); if (!el) return;
     if (!n) {
@@ -709,7 +710,6 @@ function enrichLive(d, token, gen) {
 function openLiveDetail(display, clean) {
   _dialogTrigger = document.activeElement;
   const token = live.searchToken(clean) || clean.toUpperCase();
-  const gslug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   $('#panelBody').innerHTML = `
     <button class="panel-close" data-close aria-label="Close">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -723,7 +723,7 @@ function openLiveDetail(display, clean) {
         <div class="p-hero-sub" style="opacity:1">Not in our curated catalog — check the live cash price:</div>
       </div>
       <div class="p-acts p-acts-lead">
-        <a href="https://www.goodrx.com/${esc(gslug)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx price ↗</a>
+        <a href="https://www.goodrx.com/search?query=${encodeURIComponent(clean)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx price ↗</a>
         <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-pri" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus price ↗</a>
       </div>
     </div>
@@ -934,18 +934,10 @@ function initTheme() {
 // oldest `verified` date across the catalog), so it can never go stale relative
 // to the data the way a hardcoded string would.
 function renderCatalogVerified() {
+  // The verified-date span is intentionally not shown; strip it from the footer
+  // on every page (kept as a no-op-safe removal so the call sites stay valid).
   const el = $('#catalogVerified');
-  if (!el) return;
-  const dates = CATALOG.map(d => d.verified).filter(Boolean).sort();
-  if (!dates.length) return;
-  // Entries are verified individually, so show the span (oldest–newest verified
-  // date) rather than one date that could read as a single publish/stale date.
-  const fmt = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-US',
-    { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-  const oldest = dates[0], newest = dates[dates.length - 1]; // ISO sorts lexically
-  el.textContent = oldest === newest
-    ? `Catalog entries verified ${fmt(oldest)}.`
-    : `Catalog entries verified ${fmt(oldest)}–${fmt(newest)}.`;
+  if (el) el.remove();
 }
 
 function init() {

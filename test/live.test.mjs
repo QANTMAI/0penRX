@@ -12,6 +12,10 @@ import {
   fdaToken,
   normalizeNadacRows,
   nadacEstimate,
+  parseIngredients,
+  descriptionHasAll,
+  isOralOnlyDescription,
+  nonOralFormHint,
 } from '../assets/live.js';
 
 test('searchToken: first moiety, uppercased, punctuation stripped', () => {
@@ -65,6 +69,43 @@ test('normalizeNadacRows: within same date, lowest per-unit wins', () => {
   ]);
   assert.equal(out.description, 'CHEAP');
   assert.equal(out.perUnit, 0.02);
+});
+
+test('parseIngredients: combos split into 6-char uppercase prefixes', () => {
+  // The reported bug: a combo must yield BOTH ingredients, not just the first.
+  assert.deepEqual(parseIngredients('Albuterol/Ipratropium (Inhalant)'), ['ALBUTE', 'IPRATR']);
+  assert.deepEqual(parseIngredients('brimonidine/timolol'), ['BRIMON', 'TIMOLO']);
+  assert.deepEqual(parseIngredients('sitagliptin/metformin HCl'), ['SITAGL', 'METFOR']);
+  // single ingredient → single prefix (mono path)
+  assert.deepEqual(parseIngredients('metformin'), ['METFOR']);
+  assert.deepEqual(parseIngredients(''), []);
+  assert.deepEqual(parseIngredients(null), []);
+});
+
+test('descriptionHasAll: every ingredient prefix must be present', () => {
+  const combo = ['ALBUTE', 'IPRATR'];
+  assert.equal(descriptionHasAll('IPRATROPIUM-ALBUTEROL 0.5-3(2.5) MG/3 ML', combo), true);
+  // a mono component of the combo must be rejected (this was the wrong match)
+  assert.equal(descriptionHasAll('ALBUTEROL SULF 2 MG/5 ML SYRUP', combo), false);
+  assert.equal(descriptionHasAll('ALBUTEROL HFA 90 MCG INHALER', combo), false);
+  assert.equal(descriptionHasAll('anything', []), false);
+});
+
+test('isOralOnlyDescription: flags oral forms, not inhalation/injection', () => {
+  assert.equal(isOralOnlyDescription('ALBUTEROL SULF 2 MG/5 ML SYRUP'), true);
+  assert.equal(isOralOnlyDescription('METFORMIN 500 MG TABLET'), true);
+  assert.equal(isOralOnlyDescription('AMOXICILLIN 250 MG CAP'), true);
+  assert.equal(isOralOnlyDescription('IPRATROPIUM-ALBUTEROL 0.5-3(2.5) MG/3 ML'), false);
+  assert.equal(isOralOnlyDescription('ALBUTEROL HFA 90 MCG INHALER'), false);
+});
+
+test('nonOralFormHint: true for non-oral routes only', () => {
+  assert.equal(nonOralFormHint('Albuterol/Ipratropium (Inhalant)'), true);
+  assert.equal(nonOralFormHint('Latanoprost (Ophthalmic)'), true);
+  assert.equal(nonOralFormHint('Enoxaparin (Injectable)'), true);
+  assert.equal(nonOralFormHint('Metformin (Oral Pill)'), false);
+  assert.equal(nonOralFormHint('Metformin'), false);   // no form qualifier
+  assert.equal(nonOralFormHint(''), false);
 });
 
 test('nadacEstimate: NADAC x qty x 1.15 + $3, rounded to cents', () => {
