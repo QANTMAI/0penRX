@@ -121,6 +121,13 @@ export function fdaToken(s) {
 export async function getOpenFda(generic, brand) {
   const g = fdaToken(generic), b = fdaToken(brand);
   const tries = [];
+  // Combination drug: require a product containing EVERY ingredient, so the
+  // identity panel can never show a mono component of the combination (same
+  // wrong-drug trap as NADAC). Single-ingredient queries stay as fallbacks.
+  const moieties = splitIngredients(generic);
+  if (moieties.length >= 2) {
+    tries.push(`search=${moieties.map(m => `generic_name:%22${encodeURIComponent(m)}%22`).join('+AND+')}&limit=1`);
+  }
   if (g) tries.push(`search=generic_name:${g}&limit=1`);
   if (b) tries.push(`search=brand_name:${b}&limit=1`);
   for (const q of tries) {
@@ -171,20 +178,45 @@ export function normalizeNadacRows(rows) {
   };
 }
 
-// Split a generic into NADAC-matchable ingredient prefixes. A combination drug
-// ("Albuterol/Ipratropium") must match a NADAC row that contains EVERY
-// ingredient — NADAC names combos in an unpredictable order
-// ("IPRATROPIUM-ALBUTEROL"), so a single first-word prefix query silently
-// returns a mono-ingredient product (plain albuterol syrup) at the wrong price.
-// 6-char prefixes tolerate NADAC's abbreviations (IPRATROPIUM -> IPRATR).
-export function parseIngredients(generic) {
+// Split a generic into its ingredient moieties (lowercase first word of each
+// part): "Albuterol/Ipratropium (Inhalant)" -> ['albuterol', 'ipratropium'].
+// Shared by the NADAC prefix matcher and the openFDA combination query.
+export function splitIngredients(generic) {
   if (!generic) return [];
   const base = String(generic).replace(/\s*\([^)]*\)\s*$/, '');   // drop trailing "(Inhalant)"
   return [...new Set(
     base.split(/[\/,+&]|\band\b/i)                                // combination separators
-      .map(s => s.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase())
+      .map(s => s.trim().split(/\s+/)[0] || '')                   // moiety = first word (drops salts)
+      .map(s => s.replace(/[^a-z0-9-]/gi, '').replace(/^-+|-+$/g, '').toLowerCase())
       .filter(t => t.length >= 3),
   )];
+}
+
+// NADAC-matchable ingredient prefixes. A combination drug ("Albuterol/
+// Ipratropium") must match a NADAC row that contains EVERY ingredient — NADAC
+// names combos in an unpredictable order ("IPRATROPIUM-ALBUTEROL"), so a single
+// first-word prefix query silently returns a mono-ingredient product (plain
+// albuterol syrup) at the wrong price. 6-char prefixes tolerate NADAC's
+// abbreviations (IPRATROPIUM -> IPRATR).
+export function parseIngredients(generic) {
+  return [...new Set(splitIngredients(generic).map(t => t.replace(/-/g, '').slice(0, 6).toUpperCase()))]
+    .filter(t => t.length >= 3);
+}
+
+// GoodRx names combination-drug pages after the FDA *established name*'s
+// ingredient order — NOT alphabetically. openFDA's generic_name field carries
+// that established name ("Ipratropium Bromide and Albuterol Sulfate"), so the
+// slug is the first word of each moiety in label order: ipratropium-albuterol.
+// Verified against real GoodRx pages 2026-07-08 (ipratropium-albuterol,
+// sulfamethoxazole-trimethoprim, hydrocodone-acetaminophen,
+// amlodipine-benazepril). Returns null for mono drugs — no upgrade needed.
+export function goodRxComboSlug(establishedName) {
+  if (!establishedName) return null;
+  const parts = String(establishedName).split(/,|\band\b/i)
+    .map(s => s.trim().split(/\s+/)[0] || '')
+    .map(s => s.replace(/[^a-z0-9-]/gi, '').replace(/^-+|-+$/g, '').toLowerCase())
+    .filter(t => t.length >= 3);
+  return parts.length >= 2 ? [...new Set(parts)].join('-') : null;
 }
 
 // Every ingredient prefix must appear in the NADAC description, or the row is a

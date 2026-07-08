@@ -13,6 +13,8 @@ import {
   normalizeNadacRows,
   nadacEstimate,
   parseIngredients,
+  splitIngredients,
+  goodRxComboSlug,
   descriptionHasAll,
   isOralOnlyDescription,
   nonOralFormHint,
@@ -80,6 +82,28 @@ test('parseIngredients: combos split into 6-char uppercase prefixes', () => {
   assert.deepEqual(parseIngredients('metformin'), ['METFOR']);
   assert.deepEqual(parseIngredients(''), []);
   assert.deepEqual(parseIngredients(null), []);
+});
+
+test('splitIngredients: lowercase moieties, salts dropped via first-word rule', () => {
+  assert.deepEqual(splitIngredients('Albuterol/Ipratropium (Inhalant)'), ['albuterol', 'ipratropium']);
+  assert.deepEqual(splitIngredients('sitagliptin/metformin HCl'), ['sitagliptin', 'metformin']);
+  assert.deepEqual(splitIngredients('metformin'), ['metformin']);
+  assert.deepEqual(splitIngredients(''), []);
+  assert.deepEqual(splitIngredients(null), []);
+});
+
+test('goodRxComboSlug: FDA established-name order -> verified GoodRx slugs', () => {
+  // Each expected slug is a real GoodRx page, verified in-browser 2026-07-08.
+  assert.equal(goodRxComboSlug('Ipratropium Bromide and Albuterol Sulfate'), 'ipratropium-albuterol');
+  assert.equal(goodRxComboSlug('sulfamethoxazole and Trimethoprim'), 'sulfamethoxazole-trimethoprim');
+  assert.equal(goodRxComboSlug('Hydrocodone Bitartrate and Acetaminophen'), 'hydrocodone-acetaminophen');
+  assert.equal(goodRxComboSlug('Amlodipine Besylate and Benazepril Hydrochloride'), 'amlodipine-benazepril');
+  // comma-separated triples split too
+  assert.equal(goodRxComboSlug('Aspirin, Butalbital, and Caffeine'), 'aspirin-butalbital-caffeine');
+  // mono drugs -> null (no upgrade)
+  assert.equal(goodRxComboSlug('Albuterol Sulfate'), null);
+  assert.equal(goodRxComboSlug(''), null);
+  assert.equal(goodRxComboSlug(null), null);
 });
 
 test('descriptionHasAll: every ingredient prefix must be present', () => {

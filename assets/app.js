@@ -579,6 +579,15 @@ function enrichLive(d, token, gen) {
         const fdaBtn = document.getElementById('fdaLabelLink');
         if (fdaBtn) fdaBtn.href = `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(fv.productNdc)}`;
       }
+      // Combination drugs: upgrade the GoodRx button from the search page to
+      // the exact drug page. GoodRx combo slugs follow the FDA established
+      // name's ingredient order (openFDA generic_name), which is not derivable
+      // from the alphabetical RxTerms name (goodRxComboSlug in live.js).
+      if (fv?.generic && d.generic.includes('/')) {
+        const slug = live.goodRxComboSlug(fv.generic);
+        const grxBtn = document.getElementById('goodrxLink');
+        if (slug && grxBtn) grxBtn.href = `https://www.goodrx.com/${slug}`;
+      }
     })
     .catch(() => { if (!alive()) return; const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
 
@@ -712,6 +721,16 @@ function enrichLive(d, token, gen) {
 function openLiveDetail(display, clean) {
   _dialogTrigger = document.activeElement;
   const token = live.searchToken(clean) || clean.toUpperCase();
+  // GoodRx has no populating search-results URL (verified in-browser
+  // 2026-07-08: /search?query= renders the generic landing page) — its own
+  // search always resolves to a drug-page slug. Single-name drugs link straight
+  // to that slug (goodrx.com/bactrim). Combination generics start on the search
+  // page (never 404s) and are upgraded to the exact combo slug in enrichLive
+  // once openFDA returns the FDA established name (label ingredient order).
+  const isCombo = clean.includes('/');
+  const grxHref = isCombo
+    ? `https://www.goodrx.com/search?query=${encodeURIComponent(clean)}`
+    : `https://www.goodrx.com/${clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
   $('#panelBody').innerHTML = `
     <button class="panel-close" data-close aria-label="Close">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
@@ -725,7 +744,7 @@ function openLiveDetail(display, clean) {
         <div class="p-hero-sub" style="opacity:1">Not in our curated catalog — check the live cash price:</div>
       </div>
       <div class="p-acts p-acts-lead">
-        <a href="https://www.goodrx.com/search?query=${encodeURIComponent(clean)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx price ↗</a>
+        <a id="goodrxLink" href="${grxHref}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx price ↗</a>
         <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-pri" title="Look up ${esc(clean)} on Cost Plus Drugs">Cost Plus price ↗</a>
       </div>
     </div>
