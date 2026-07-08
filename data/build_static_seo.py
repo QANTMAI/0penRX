@@ -114,7 +114,7 @@ def build_noscript(catalog: list[dict]) -> str:
         else:
             price_desc = f"cash-pay reference {price}, {sav}% off retail {retail}"
         rows.append(
-            f"<li><strong>{name}</strong> ({gen}) — {co} · {cat} — "
+            f'<li><strong><a href="/drugs/{d["slug"]}/">{name}</a></strong> ({gen}) — {co} · {cat} — '
             f"{price_desc}{extra}</li>"
         )
     lis = "\n      ".join(rows)

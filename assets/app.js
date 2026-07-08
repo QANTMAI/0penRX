@@ -211,7 +211,7 @@ function cardHTML(d) {
   return `<article class="card" data-slug="${esc(d.slug)}">
     <div class="card-top">
       <div>
-        <div class="card-name">${esc(d.name)}</div>
+        <div class="card-name"><a class="card-name-link" href="/drugs/${esc(d.slug)}/">${esc(d.name)}</a></div>
         <div class="card-gen">${esc(d.generic)}</div>
         <div class="card-co">${esc(d.company)}</div>
       </div>
@@ -517,7 +517,14 @@ function openDetail(slug) {
 function renderDrugPage(dp) {
   const d = CATALOG.find(x => x.slug === dp.dataset.slug);
   if (!d) return;
-  document.title = `${d.name} cash price & savings — 0penRX`;
+  // Keep the runtime title identical to the generator's static <title>
+  // (data/build_drug_pages.py page_title) so JS-rendering crawlers see the
+  // same truth-branched, query-matched title as no-JS crawlers.
+  document.title =
+    d.priceBasis === 'medicare-negotiated' ? `${d.name} Medicare-negotiated price — 0penRX`
+    : d.eligibility === 'insured-only' ? `${d.name} copay card price (insurance required) — 0penRX`
+    : d.eligibility === 'medicare-only' ? `${d.name} Medicare-only price — 0penRX`
+    : `${d.name} cash price without insurance — ${money(d.price)} — 0penRX`;
   const ext = d.heroType === 'ExternalLinkRouting';
   const token = live.searchToken(d.generic) || live.searchToken(d.name);
   dp.innerHTML = detailBodyHTML(d, token, ext, 'h1');
@@ -1069,7 +1076,12 @@ function init() {
     if (nav) { e.preventDefault(); setView(nav.dataset.nav); return; }
     if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); if (!d) return; input.value = d.name; state.q = d.name; closeSugg(); renderGrid(); openDetail(pick.dataset.pick); return; }
     if (liveEl) { input.value = liveEl.dataset.live; state.q = liveEl.dataset.live; closeSugg(); openLiveDetail(liveEl.dataset.live, liveEl.dataset.clean); return; }
-    if (open) { const slug = open.dataset.open || open.dataset.slug; openDetail(slug); return; }
+    if (open) {
+      // The card-name is a real <a href="/drugs/<slug>/"> so crawlers get an
+      // internal link; in-app the SPA panel opens instead of navigating.
+      if (e.target.closest('.card-name-link')) e.preventDefault();
+      const slug = open.dataset.open || open.dataset.slug; openDetail(slug); return;
+    }
   });
   $('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeDetail(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
