@@ -66,6 +66,36 @@
 
     <p class="price-note good">Four cash-pay ways to cut prescription costs: <strong>Amazon Pharmacy + One Medical</strong>, <strong>Costco Pharmacy + Sesame</strong>, <strong>the GoodRx card + Companion</strong>, and <strong>Walmart&rsquo;s $4 generics program</strong>. 0penRX is independent and takes no commission. Figures are the vendors&rsquo; own prices (linked in the tables) — confirm before you sign up.</p>
 
+    <h2 class="label">Start with your situation</h2>
+    <p class="note-sm">Pick what you&rsquo;re trying to do — it points you to the right rows below (or the right page). The full four-way breakdown follows.</p>
+    <nav class="router" aria-label="Find the right route for your situation">
+      <a class="route-card" href="#fill">
+        <span class="route-q">I already have a prescription</span>
+        <span class="route-a">Compare the four on price alone — Walmart&rsquo;s $4 list, Amazon RxPass, the free GoodRx card, or Costco cash.</span>
+        <span class="route-go">Compare fill prices →</span>
+      </a>
+      <a class="route-card" href="#visit">
+        <span class="route-q">I need a prescription first</span>
+        <span class="route-a">You need a visit before a fill. Cheapest cash visits: Sesame (~$37+), GoodRx Care ($19 with a membership), Amazon On-Demand ($29+).</span>
+        <span class="route-go">Compare visit costs →</span>
+      </a>
+      <a class="route-card" href="#services">
+        <span class="route-q">I need ongoing primary care</span>
+        <span class="route-a">A care membership can beat one-off visits — One Medical ($99/yr, 24/7 virtual) or Sesame&rsquo;s in-person cash visits by location.</span>
+        <span class="route-go">Compare what you get →</span>
+      </a>
+      <a class="route-card" href="/">
+        <span class="route-q">I can&rsquo;t afford a brand-name drug</span>
+        <span class="route-a">These four mainly discount generics. For a brand, the maker&rsquo;s own savings program is usually cheapest — linked on each drug&rsquo;s page.</span>
+        <span class="route-go">Browse drugs &amp; maker programs →</span>
+      </a>
+      <a class="route-card" href="/uninsured-guide/">
+        <span class="route-q">I&rsquo;m on a low income</span>
+        <span class="route-a">Discount cards aren&rsquo;t charity care. A sliding-scale community (FQHC) clinic bills by income and may cost less than any membership here.</span>
+        <span class="route-go">See the uninsured guide →</span>
+      </a>
+    </nav>
+
     <h2 class="label" id="costs">What it costs</h2>
     <p class="note-sm">Platform fees and doctor-visit fees are different things — every cell says which one you&rsquo;re paying.</p>
     <div class="table-wrap">
@@ -88,7 +118,7 @@
             <td data-col="GoodRx + Companion"><span class="ans">$0</span><span class="ans-sub">free card. Companion $14.99/mo or $119.88/yr (7-day trial); Gold $9.99/mo</span></td>
             <td data-col="Walmart"><span class="ans">$0</span><span class="ans-sub">no membership for the $4 list or Better Care booking. Optional Walmart+ ($98/yr or $12.95/mo) adds free delivery only</span></td>
           </tr>
-          <tr>
+          <tr id="visit">
             <th scope="row">See a doctor online</th>
             <td data-col="Amazon + One Medical"><span class="ans">$0</span><span class="ans-sub">24/7 virtual care included with membership. Without one: On-Demand Care from $29 message / $49 video (30+ conditions; self-pay, insurance not accepted; FSA/HSA; messaging not in every state)</span></td>
             <td data-col="Costco + Sesame"><span class="ans">$29/visit</span><span class="ans-sub">via Sesame (members); $79 therapy; non-members from ~$37 (independent physicians; not in Puerto Rico)</span></td>
@@ -102,7 +132,7 @@
             <td data-col="GoodRx + Companion"><span class="ans">None</span><span class="ans-sub">visits are online only (text, phone, video)</span></td>
             <td data-col="Walmart"><span class="ans">None</span><span class="ans-sub">clinics closed in 2024 (eye exams — see the vision row below)</span></td>
           </tr>
-          <tr>
+          <tr id="fill">
             <th scope="row">Fill a prescription</th>
             <td data-col="Amazon + One Medical"><span class="ans">$5/mo</span><span class="ans-sub">RxPass: 50+ common generics, flat fee by mail. Prime Rx: up to 80% off generics / 40% brand at 60,000+ pharmacies</span></td>
             <td data-col="Costco + Sesame"><span class="ans">Cash price</span><span class="ans-sub">no membership; most insurance accepted. Member Rx program terms unpublished — ask at the pharmacy</span></td>
