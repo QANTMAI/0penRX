@@ -95,8 +95,10 @@ const goodRxUrl = d => `https://www.goodrx.com/${GOODRX_SLUG[d.slug] || d.slug}`
 // Cost Plus Drugs has no URL-param search and no derivable per-product slug
 // (products live at package-specific paths like /medications/<drug>-<strength>-
 // <pack>-NN/). A `?search=` query is silently ignored — verified in-browser
-// 2026-06 — so we link to the working medications search page rather than a
-// param the site drops on the floor.
+// 2026-06, re-checked 2026-07-08 (CDN 403s every automated fetch; the site's
+// search is client-side filter-as-you-type with no URL sync) — so we link to the
+// working medications search page and the tooltip says "look up", not "search
+// results for", to avoid implying a pre-filtered deep link.
 const COSTPLUS_URL = 'https://www.costplusdrugs.com/medications/';
 
 // Manufacturer routing → each medication's OWN official manufacturer site, keyed
@@ -474,7 +476,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <div class="p-acts">
       <a id="fdaLabelLink" href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
-      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Search Cost Plus Drugs for ${esc(d.generic)}">Cost Plus ↗</a>
+      <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Look up ${esc(d.generic)} on Cost Plus Drugs">Cost Plus ↗</a>
     </div>
     <p class="note-sm">More ways to save: <a href="/#coupons">Coupon Guide</a> · <a href="/#store-programs">Walmart $4 program</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a></p>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Discount-card prices vary by pharmacy and location, so the price at your counter may differ. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
@@ -724,7 +726,7 @@ function openLiveDetail(display, clean) {
       </div>
       <div class="p-acts p-acts-lead">
         <a href="https://www.goodrx.com/search?query=${encodeURIComponent(clean)}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">GoodRx price ↗</a>
-        <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-pri" title="Search Cost Plus Drugs for ${esc(clean)}">Cost Plus price ↗</a>
+        <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-pri" title="Look up ${esc(clean)} on Cost Plus Drugs">Cost Plus price ↗</a>
       </div>
     </div>
 
