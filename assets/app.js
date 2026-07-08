@@ -364,8 +364,14 @@ function renderSuggest() {
     const results = await live.rxTermsSearch(state.q, 6);
     if (seq !== liveSeq) return;            // a newer keystroke superseded this
     const cat = catalogMatches(state.q.toLowerCase());
-    const catKeys = new Set(cat.flatMap(d =>
-      [d.name.toLowerCase(), d.generic.toLowerCase().split(/[\/,\s]+/)[0]]));
+    // Suppress live suggestions that duplicate a catalog entry: match on the
+    // name and the FULL generic. The first-ingredient key applies only to mono
+    // generics — a combination's first ingredient must NOT hide the mono drug's
+    // live lookup (Airsupra "albuterol/budesonide" was hiding plain Albuterol).
+    const catKeys = new Set(cat.flatMap(d => {
+      const g = d.generic.toLowerCase();
+      return [d.name.toLowerCase(), g, ...(g.includes('/') ? [] : [g.split(/[\s,]+/)[0]])];
+    }));
     const fresh = results.filter(x => !catKeys.has(x.clean.toLowerCase())).slice(0, 6);
     renderSuggestBox(cat, fresh);
   }, 280);
@@ -727,10 +733,13 @@ function openLiveDetail(display, clean) {
   // to that slug (goodrx.com/bactrim). Combination generics start on the search
   // page (never 404s) and are upgraded to the exact combo slug in enrichLive
   // once openFDA returns the FDA established name (label ingredient order).
+  // RxTerms suffixes extended-release names "XR"; GoodRx slugs use "ER"
+  // (goodrx.com/albuterol-xr and /metformin-xr 404, /albuterol-er and
+  // /metformin-er are real pages — verified in-browser 2026-07-08).
   const isCombo = clean.includes('/');
   const grxHref = isCombo
     ? `https://www.goodrx.com/search?query=${encodeURIComponent(clean)}`
-    : `https://www.goodrx.com/${clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`;
+    : `https://www.goodrx.com/${clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').replace(/-xr$/, '-er')}`;
   $('#panelBody').innerHTML = `
     <button class="panel-close" data-close aria-label="Close">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>

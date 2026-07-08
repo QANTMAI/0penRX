@@ -118,22 +118,38 @@ export function fdaToken(s) {
 }
 
 // ---- openFDA: NDC + manufacturer (labeler) + dosage ------------------------
+// True when a product's established name (generic_name) is exactly the same
+// ingredient set as the searched generic — a mono query for "albuterol" must
+// not accept "Ipratropium Bromide and Albuterol Sulfate" (openFDA substring-
+// matches inside combination names), and a combo query must not accept a
+// broader combination. FDA established names join with "and"/commas, which
+// splitIngredients also handles.
+export function sameIngredientSet(establishedName, generic) {
+  const want = splitIngredients(generic);
+  const got = splitIngredients(establishedName);
+  return want.length > 0 && got.length === want.length && want.every(w => got.includes(w));
+}
+
 export async function getOpenFda(generic, brand) {
   const g = fdaToken(generic), b = fdaToken(brand);
   const tries = [];
   // Combination drug: require a product containing EVERY ingredient, so the
   // identity panel can never show a mono component of the combination (same
   // wrong-drug trap as NADAC). Single-ingredient queries stay as fallbacks.
+  // generic_name tries fetch several rows and take the first whose ingredient
+  // SET matches exactly; the brand try is exempt (a brand name is not an
+  // ingredient list, e.g. Bactrim -> "Sulfamethoxazole and Trimethoprim").
   const moieties = splitIngredients(generic);
   if (moieties.length >= 2) {
-    tries.push(`search=${moieties.map(m => `generic_name:%22${encodeURIComponent(m)}%22`).join('+AND+')}&limit=1`);
+    tries.push({ q: `search=${moieties.map(m => `generic_name:%22${encodeURIComponent(m)}%22`).join('+AND+')}&limit=10`, strict: true });
   }
-  if (g) tries.push(`search=generic_name:${g}&limit=1`);
-  if (b) tries.push(`search=brand_name:${b}&limit=1`);
-  for (const q of tries) {
+  if (g) tries.push({ q: `search=generic_name:${g}&limit=10`, strict: true });
+  if (b) tries.push({ q: `search=brand_name:${b}&limit=1`, strict: false });
+  for (const { q, strict } of tries) {
     try {
       const data = await fetchJSON(fdaUrl(q));
-      const r = data?.results?.[0];
+      const rows = data?.results || [];
+      const r = strict ? rows.find(x => sameIngredientSet(x.generic_name, generic)) : rows[0];
       if (!r) continue;
       return {
         brand: r.brand_name || null,
@@ -145,7 +161,7 @@ export async function getOpenFda(generic, brand) {
         productType: r.product_type || null,
         activeIngredients: (r.active_ingredients || [])
           .map(a => `${a.name} ${a.strength || ''}`.trim()).slice(0, 4),
-        sourceUrl: `https://api.fda.gov/drug/ndc.json?${q.replace('&limit=1', '')}`,
+        sourceUrl: `https://api.fda.gov/drug/ndc.json?${q.replace(/&limit=\d+/, '')}`,
       };
     } catch { /* try next */ }
   }
@@ -243,6 +259,18 @@ export function nonOralFormHint(displayName) {
   return /inhal|nebul|nasal|inject|ophthal|eye|topical|cream|ointment|transder|otic|\bear\b|rectal|vaginal|implant|patch|drops?/.test(f);
 }
 
+// True when the display form is specifically a solid oral pill, so a tablet/
+// capsule NADAC row should beat an oral liquid ("Albuterol XR (Oral Pill)"
+// was being priced from the 2 MG/5 ML SYRUP row).
+export function oralPillFormHint(displayName) {
+  const m = /\(([^)]*)\)\s*$/.exec(displayName || '');
+  return m ? /pill|tablet|capsule/i.test(m[1]) : false;
+}
+const PILL_FORMS = /\b(TAB|TABS|TABLET|CAP|CAPS|CAPLET|CAPSULE|ODT|CHEW\w*|SUBL\w*|LOZENGE|TROCHE)\b/;
+export function isPillDescription(description) {
+  return PILL_FORMS.test(String(description || '').toUpperCase());
+}
+
 export async function getNadac(generic, displayName) {
   // CMS NADAC is the authoritative, CORS-open source; query it directly from
   // the browser. There is no backend pricing endpoint — pricing is client-side
@@ -275,6 +303,11 @@ export async function getNadac(generic, displayName) {
     if (nonOralFormHint(displayName)) {
       const rightForm = rows.filter(r => !isOralOnlyDescription(r.ndc_description));
       if (rightForm.length) rows = rightForm;
+    } else if (oralPillFormHint(displayName)) {
+      // "(Oral Pill)" products: prefer tablet/capsule rows over oral liquids,
+      // fail open when NADAC has no solid-form row for the drug.
+      const pills = rows.filter(r => isPillDescription(r.ndc_description));
+      if (pills.length) rows = pills;
     }
     const cmsResult = normalizeNadacRows(rows);
     if (cmsResult) cmsResult.via = 'cms';
