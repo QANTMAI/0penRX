@@ -441,7 +441,7 @@ table.t td strong { color: var(--text); font-weight: 700; }
 .ans { display: block; font-weight: 700; font-size: 1.02rem; color: var(--text); line-height: 1.25; }
 .ans-sub { display: block; font-size: var(--t-xs); color: var(--text-2); margin-top: .2rem; line-height: var(--lh-normal); }
 /* Status pills encode valence so a row scans as a colour pattern, not grey words. */
-.pill { display: inline-block; font-size: var(--t-xs); font-weight: 700; padding: .1rem .5rem; border-radius: var(--r-full); }
+.pill { display: inline-block; font-size: var(--t-xs); font-weight: 700; padding: .1rem .5rem; border-radius: var(--r-full); margin: 0 .45rem .12rem 0; }
 .pill-yes { background: var(--good-l); color: var(--good); }
 .pill-no { background: var(--surface-3); color: var(--text-3); }
 .pill-part { background: var(--gold-l); color: var(--gold); }
@@ -451,6 +451,7 @@ table.t td strong { color: var(--text); font-weight: 700; }
    title and every cell is labelled with its column via data-col. */
 @media (max-width: 720px) {
   table.t, table.t tbody, table.t tr, table.t th, table.t td { display: block; }
+  table.t th:first-child, table.t td:first-child { width: auto; }
   table.t thead { display: none; }
   table.t tbody tr { border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: var(--sp-3); overflow: hidden; }
   table.t tbody tr:hover td { background: transparent; }
