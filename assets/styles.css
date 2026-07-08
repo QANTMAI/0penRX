@@ -432,6 +432,31 @@ table.t a:hover { text-decoration: underline; }
 /* Key figures/terms wrapped in <strong> in a cell get full-weight emphasis. */
 table.t td strong { color: var(--text); font-weight: 700; }
 
+/* Answer-first cell: a bold lead token (a figure or Yes/No), then one muted
+   detail line — so the eye catches the answer without reading the whole cell. */
+.ans { display: block; font-weight: 700; font-size: 1.02rem; color: var(--text); line-height: 1.25; }
+.ans-sub { display: block; font-size: var(--t-xs); color: var(--text-2); margin-top: .2rem; line-height: var(--lh-normal); }
+/* Status pills encode valence so a row scans as a colour pattern, not grey words. */
+.pill { display: inline-block; font-size: var(--t-xs); font-weight: 700; padding: .1rem .5rem; border-radius: var(--r-full); }
+.pill-yes { background: var(--good-l); color: var(--good); }
+.pill-no { background: var(--surface-3); color: var(--text-3); }
+.pill-part { background: var(--gold-l); color: var(--gold); }
+
+/* Below 720px a 4-column comparison table gets too cramped to read (and clips), so
+   stack each row into a self-contained card: the row-header question is the card
+   title and every cell is labelled with its column via data-col. */
+@media (max-width: 720px) {
+  table.t, table.t tbody, table.t tr, table.t th, table.t td { display: block; }
+  table.t thead { display: none; }
+  table.t tbody tr { border: 1px solid var(--border); border-radius: var(--r-lg); margin-bottom: var(--sp-3); overflow: hidden; }
+  table.t tbody tr:hover td { background: transparent; }
+  table.t tbody tr:nth-child(even) td { background: transparent; }
+  table.t tbody th { background: var(--surface-2); font-size: var(--t-md); padding: .65rem .9rem; border-bottom: 1px solid var(--divider); }
+  table.t tbody td { border-left: none; border-bottom: 1px solid var(--divider); }
+  table.t tbody tr td:last-child { border-bottom: none; }
+  table.t tbody td::before { content: attr(data-col); display: block; font-size: var(--t-2xs); text-transform: uppercase; letter-spacing: .04em; color: var(--primary); font-weight: 700; margin-bottom: .25rem; }
+}
+
 /* ---- Coupon Guide page ------------------------------------- */
 .coupon-list { max-width: 640px; display: flex; flex-direction: column; gap: var(--sp-4); }
 
