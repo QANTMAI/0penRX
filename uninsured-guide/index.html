@@ -66,15 +66,35 @@
 
     <p class="price-note good">No insurance doesn&rsquo;t mean sticker price. These platforms sell prescriptions, telehealth, and primary care for cash — often a fraction of retail. Pick one or combine. 0penRX is independent and takes no commission; figures are vendors&rsquo; own prices (see Sources) and change often. For a deeper dive, see the <a class="inline-link" href="/compare-platforms/">Amazon vs Costco vs GoodRx vs Walmart comparison</a>.</p>
 
-    <h2 class="label">Start here — pick your situation</h2>
-    <p class="note-sm">No single platform covers everything. The strongest verified combination for each situation:</p>
-    <ul class="src-list">
-      <li><strong>All-in-one:</strong> GoodRx Companion alone — $14.99/mo (7-day trial): 200+ free generics, $19 telehealth, and dental/vision/lab/imaging, no Amazon account.</li>
-      <li><strong>No-subscription:</strong> Cost Plus for mail-order generics + Sesame for cash visits (from ~$37) + an FQHC sliding-fee clinic for in-person care. Nothing recurring to cancel.</li>
-      <li><strong>Amazon ecosystem:</strong> Already pay for Prime? RxPass ($5/mo) for flat-fee generics + One Medical ($99/yr) for 24/7 virtual care, one login.</li>
-      <li><strong>Heavy prescriber:</strong> GoodRx Gold ($9.99 individual / $19.99 family) for the deepest discounts; price-check each fill against Cost Plus and the free GoodRx card, since the cheapest source varies by drug.</li>
-    </ul>
-    <p class="note-sm">The details behind each pick are below, grouped by what you actually need: <a class="inline-link" href="#meds-only">medications</a> · <a class="inline-link" href="#care-visits">doctor visits</a> · <a class="inline-link" href="#bundles">both bundled</a>.</p>
+    <h2 class="label">Start with your situation</h2>
+    <p class="note-sm">No single platform covers everything. Pick what you need — each routes to the verified options below.</p>
+    <nav class="router" aria-label="Find the right route for your situation">
+      <a class="route-card" href="#meds-only">
+        <span class="route-q">I just need medications</span>
+        <span class="route-a">Price-check each fill across Cost Plus (mail-order), the free GoodRx card, and Walmart&rsquo;s $4 list — the cheapest source varies by drug. GoodRx Gold ($9.99/mo) for deeper discounts.</span>
+        <span class="route-go">Compare med prices →</span>
+      </a>
+      <a class="route-card" href="#care-visits">
+        <span class="route-q">I just need doctor visits</span>
+        <span class="route-a">Sesame cash visits from ~$37, Amazon On-Demand from $29, or a sliding-scale FQHC clinic for in-person care.</span>
+        <span class="route-go">Compare visits →</span>
+      </a>
+      <a class="route-card" href="#bundles">
+        <span class="route-q">I need medications and care together</span>
+        <span class="route-a">GoodRx Companion ($14.99/mo): 200+ free generics + $19 visits + dental/vision — no Amazon account. Already have Prime? One Medical ($99/yr) for 24/7 care.</span>
+        <span class="route-go">Compare bundles →</span>
+      </a>
+      <a class="route-card" href="/">
+        <span class="route-q">I can&rsquo;t afford a brand-name drug</span>
+        <span class="route-a">These platforms discount generics. For a brand, the maker&rsquo;s own savings program is usually cheapest — linked on each drug&rsquo;s page.</span>
+        <span class="route-go">Browse drugs &amp; maker programs →</span>
+      </a>
+      <a class="route-card" href="#public-help">
+        <span class="route-q">I&rsquo;m on a low income</span>
+        <span class="route-a">Community (FQHC) clinics and patient-assistance programs bill by income — often less than any paid membership here.</span>
+        <span class="route-go">See public help →</span>
+      </a>
+    </nav>
 
     <h2 class="label" id="meds-only">Medications only</h2>
     <div class="table-wrap">
@@ -221,6 +241,36 @@
       </table>
     </div>
 
+    <h2 class="label" id="public-help">Low income &amp; public help</h2>
+    <p class="note-sm">If a paid membership is still out of reach, these bill by income — not a flat price.</p>
+    <div class="table-wrap">
+      <table class="t">
+        <caption class="sr-only">Income-based and public help: community health centers and patient-assistance programs</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="min-width:150px">Program</th>
+            <th scope="col" style="min-width:180px">Cost</th>
+            <th scope="col">Best for</th>
+            <th scope="col">How to start</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row"><strong><a href="https://findahealthcenter.hrsa.gov/" target="_blank" rel="noopener noreferrer">Community health center (FQHC)</a></strong><br><span class="cell-sub">findahealthcenter.hrsa.gov</span></th>
+            <td data-col="Cost">Sliding scale by income; federally funded — some services free. Not insurance.</td>
+            <td data-col="Best for">In-person primary, dental, and behavioral care with no insurance</td>
+            <td data-col="How to start">Enter your ZIP at the HRSA finder to locate a center</td>
+          </tr>
+          <tr>
+            <th scope="row"><strong><a href="https://www.needymeds.org/" target="_blank" rel="noopener noreferrer">Patient-assistance programs</a></strong><br><span class="cell-sub">needymeds.org</span></th>
+            <td data-col="Cost">Free or low-cost brand-name meds for those who qualify (income-based)</td>
+            <td data-col="Best for">Brand-name drugs with no generic that you can&rsquo;t afford</td>
+            <td data-col="How to start">Search your drug at NeedyMeds for its manufacturer&rsquo;s program</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <h2 class="label">Sources</h2>
     <p class="note-sm">Prices verified 2026-07-03 &ndash; 2026-07-07 (per-item dates in each source); vendor pricing changes frequently — confirm before signup.</p>
     <ul class="src-list">
@@ -229,6 +279,7 @@
       <li><strong>Costco</strong> — <a href="https://rx.costco.com" target="_blank" rel="noopener noreferrer">pharmacy ↗</a></li>
       <li><strong>FQHC</strong> — <a href="https://findahealthcenter.hrsa.gov/" target="_blank" rel="noopener noreferrer">find a center ↗</a></li>
       <li><strong>GoodRx</strong> — <a href="https://www.goodrx.com/" target="_blank" rel="noopener noreferrer">free card &amp; Gold ↗</a> · <a href="https://www.goodrx.com/companion" target="_blank" rel="noopener noreferrer">Companion ↗</a> · <a href="https://investors.goodrx.com/news-releases/news-release-details/goodrx-launches-goodrx-companion-new-subscription-designed-lower" target="_blank" rel="noopener noreferrer">launch (IR) ↗</a></li>
+      <li><strong>NeedyMeds</strong> — <a href="https://www.needymeds.org/" target="_blank" rel="noopener noreferrer">patient-assistance directory ↗</a></li>
       <li><strong>Sesame</strong> — <a href="https://sesamecare.com/join/membership" target="_blank" rel="noopener noreferrer">membership ↗</a> · <a href="https://sesamecare.com/join/sc2024-rx" target="_blank" rel="noopener noreferrer">Costco member pricing ↗</a></li>
       <li><strong>Teladoc</strong> (Walmart Better Care) — <a href="https://www.teladochealth.com/newsroom/press/teladoc-health-expands-access-to-care-through-walmarts-better-care-services" target="_blank" rel="noopener noreferrer">teladochealth.com ↗</a></li>
       <li><strong>Walmart</strong> — <a href="https://www.walmart.com/cp/4-prescriptions/1078664" target="_blank" rel="noopener noreferrer">$4 program ↗</a> · <a href="https://i5.walmartimages.com/dfw/4ff9c6c9-119c/k2-_c3e2f451-7a63-414e-aac2-e3defc13ef60.v1.pdf" target="_blank" rel="noopener noreferrer">drug list (PDF) ↗</a></li>
