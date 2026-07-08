@@ -412,16 +412,25 @@ ul { list-style: none; }
 [data-theme="dark"] .src-live.down { color: #ff8a80; }
 .src-live.checking { color: var(--text-3); }
 
-.table-wrap { overflow-x: auto; border: 1px solid var(--divider); border-radius: var(--r-lg); }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-lg); }
 table.t { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
-table.t th, table.t td { padding: .7rem .9rem; text-align: left; border-bottom: 1px solid var(--divider); }
-table.t th { font-size: var(--t-xs); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-3); background: var(--surface-2); }
-/* Row headers (th scope=row) read as body cells, not column headers. */
-table.t tbody th { font-size: var(--t-sm); font-weight: 600; text-transform: none; letter-spacing: 0; color: var(--text); background: transparent; }
-table.t tr:last-child td { border-bottom: none; }
-table.t tr:hover td { background: var(--surface-2); }
-table.t a { color: var(--primary); }
+/* Uniform cell rhythm: same padding, top-aligned, with vertical column dividers
+   so a multi-column comparison reads as a grid instead of a wall of text. */
+table.t th, table.t td { padding: .8rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--divider); }
+table.t th:not(:first-child), table.t td:not(:first-child) { border-left: 1px solid var(--divider); }
+/* Column headers: accented and heavier, anchored to the bottom of the header row. */
+table.t thead th, table.t thead td { background: var(--surface-2); border-bottom: 2px solid var(--border); vertical-align: bottom; }
+table.t thead th { font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--primary); }
+/* Row-header spine: the left label column is a solid, distinct band. */
+table.t tbody th { font-size: var(--t-sm); font-weight: 700; text-transform: none; letter-spacing: 0; color: var(--text); background: var(--surface-2); }
+/* Zebra striping on data cells so each row reads as its own band. */
+table.t tbody tr:nth-child(even) td { background: color-mix(in oklab, var(--surface-2) 45%, transparent); }
+table.t tbody tr:last-child th, table.t tbody tr:last-child td { border-bottom: none; }
+table.t tbody tr:hover td { background: var(--surface-3); }
+table.t a { color: var(--primary); font-weight: 600; }
 table.t a:hover { text-decoration: underline; }
+/* Key figures/terms wrapped in <strong> in a cell get full-weight emphasis. */
+table.t td strong { color: var(--text); font-weight: 700; }
 
 /* ---- Coupon Guide page ------------------------------------- */
 .coupon-list { max-width: 640px; display: flex; flex-direction: column; gap: var(--sp-4); }
