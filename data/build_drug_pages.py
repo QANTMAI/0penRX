@@ -82,20 +82,26 @@ def goodrx_url(d) -> str:
 
 
 def description(d) -> str:
+    # Search engines show ~160 chars of a description (Bing flags longer), so
+    # compose to <=160 with graceful degradation: drop the generic name first,
+    # then the retail comparison — the drug name and price always stay.
+    name, gen = _clean(d["name"]), d["generic"]
     if d.get("priceBasis") == "medicare-negotiated":
-        basis = (
-            f"{_clean(d['name'])} ({d['generic']}) Medicare Part D negotiated price "
-            f"{money(d['price'])} — not a cash-pay price. "
-        )
+        tail = "Not a cash price. Live FDA data, shortages and recalls — 0penRX."
+        variants = [
+            f"{name} ({gen}) Medicare Part D negotiated price {money(d['price'])}. {tail}",
+            f"{name} Medicare Part D negotiated price {money(d['price'])}. {tail}",
+        ]
     else:
-        basis = (
-            f"{_clean(d['name'])} ({d['generic']}) cash-pay reference price "
-            f"{money(d['price'])} — {savpct(d)}% off {money(d['retail'])} retail. "
-        )
-    return (
-        f"{basis}Live FDA identity, cost, shortage and recall data, plus the GoodRx "
-        f"card and savings programs. Reference price — verify before use."
-    )
+        tail = "Live FDA data, the free GoodRx card and savings programs. Verify before use."
+        variants = [
+            f"{name} ({gen}) cash price without insurance: {money(d['price'])} — "
+            f"{savpct(d)}% off {money(d['retail'])} retail. {tail}",
+            f"{name} cash price without insurance: {money(d['price'])} — "
+            f"{savpct(d)}% off {money(d['retail'])} retail. {tail}",
+            f"{name} cash price without insurance: {money(d['price'])}. {tail}",
+        ]
+    return next((v for v in variants if len(v) <= 160), variants[-1])
 
 
 # ── Static fallback (what crawlers/no-JS read; JS replaces it with the live view)
@@ -261,7 +267,11 @@ def page_title(d) -> str:
         return f"{name} copay card price (insurance required) — 0penRX"
     if d.get("eligibility") == "medicare-only":
         return f"{name} Medicare-only price — 0penRX"
-    return f"{name} cash price without insurance — {money(d['price'])} — 0penRX"
+    title = f"{name} cash price without insurance — {money(d['price'])} — 0penRX"
+    # Bing flags titles >70 chars; long product names drop the query tail.
+    if len(title) > 70:
+        title = f"{name} cash price — {money(d['price'])} — 0penRX"
+    return title
 
 
 def related_html(d, catalog) -> str:
