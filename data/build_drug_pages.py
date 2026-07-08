@@ -249,9 +249,46 @@ def jsonld(d) -> str:
     return body.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
 
 
-def page_html(d, total: int) -> str:
+def page_title(d) -> str:
+    # Match the query language people actually search ("<drug> cost without
+    # insurance", "<drug> cash price") — but only where it is TRUE for the
+    # drug's price class; Medicare-negotiated and insurance-gated prices must
+    # never be titled as cash prices (docs/PRICING_MODEL.md).
+    name = _clean(d["name"])
+    if d.get("priceBasis") == "medicare-negotiated":
+        return f"{name} Medicare-negotiated price — 0penRX"
+    if d.get("eligibility") == "insured-only":
+        return f"{name} copay card price (insurance required) — 0penRX"
+    if d.get("eligibility") == "medicare-only":
+        return f"{name} Medicare-only price — 0penRX"
+    return f"{name} cash price without insurance — {money(d['price'])} — 0penRX"
+
+
+def related_html(d, catalog) -> str:
+    # Static cross-links between drug pages (same category first), so the 92
+    # pages form a crawlable mesh instead of sitemap-only orphans.
+    sibs = [
+        x
+        for x in catalog
+        if x["slug"] != d["slug"] and x.get("category") == d.get("category")
+    ]
+    if len(sibs) < 4:
+        sibs += [x for x in catalog if x["slug"] != d["slug"] and x not in sibs]
+    links = "".join(
+        f'<li><a href="/drugs/{x["slug"]}/">{esc(x["name"])}</a> '
+        f'<span class="rel-gen">{esc(x["generic"])}</span></li>'
+        for x in sibs[:4]
+    )
+    return f"""<nav class="rel-links" aria-label="Related medications">
+    <h2 class="label">Related medications</h2>
+    <ul>{links}</ul>
+    <p class="note-sm"><a class="inline-link" href="/">Browse all cash-pay prices</a> · <a class="inline-link" href="/compare-platforms/">Amazon vs Costco vs GoodRx vs Walmart</a> · <a class="inline-link" href="/uninsured-guide/">Uninsured guide</a></p>
+  </nav>"""
+
+
+def page_html(d, total: int, catalog=None) -> str:
     url = f"{SITE}/drugs/{d['slug']}/"
-    title = f"{_clean(d['name'])} cash price & savings — 0penRX"
+    title = page_title(d)
     desc = description(d)
     return f"""<!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -316,6 +353,7 @@ def page_html(d, total: int) -> str:
   <article class="drug-page" id="drugpage" data-slug="{esc(d["slug"])}">
           {detail_static(d)}
   </article>
+  {related_html(d, catalog or [])}
 </main>
 <footer>
   <div class="foot">
@@ -359,7 +397,7 @@ def build(catalog):
     files = {}
     for d in catalog:
         files[os.path.join("drugs", d["slug"], "index.html")] = page_html(
-            d, len(catalog)
+            d, len(catalog), catalog
         )
     # sitemap: homepage + every drug page + the standalone content pages.
     # Each entry is (loc, lastmod, priority).
