@@ -413,7 +413,11 @@ ul { list-style: none; }
 .src-live.checking { color: var(--text-3); }
 
 .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-lg); }
-table.t { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+/* Fixed layout so every data column is equal-width instead of sizing to content
+   (which made the columns visibly uneven); the row-header column is narrower. */
+table.t { width: 100%; border-collapse: collapse; font-size: var(--t-sm); table-layout: fixed; }
+table.t th:first-child, table.t td:first-child { width: 16%; }
+table.t td { overflow-wrap: anywhere; }
 /* Uniform cell rhythm: same padding, top-aligned, with vertical column dividers
    so a multi-column comparison reads as a grid instead of a wall of text. */
 table.t th, table.t td { padding: .8rem 1rem; text-align: left; vertical-align: top; border-bottom: 1px solid var(--divider); }
