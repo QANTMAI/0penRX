@@ -171,21 +171,80 @@ export function normalizeNadacRows(rows) {
   };
 }
 
-export async function getNadac(generic) {
-  const token = searchToken(generic);
-  if (!token) return null;
+// Split a generic into NADAC-matchable ingredient prefixes. A combination drug
+// ("Albuterol/Ipratropium") must match a NADAC row that contains EVERY
+// ingredient — NADAC names combos in an unpredictable order
+// ("IPRATROPIUM-ALBUTEROL"), so a single first-word prefix query silently
+// returns a mono-ingredient product (plain albuterol syrup) at the wrong price.
+// 6-char prefixes tolerate NADAC's abbreviations (IPRATROPIUM -> IPRATR).
+export function parseIngredients(generic) {
+  if (!generic) return [];
+  const base = String(generic).replace(/\s*\([^)]*\)\s*$/, '');   // drop trailing "(Inhalant)"
+  return [...new Set(
+    base.split(/[\/,+&]|\band\b/i)                                // combination separators
+      .map(s => s.replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase())
+      .filter(t => t.length >= 3),
+  )];
+}
 
+// Every ingredient prefix must appear in the NADAC description, or the row is a
+// mono component of the combination rather than the combination itself.
+export function descriptionHasAll(description, prefixes) {
+  const d = String(description || '').toUpperCase();
+  return prefixes.length > 0 && prefixes.every(p => d.includes(p));
+}
+
+// Clearly oral-only NADAC dosage forms — used to drop e.g. a SYRUP row when the
+// searched product is an inhaler/injection/eye drop (a wrong-form price).
+const ORAL_ONLY = /\b(SYRUP|ELIXIR|TABLET|TABS?|CAPLET|CAPSULES?|CAPS?|SUSPENSION|SUSP|SOLUTION\s+ORAL|ORAL\s+SOL|LOZENGE|TROCHE|CHEW\w*|SUBL\w*|ODT)\b/;
+export function isOralOnlyDescription(description) {
+  return ORAL_ONLY.test(String(description || '').toUpperCase());
+}
+
+// True when the RxTerms display form ("… (Inhalant)") is a non-oral route, so an
+// oral-only NADAC row would be the wrong dosage form. Unknown/oral → false.
+export function nonOralFormHint(displayName) {
+  const m = /\(([^)]*)\)\s*$/.exec(displayName || '');
+  if (!m) return false;
+  const f = m[1].toLowerCase();
+  if (/oral|pill|sublingual|buccal|chew/.test(f)) return false;
+  return /inhal|nebul|nasal|inject|ophthal|eye|topical|cream|ointment|transder|otic|\bear\b|rectal|vaginal|implant|patch|drops?/.test(f);
+}
+
+export async function getNadac(generic, displayName) {
   // CMS NADAC is the authoritative, CORS-open source; query it directly from
   // the browser. There is no backend pricing endpoint — pricing is client-side
   // only (the FastAPI backend serves coupons/GoodRx, never NADAC).
+  const prefixes = parseIngredients(generic);
   const params = new URLSearchParams();
-  params.append('conditions[0][property]', 'ndc_description');
-  params.append('conditions[0][operator]', 'like');
-  params.append('conditions[0][value]', `${token}%`);
+  if (prefixes.length >= 2) {
+    // Combination drug: require a row containing every ingredient (order-
+    // independent), so a combo is never priced as one of its mono components.
+    prefixes.forEach((p, i) => {
+      params.append(`conditions[${i}][property]`, 'ndc_description');
+      params.append(`conditions[${i}][operator]`, 'like');
+      params.append(`conditions[${i}][value]`, `%${p}%`);
+    });
+  } else {
+    const token = searchToken(generic);
+    if (!token) return null;
+    params.append('conditions[0][property]', 'ndc_description');
+    params.append('conditions[0][operator]', 'like');
+    params.append('conditions[0][value]', `${token}%`);
+  }
   params.append('limit', '60');
   try {
     const data = await fetchJSON(`${NADAC_BASE}?${params.toString()}`, { timeout: 12000 });
-    const cmsResult = normalizeNadacRows(data?.results || []);
+    let rows = data?.results || [];
+    // Belt-and-suspenders: for combos drop any row missing an ingredient.
+    if (prefixes.length >= 2) rows = rows.filter(r => descriptionHasAll(r.ndc_description, prefixes));
+    // Drop wrong-form rows (e.g. oral syrup for an inhaler) — fail open so a
+    // legitimate match is never suppressed to nothing.
+    if (nonOralFormHint(displayName)) {
+      const rightForm = rows.filter(r => !isOralOnlyDescription(r.ndc_description));
+      if (rightForm.length) rows = rightForm;
+    }
+    const cmsResult = normalizeNadacRows(rows);
     if (cmsResult) cmsResult.via = 'cms';
     return cmsResult;
   } catch {
