@@ -15,9 +15,12 @@ import {
   parseIngredients,
   splitIngredients,
   goodRxComboSlug,
+  sameIngredientSet,
   descriptionHasAll,
   isOralOnlyDescription,
+  isPillDescription,
   nonOralFormHint,
+  oralPillFormHint,
 } from '../assets/live.js';
 
 test('searchToken: first moiety, uppercased, punctuation stripped', () => {
@@ -130,6 +133,28 @@ test('nonOralFormHint: true for non-oral routes only', () => {
   assert.equal(nonOralFormHint('Metformin (Oral Pill)'), false);
   assert.equal(nonOralFormHint('Metformin'), false);   // no form qualifier
   assert.equal(nonOralFormHint(''), false);
+});
+
+test('sameIngredientSet: exact ingredient-set match, order-free', () => {
+  // The reported bug: a mono query must reject a combination product.
+  assert.equal(sameIngredientSet('Ipratropium Bromide and Albuterol Sulfate', 'Albuterol XR'), false);
+  assert.equal(sameIngredientSet('Albuterol Sulfate', 'Albuterol XR'), true);
+  assert.equal(sameIngredientSet('Albuterol Sulfate', 'albuterol'), true);
+  // combos: order-free exact set
+  assert.equal(sameIngredientSet('Ipratropium Bromide and Albuterol Sulfate', 'Albuterol/Ipratropium'), true);
+  assert.equal(sameIngredientSet('Albuterol Sulfate', 'Albuterol/Ipratropium'), false);
+  assert.equal(sameIngredientSet('', 'albuterol'), false);
+  assert.equal(sameIngredientSet('Albuterol Sulfate', ''), false);
+});
+
+test('oralPillFormHint / isPillDescription: tablet beats syrup for (Oral Pill)', () => {
+  assert.equal(oralPillFormHint('Albuterol XR (Oral Pill)'), true);
+  assert.equal(oralPillFormHint('Albuterol (Inhalant)'), false);
+  assert.equal(oralPillFormHint('Albuterol (Oral Liquid)'), false);
+  assert.equal(oralPillFormHint('Albuterol'), false);
+  assert.equal(isPillDescription('ALBUTEROL SULFATE 2 MG TAB'), true);
+  assert.equal(isPillDescription('ALBUTEROL SULF 2 MG/5 ML SYRUP'), false);
+  assert.equal(isPillDescription('ALBUTEROL HFA 90 MCG INHALER'), false);
 });
 
 test('nadacEstimate: NADAC x qty x 1.15 + $3, rounded to cents', () => {
