@@ -746,7 +746,7 @@ function openLiveDetail(display, clean) {
   const isCombo = clean.includes('/');
   const grxHref = isCombo
     ? `https://www.goodrx.com/search?query=${encodeURIComponent(clean)}`
-    : `https://www.goodrx.com/${clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').replace(/-xr$/, '-er')}`;
+    : `https://www.goodrx.com/${live.goodRxMonoSlug(clean)}`;
   $('#panelBody').innerHTML = `
     <button class="panel-close" data-close aria-label="Close">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
