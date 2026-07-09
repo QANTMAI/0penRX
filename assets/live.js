@@ -235,6 +235,20 @@ export function goodRxComboSlug(establishedName) {
   return parts.length >= 2 ? [...new Set(parts)].join('-') : null;
 }
 
+// Single-name GoodRx slug from a clean drug name: lowercase, hyphenate, and map
+// a trailing "-xr" to "-er" (RxTerms suffixes extended-release "XR"; GoodRx
+// slugs use "ER" — goodrx.com/albuterol-xr and /metformin-xr 404, /albuterol-er
+// and /metformin-er resolve; verified 2026-07-08). Used by openLiveDetail for
+// single-ingredient drugs; combos start on the search page then upgrade via
+// goodRxComboSlug once openFDA returns the established name.
+export function goodRxMonoSlug(clean) {
+  return String(clean || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .replace(/-xr$/, '-er');
+}
+
 // Every ingredient prefix must appear in the NADAC description, or the row is a
 // mono component of the combination rather than the combination itself.
 export function descriptionHasAll(description, prefixes) {
