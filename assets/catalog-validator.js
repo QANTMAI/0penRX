@@ -4,6 +4,12 @@
 const VALID_STATUSES    = new Set(['active', 'limited', 'archived']);
 const VALID_ELIGIBILITY = new Set(['cash-pay', 'insured-only', 'medicare-only', 'income-qualified', 'mixed']);
 const VALID_FLAGS       = new Set(['program-closed', 'shortage', 'intro-price', 'discontinued']);
+// A catch-all category is how 39% of the catalog once ended up in "Other Brand":
+// unfilterable, and a claim about the drug that no source backs. Every category
+// is derived from the drug's FDA Established Pharmacologic Class — see
+// docs/THERAPEUTIC_CLASSES.md. Guard the invariant rather than pin an exact list,
+// which would go stale every time the catalog grows a therapeutic area.
+const CATCH_ALL_CATEGORIES = new Set(['other brand', 'other', 'misc', 'miscellaneous', 'uncategorized', 'unknown', 'n/a']);
 const REQUIRED_FIELDS   = ['slug', 'name', 'price', 'retail', 'savings', 'company', 'generic', 'category'];
 const STALE_DAYS        = 90; // flag entries not re-verified in 90 days
 
@@ -39,6 +45,14 @@ export function validateCatalog(catalog) {
     // A flag badges the card; priceNote is the only place the reason is spelled
     // out. A flag without one is a caveat the reader can never resolve.
     if (d.flag && !d.priceNote) warnings.push(`${tag}: flag "${d.flag}" set but no priceNote explains it`);
+
+    // Category integrity
+    if (d.category && CATCH_ALL_CATEGORIES.has(d.category.trim().toLowerCase())) {
+      errors.push(`${tag}: category "${d.category}" is a catch-all — assign the therapeutic area implied by the drug's FDA class (docs/THERAPEUTIC_CLASSES.md)`);
+    }
+    if (!d.pharmClass) {
+      warnings.push(`${tag}: no pharmClass recorded — its category is not traceable to an FDA class`);
+    }
 
     // Staleness
     if (d.verified) {
