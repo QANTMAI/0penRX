@@ -204,10 +204,25 @@ function tagsFor(d) {
   return t.map(([c, l]) => `<span class="tag ${c}">${esc(l)}</span>`).join('');
 }
 
+// A caveat that changes what the price means. Driven by the structured `flag`
+// field in catalog.js: prose-matching priceNote silently missed cases it should
+// have caught (Ozempic's $199 → $349/mo step matched no pattern). A 'limited'
+// status with no specific flag still badges, so a caveat present in the data is
+// never dropped just because nobody wrote a label for it.
+const FLAG_LABELS = {
+  'program-closed': 'Program closed',
+  'shortage': 'FDA shortage',
+  'intro-price': 'Intro price',
+  'discontinued': 'Discontinued',
+};
+function flagFor(d) {
+  if (d.flag) return FLAG_LABELS[d.flag] || 'Limited';
+  return d.status === 'limited' ? 'Limited' : null;
+}
+
 function cardHTML(d) {
   const pct = savPct(d);
-  // The price shown is a starting/introductory dose — higher doses cost more.
-  const startingDose = !!d.priceNote && /starting dose|introductory|first \d+ fills|intro price/i.test(d.priceNote);
+  const flag = flagFor(d);
   return `<article class="card" data-slug="${esc(d.slug)}">
     <div class="card-top">
       <div>
@@ -224,7 +239,7 @@ function cardHTML(d) {
     <div>
       <div class="price-row"><span class="price">${money(d.price)}</span>${d.retail > d.price ? `<span class="price-was">${money(d.retail)}</span>` : ''}</div>
       <div class="price-lbl">${d.heroType === 'ExternalLinkRouting' ? 'manufacturer program' : 'GoodRx cash'} · reference</div>
-      ${startingDose ? `<div class="price-lbl" style="color:var(--gold)">starting dose — higher doses cost more</div>` : ''}
+      ${flag ? `<div class="card-flag"><span class="flag flag-${esc(d.flag || 'limited')}"${d.priceNote ? ` title="${esc(d.priceNote)}"` : ''}>${esc(flag)}</span></div>` : ''}
     </div>
     <div class="tags">${tagsFor(d)}</div>
     <div class="card-foot">

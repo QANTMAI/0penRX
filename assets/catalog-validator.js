@@ -3,6 +3,7 @@
 
 const VALID_STATUSES    = new Set(['active', 'limited', 'archived']);
 const VALID_ELIGIBILITY = new Set(['cash-pay', 'insured-only', 'medicare-only', 'income-qualified', 'mixed']);
+const VALID_FLAGS       = new Set(['program-closed', 'shortage', 'intro-price', 'discontinued']);
 const REQUIRED_FIELDS   = ['slug', 'name', 'price', 'retail', 'savings', 'company', 'generic', 'category'];
 const STALE_DAYS        = 90; // flag entries not re-verified in 90 days
 
@@ -30,9 +31,14 @@ export function validateCatalog(catalog) {
       errors.push(`${tag}: savings ${d.savings}% doesn't match math ${expected}% (price=${d.price}, retail=${d.retail})`);
     }
 
-    // Status / eligibility enum
+    // Status / eligibility / flag enum
     if (d.status      && !VALID_STATUSES.has(d.status))      errors.push(`${tag}: unknown status "${d.status}"`);
     if (d.eligibility && !VALID_ELIGIBILITY.has(d.eligibility)) errors.push(`${tag}: unknown eligibility "${d.eligibility}"`);
+    if (d.flag        && !VALID_FLAGS.has(d.flag))           errors.push(`${tag}: unknown flag "${d.flag}"`);
+
+    // A flag badges the card; priceNote is the only place the reason is spelled
+    // out. A flag without one is a caveat the reader can never resolve.
+    if (d.flag && !d.priceNote) warnings.push(`${tag}: flag "${d.flag}" set but no priceNote explains it`);
 
     // Staleness
     if (d.verified) {
