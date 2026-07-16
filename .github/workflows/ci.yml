@@ -28,6 +28,14 @@ jobs:
         run: python -m compileall backend data
       - name: Tests
         run: pytest -q
+      # drugs/<slug>/index.html, sitemap.xml and the ItemList/noscript blocks in
+      # index.html are generated from assets/catalog.js. Both generators have
+      # always supported --check, but nothing ran it — so a catalog edit could
+      # ship with the generated pages still showing the old data. It can't now.
+      - name: Generated-file drift check
+        run: |
+          python data/build_drug_pages.py --check
+          python data/build_static_seo.py --check
 
   frontend:
     runs-on: ubuntu-latest
@@ -48,3 +56,8 @@ jobs:
           fi
       - name: JS unit tests
         run: node --test
+      # catalog-validator.js encodes the data rules (savings maths, price sanity,
+      # enums, no catch-all category) but only console.logged them in the browser.
+      # Run it for real so bad catalog data fails the PR instead of the page.
+      - name: Catalog data validation
+        run: node scripts/validate-catalog.mjs
