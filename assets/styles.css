@@ -165,6 +165,23 @@ ul { list-style: none; }
 .ntab:hover { color: var(--text); background: var(--surface-2); }
 .ntab.on { color: var(--primary-h); background: var(--primary-l); }
 .hdr-r { display: flex; align-items: center; gap: .4rem; margin-left: auto; }
+
+/* Persistent search for every page except the home page, which already leads with
+   the full hero search — a second box there would just compete with it. This is a
+   plain GET form to "/", so it needs no JS: the home page already reads ?q= on
+   load. That keeps one search engine on the site instead of bolting a copy onto
+   every page, and it still works with JS off. */
+.hdr-search { position: relative; display: flex; align-items: center; }
+.hdr-search-ico { position: absolute; left: .55rem; color: var(--text-3); pointer-events: none; }
+.hdr-search-in {
+  width: 190px; padding: .36rem .6rem .36rem 1.9rem;
+  border: 1px solid var(--border); border-radius: var(--r-full);
+  background: var(--surface-2); color: var(--text);
+  font-family: var(--font-b); font-size: var(--t-sm);
+}
+.hdr-search-in::placeholder { color: var(--text-3); }
+.hdr-search-in:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; border-color: var(--primary); }
+@media (max-width: 900px) { .hdr-search-in { width: 132px; } }
 .icon-btn {
   width: 36px; height: 36px; border-radius: var(--r-md); display: flex; align-items: center;
   justify-content: center; color: var(--text-2); border: 1px solid var(--border); transition: all var(--tr);
@@ -947,6 +964,11 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
   }
   .nav::-webkit-scrollbar { display: none; }
   .ntab { flex: 0 0 auto; white-space: nowrap; }
+  /* Row 1 is logo + hdr-r once .nav drops to its own strip, so let the search
+     take whatever width is left rather than a fixed one that overflows at 360px. */
+  .hdr-r { flex: 1; min-width: 0; }
+  .hdr-search { flex: 1; min-width: 0; }
+  .hdr-search-in { width: 100%; min-width: 0; }
   .hero { padding: 2rem 1rem 1rem; }
   .main, .wrap { padding-left: 1rem; padding-right: 1rem; }
   .cfields { grid-template-columns: 1fr 1fr; }

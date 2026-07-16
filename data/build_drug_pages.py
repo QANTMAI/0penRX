@@ -40,7 +40,7 @@ CSP = (
     "font-src 'self'; img-src 'self' data:; connect-src 'self' "
     "https://rxnav.nlm.nih.gov https://api.fda.gov https://data.medicaid.gov "
     "https://clinicaltables.nlm.nih.gov https://openrx-api.onrender.com; "
-    "base-uri 'self'; object-src 'none'; form-action 'none'; upgrade-insecure-requests"
+    "base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests"
 )
 
 # Mirror of the GoodRx slug overrides in assets/app.js (a few dosage-form slugs
@@ -354,6 +354,10 @@ def page_html(d, total: int, catalog=None) -> str:
       <a class="ntab" href="/uninsured-guide/">Uninsured Guide</a>
     </nav>
     <div class="hdr-r">
+      <form class="hdr-search" action="/" method="get" role="search">
+        <svg class="hdr-search-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input class="hdr-search-in" type="search" name="q" placeholder="Search any drug…" aria-label="Search medications">
+      </form>
       <button class="icon-btn" data-theme-toggle aria-label="Toggle light/dark theme"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
     </div>
   </div>
