@@ -7,8 +7,8 @@
 ## Site
 
 - [0penRX home](https://0penrx.org/): Search any drug; browse 92 curated medications with cash-pay reference prices, savings vs. retail, GoodRx card (BIN 015995), and per-drug live FDA data.
-- [Data Sources](https://0penrx.org/#sources): The live APIs behind every figure — NLM RxNorm (identity), openFDA (NDC, shortages, recalls, FAERS, label interactions), CMS NADAC (real per-unit acquisition cost).
-- [Coupon Guide](https://0penrx.org/#coupons): How the universal GoodRx cash-discount card (BIN 015995) — usable by anyone, no insurance — differs from manufacturer copay cards (which require commercial insurance) and manufacturer direct self-pay programs (e.g. NovoCare, LillyDirect; open to anyone). Every drug is priced at what a cash-pay patient can actually get.
+- [Data Sources](https://0penrx.org/data-sources/): The live APIs behind every figure — NLM RxNorm (identity), openFDA (NDC, shortages, recalls, FAERS, label interactions), CMS NADAC (real per-unit acquisition cost).
+- [Coupon Guide](https://0penrx.org/coupon-guide/): How the universal GoodRx cash-discount card (BIN 015995) — usable by anyone, no insurance — differs from manufacturer copay cards (which require commercial insurance) and manufacturer direct self-pay programs (e.g. NovoCare, LillyDirect; open to anyone). Every drug is priced at what a cash-pay patient can actually get.
 - [Compare Platforms](https://0penrx.org/compare-platforms/): Independent four-way table comparing Amazon Pharmacy + One Medical, Costco Pharmacy + Sesame, GoodRx + Companion, and Walmart's $4 generics program on cost, prerequisites, prescription coverage, telehealth, delivery, and limitations. Vendor prices attributed with sources and a verify-before-signup caveat.
 - [Uninsured Guide](https://0penrx.org/uninsured-guide/): A cash-pay guide to healthcare platforms for the uninsured — decision-first tables of Cost Plus Drugs, Costco Pharmacy, Amazon (RxPass/One Medical), GoodRx (free/Gold/Companion), Sesame, Teladoc via Walmart, Walmart, and FQHC sliding-fee clinics, plus free discount cards and suggested stacks. Prices attributed to vendor sources with a verify-before-signup caveat.
 
