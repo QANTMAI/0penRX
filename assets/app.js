@@ -499,7 +499,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
       <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-sec" title="Look up ${esc(d.generic)} on Cost Plus Drugs">Cost Plus ↗</a>
     </div>
-    <p class="note-sm">More ways to save: <a href="/#coupons">Coupon Guide</a> · <a href="/#store-programs">Walmart $4 program</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a></p>
+    <p class="note-sm">More ways to save: <a href="/coupon-guide/">Coupon Guide</a> · <a href="/coupon-guide/#store-programs">Walmart $4 program</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a></p>
     <div class="disclaimer-box">Cash-pay only. Reference prices and coupon codes — verify with the pharmacy before use. Discount-card prices vary by pharmacy and location, so the price at your counter may differ. Do not combine with Medicare, Medicaid, or any government health program.</div>`;
 }
 
@@ -543,10 +543,6 @@ function renderDrugPage(dp) {
   const ext = d.heroType === 'ExternalLinkRouting';
   const token = live.searchToken(d.generic) || live.searchToken(d.name);
   dp.innerHTML = detailBodyHTML(d, token, ext, 'h1');
-  document.addEventListener('click', e => {
-    const copy = e.target.closest('[data-copy]');
-    if (copy) copyCoupon(copy.dataset.copy, copy);
-  });
   enrichLive(d, token, ++_panelGen);
 }
 
@@ -830,9 +826,11 @@ function srcCardHTML(s) {
   </div>`;
 }
 function renderSources() {
+  const grid = $('#srcGrid');
+  if (!grid) return; // only /data-sources/ hosts this list
   const live_ = API_SOURCES.filter(s => s.g === 'live');
   const doc_ = API_SOURCES.filter(s => s.g === 'doc');
-  $('#srcGrid').innerHTML = `
+  grid.innerHTML = `
     <h3 class="src-group-label">Powers this site <span class="src-group-note">— used at runtime; the three government APIs your browser calls carry a live check</span></h3>
     <div class="src-group">${live_.map(srcCardHTML).join('')}</div>
     <h3 class="src-group-label">Documented pricing sources <span class="src-group-note">— we link out; no data feed</span></h3>
@@ -862,7 +860,9 @@ const COUPONS = [
   { t: 'Optum Perks', stats: ['No insurance needed', '64,000+ pharmacies', 'Up to 80% off'], linkOnly: true, note: 'Codes are printed on each card — get your free card:', url: 'https://perks.optum.com/discount-card' },
 ];
 function renderCoupons() {
-  $('#couponList').innerHTML = COUPONS.map(c => {
+  const list = $('#couponList');
+  if (!list) return; // only /coupon-guide/ hosts this list
+  list.innerHTML = COUPONS.map(c => {
     const chips = c.stats.map(s => `<span class="stat-chip">${esc(s)}</span>`).join('');
     const link = c.url ? `<a class="btn btn-sec coupon-link" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Get your free card ↗</a>` : '';
     let body;
@@ -930,8 +930,6 @@ async function copyCoupon(spec, btn) {
 // ---- View switching --------------------------------------------------------
 const VIEW_TITLES = {
   browse: '0PENRX — Find your lowest prescription price',
-  sources: 'Data Sources & APIs — 0penRX',
-  coupons: 'Coupon Guide — 0penRX',
   dashboard: 'Catalog dashboard — 0penRX',
 };
 function setView(name) {
@@ -945,11 +943,7 @@ function setView(name) {
   $('.hero').hidden = name !== 'browse';
   $('#filterstrip').hidden = name !== 'browse';
   $('#view-browse').hidden = name !== 'browse';
-  $('#view-sources').hidden = name !== 'sources';
-  $('#view-coupons').hidden = name !== 'coupons';
   $('#view-dashboard').hidden = name !== 'dashboard';
-  if (name === 'sources') renderSources(); // rebuilt each visit so probes re-run
-  if (name === 'coupons' && !$('#couponList').children.length) renderCoupons();
   if (name === 'dashboard' && !_dashboardInit) { renderDashboard(); _dashboardInit = true; }
   window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
 }
@@ -1001,11 +995,37 @@ function init() {
   new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if (n.nodeType === 1) annotateNewTab(n); })))
     .observe(document.body, { childList: true, subtree: true });
 
+  // Coupon copy buttons render on drug pages, in the home-page detail panel, and
+  // on the standalone Data Sources / Coupon Guide pages. Delegate once, here,
+  // ahead of the per-page bails below — otherwise a page that returns early gets
+  // no handler and its copy button silently does nothing.
+  document.addEventListener('click', e => {
+    const copy = e.target.closest('[data-copy]');
+    if (copy) copyCoupon(copy.dataset.copy, copy);
+  });
+
   // Per-drug static page (/drugs/<slug>/): render the detail, register the SW,
   // and skip all the home-page (grid/search/nav) wiring — those elements don't
   // exist here.
   const dp = document.getElementById('drugpage');
   if (dp) { renderDrugPage(dp); registerSW(); return; }
+
+  // Standalone pages hosting a shared data-driven list (/data-sources/,
+  // /coupon-guide/). Each renderer no-ops when its element is absent, so this is
+  // inert everywhere else. renderCoupons() also fills the store-programs list.
+  renderSources();
+  renderCoupons();
+
+  // Those lists are injected after parse, so an inbound #hash (e.g.
+  // /coupon-guide/#store-programs) lands short — the browser jumped while the
+  // anchor was still near the top, then the cards above it pushed it down.
+  // Re-apply the jump now the DOM is final.
+  if (location.hash) {
+    try {
+      document.getElementById(decodeURIComponent(location.hash.slice(1)))
+        ?.scrollIntoView({ block: 'start', behavior: 'auto' });
+    } catch { /* malformed hash — nothing to jump to */ }
+  }
 
   // Content pages (e.g. /privacy/) have neither the app grid nor a drug panel.
   // Theme is already applied above; register the SW and stop before the SPA wiring.
@@ -1085,9 +1105,7 @@ function init() {
     const pick = e.target.closest('[data-pick]');
     const liveEl = e.target.closest('[data-live]');
     const nav = e.target.closest('[data-nav]');
-    const copy = e.target.closest('[data-copy]');
     if (e.target.closest('[data-close]')) { closeDetail(); return; }
-    if (copy) { copyCoupon(copy.dataset.copy, copy); return; }
     if (nav) { e.preventDefault(); setView(nav.dataset.nav); return; }
     if (pick) { const d = CATALOG.find(x => x.slug === pick.dataset.pick); if (!d) return; input.value = d.name; state.q = d.name; closeSugg(); renderGrid(); openDetail(pick.dataset.pick); return; }
     if (liveEl) { input.value = liveEl.dataset.live; state.q = liveEl.dataset.live; closeSugg(); openLiveDetail(liveEl.dataset.live, liveEl.dataset.clean); return; }
@@ -1125,18 +1143,20 @@ function init() {
 
   registerSW();
 
-  // Deep-link support: /#sources and /#coupons open those views on load, so the
-  // header nav on sub-pages (privacy, comparison guides, drug pages) can link
-  // straight into them as real anchors. Falls through to the default browse view.
+  // Sources and Coupons were views on this page before they became real pages at
+  // /data-sources/ and /coupon-guide/. A fragment never reaches the server, so no
+  // redirect rule can catch these — only JS can. Keep this indefinitely: the old
+  // hashes are public URLs people bookmarked and other sites linked to.
+  // replace() rather than assign() so Back doesn't bounce off the redirect.
+  const MOVED_HASHES = {
+    sources: '/data-sources/',
+    coupons: '/coupon-guide/',
+    'store-programs': '/coupon-guide/#store-programs',
+  };
   const viewFromHash = () => {
     const h = (location.hash || '').replace('#', '');
-    if (h === 'sources' || h === 'coupons' || h === 'browse' || h === 'dashboard') setView(h);
-    else if (h === 'store-programs') {
-      // Deep-link to the Coupon Guide's store-programs section (e.g. /#store-programs).
-      setView('coupons');
-      setTimeout(() => $('#store-programs')?.scrollIntoView({
-        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }), 60);
-    }
+    if (MOVED_HASHES[h]) { location.replace(MOVED_HASHES[h]); return; }
+    if (h === 'browse' || h === 'dashboard') setView(h);
   };
   viewFromHash();
   window.addEventListener('hashchange', viewFromHash);

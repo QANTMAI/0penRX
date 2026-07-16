@@ -177,8 +177,8 @@ def detail_static(d) -> str:
         f'<a href="{esc(goodrx_url(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a></div>'
     )
     p.append(
-        '<p class="note-sm">More ways to save: <a href="/#coupons">Coupon Guide</a> · '
-        '<a href="/#store-programs">Walmart $4 program</a> · <a href="/compare-platforms/">Compare Platforms</a> · '
+        '<p class="note-sm">More ways to save: <a href="/coupon-guide/">Coupon Guide</a> · '
+        '<a href="/coupon-guide/#store-programs">Walmart $4 program</a> · <a href="/compare-platforms/">Compare Platforms</a> · '
         '<a href="/uninsured-guide/">Uninsured Guide</a></p>'
     )
     p.append(
@@ -348,8 +348,8 @@ def page_html(d, total: int, catalog=None) -> str:
     </a>
     <nav class="nav" aria-label="Sections">
       <a class="ntab" href="/">Browse</a>
-      <a class="ntab" href="/#sources">Data Sources</a>
-      <a class="ntab" href="/#coupons">Coupon Guide</a>
+      <a class="ntab" href="/data-sources/">Data Sources</a>
+      <a class="ntab" href="/coupon-guide/">Coupon Guide</a>
       <a class="ntab" href="/compare-platforms/">Compare Platforms</a>
       <a class="ntab" href="/uninsured-guide/">Uninsured Guide</a>
     </nav>
@@ -382,7 +382,7 @@ def page_html(d, total: int, catalog=None) -> str:
     <div class="foot-legal">
       <p>0penRX is for information only — not medical, legal, insurance, pharmacy, or pricing advice — and is independent, not affiliated with, endorsed by, or sponsored by any manufacturer, PBM, pharmacy, insurer, trade group, coupon network, or government agency. Prices, coupons, and availability change; verify with the pharmacy, manufacturer, or program before use. Cash-pay prices only.</p>
     </div>
-    <div class="foot-copy">&copy; 2026 <a href="https://qantm.ai" target="_blank" rel="noopener noreferrer">QANTM AI</a>. All rights reserved. · <a href="/privacy/">Privacy</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a> · <a href="/#sources">Data Sources</a> · <a href="/#coupons">Coupon Guide</a></div>
+    <div class="foot-copy">&copy; 2026 <a href="https://qantm.ai" target="_blank" rel="noopener noreferrer">QANTM AI</a>. All rights reserved. · <a href="/privacy/">Privacy</a> · <a href="/compare-platforms/">Compare Platforms</a> · <a href="/uninsured-guide/">Uninsured Guide</a> · <a href="/data-sources/">Data Sources</a> · <a href="/coupon-guide/">Coupon Guide</a></div>
   </div>
 </footer>
 <script src="/assets/config.js"></script>
@@ -396,6 +396,8 @@ def page_html(d, total: int, catalog=None) -> str:
 # (path, lastmod, priority). Hand-authored HTML lives in the repo; the sitemap
 # is generated here so these stay listed. Keep in sync with the actual files.
 CONTENT_PAGES = [
+    ("coupon-guide/", TODAY, "0.9"),
+    ("data-sources/", TODAY, "0.7"),
     ("compare-platforms/", "2026-07-07", "0.9"),
     ("uninsured-guide/", "2026-07-07", "0.9"),
     ("privacy/", TODAY, "0.5"),
