@@ -54,7 +54,7 @@ BIN_MAP: dict[str, tuple[str | None, str | None, str | None]] = {
 PARTNER_URL: dict[str, str] = {
     # AstraZeneca
     "AZ&Me": "https://www.azandmeapp.com",
-    "AstraZeneca Direct": "https://www.azandmeapp.com",  # legacy alias
+    "AstraZeneca Direct": "https://www.azpatientdirect.com",
     # Sanofi
     "Sanofi Patient Connection": "https://www.sanofipatientconnection.com",
     # GSK
@@ -90,6 +90,8 @@ PARTNER_URL: dict[str, str] = {
     "myAbbVie Assist": "https://www.abbvie.com/patients/patient-support/patient-assistance.html",
     # Merck
     "MerckHelps": "https://www.merckhelps.com",
+    "Merck Cash-Pay Gateway": "https://www.merckcashpaygateway.com",
+    "TrumpRx": "https://trumprx.gov",
     "Merck Patient Assistance": "https://www.merckhelps.com",  # legacy alias
     # EMD Serono
     "Fertility Instant Savings Program": "https://www.fertilityinstantsavings.com",
