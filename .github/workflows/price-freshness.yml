@@ -1,0 +1,82 @@
+# Some catalog prices are only valid until a date the manufacturer published — the NovoCare
+# Ozempic/Wegovy $199 intro is a first-2-fills price "through Dec 31, 2026", then $349/month.
+# A price like that silently becomes WRONG on its expiry. This is the reminder that it's
+# coming due, so a stale price can't sit live.
+#
+# HOW THE REMINDER IS DELIVERED (data/check_price_freshness.py documents this too):
+#   1. a GitHub Issue labelled `price-review`, assigned to the repo owner (QANTMAI), listing
+#      each due drug and the exact priceSource URL to re-check;
+#   2. this scheduled run FAILS — a red check on the Actions tab and a GitHub e-mail to the
+#      owner;
+#   3. the job summary carries the same table.
+# The owner re-verifies each price at its source and updates assets/catalog.js; the next run
+# then finds nothing due, auto-closes the issue, and goes green.
+#
+# Schedule-only (never on PRs): freshness is time-based, not commit-based, so it must not
+# block unrelated PRs. The FORMAT of priceReviewBy is checked at PR time by
+# scripts/validate-catalog.mjs; this workflow only checks whether a date has come due.
+name: Price freshness
+
+on:
+  schedule:
+    - cron: "0 8 1 * *" # 1st of each month, 08:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  price-freshness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Check whether any dated price is coming due
+        id: check
+        run: |
+          if python data/check_price_freshness.py --issue-body-file "$RUNNER_TEMP/body.md"; then
+            echo "due=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "due=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the price-review issue
+        if: steps.check.outputs.due == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh label create price-review --color FBCA04 \
+            --description "A dated catalog price needs re-verification" 2>/dev/null || true
+          num=$(gh issue list --label price-review --state open --json number --jq '.[0].number // empty')
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body-file "$RUNNER_TEMP/body.md"
+            echo "Updated existing issue #$num"
+          else
+            url=$(gh issue create \
+              --title "Price review due — re-verify dated cash prices" \
+              --label price-review --body-file "$RUNNER_TEMP/body.md")
+            echo "Opened $url"
+            gh issue edit "${url##*/}" --add-assignee QANTMAI || true
+          fi
+
+      - name: Auto-close the review issue when nothing is due
+        if: steps.check.outputs.due == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # `gh issue list --label X` errors if the label was never created; ignore that.
+          for num in $(gh issue list --label price-review --state open --json number --jq '.[].number' 2>/dev/null); do
+            gh issue comment "$num" --body "All dated prices are back in date (automated **Price freshness** check). Closing."
+            gh issue close "$num"
+            echo "Closed resolved issue #$num"
+          done
+
+      - name: Fail so the reminder surfaces (red check + e-mail to the owner)
+        if: steps.check.outputs.due == 'true'
+        run: |
+          echo "::error::Dated catalog prices need re-verification — see the price-review issue."
+          exit 1

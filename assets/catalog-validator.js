@@ -70,6 +70,13 @@ export function validateCatalog(catalog) {
       errors.push(`${tag}: priceSource "${d.priceSource}" must be an https URL or one of ${[...PRICE_SOURCE_SENTINELS].join(', ')}`);
     }
 
+    // priceReviewBy: a date the price is known to expire (e.g. a "through Dec 31" intro).
+    // Format is checked here at PR time; whether the date has come due is the job of the
+    // scheduled data/check_price_freshness.py, which opens a price-review issue.
+    if (d.priceReviewBy != null && !/^\d{4}-\d{2}-\d{2}$/.test(d.priceReviewBy)) {
+      errors.push(`${tag}: priceReviewBy "${d.priceReviewBy}" must be an ISO date (YYYY-MM-DD)`);
+    }
+
     // Staleness
     if (d.verified) {
       const age = (now - new Date(d.verified).getTime()) / 86400000;
