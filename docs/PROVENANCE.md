@@ -36,7 +36,32 @@ Routing URLs (`PARTNER_URL` in both files) were each verified to resolve (HTTP 2
 
 ## 3. Curated brand / reference prices
 
-The 92-drug catalog (`assets/catalog.js`) carries **reference** cash-pay prices and WAC list prices. These are hand-curated snapshots, labeled throughout the UI as *"reference — verify before use,"* not a live retail quote. WAC list is the manufacturer wholesale price (savings-% baseline only, not a consumer price).
+The 90-drug catalog (`assets/catalog.js`) carries **reference** cash-pay prices and WAC list prices. These are hand-curated snapshots, labeled throughout the UI as *"reference — verify before use,"* not a live retail quote. WAC list is the manufacturer wholesale price (savings-% baseline only, not a consumer price).
+
+### If a price cannot be verified, it does not ship (owner ruling, 2026-07-16)
+
+"Reference" is not a licence to publish a number nobody can source. A price must
+correspond to a route a patient can actually take — a published programme price, a
+discount-card price, or a documented cash price. If it matches none of them, the entry
+is **corrected or removed**, not softened with a caveat.
+
+Applied on 2026-07-16 after an audit found the card's *"manufacturer program · reference"*
+label attached to prices no programme charges:
+
+| Drug | Was | Ruling |
+|---|---|---|
+| `synthroid` | $18.75 | **Corrected → $29.50.** The Synthroid Delivers Program publishes $29.50/30 tablets ($54/60, $75/90) and takes no insurance. $18.75 appears nowhere in it. |
+| `rydapt` | $2,908.64 | **Removed.** No cash-pay price exists: the Novartis co-pay programme is $25 and commercial-insurance only; NPAF supplies it free to income-qualified uninsured patients; real uninsured cash is roughly list (~$13,108/56 capsules). $2,908.64 was none of those and could not be sourced. |
+| `tabrecta` | $2,649.92 | **Removed.** Same programme, same reasoning. |
+
+**Known gap, not yet closed:** the catalog has **no per-entry price source field**, so no
+price can be verified from the repo alone — each must be re-researched against the
+programme that supposedly charges it. Roughly a dozen `ExternalLinkRouting` entries still
+carry odd-cent prices (e.g. `$156.63`, `$247.94`, `$336.06`) that look computed rather than
+published; three of three such prices spot-checked in that audit were wrong. They have not
+been verified and remain on the site pending that sweep. Prices that *are* round and match a
+known programme (the $35 insulins, NovoCare's $199, myAbbVie's $950) are consistent with
+published figures.
 
 Each catalog entry carries integrity metadata, validated at page load by `assets/catalog-validator.js`:
 

@@ -29,7 +29,7 @@ curl -s 'https://api.fda.gov/drug/label.json?limit=1&search=openfda.brand_name:"
   | python3 -c 'import json,sys; r=json.load(sys.stdin)["results"][0]; print(r["openfda"].get("pharm_class_epc"), r["indications_and_usage"][0][:120])'
 ```
 
-**86 of 92** entries resolved directly from openFDA.
+**84 of 90** entries resolved directly from openFDA.
 
 ## Entries not resolvable from openFDA
 
@@ -75,8 +75,14 @@ two that were wrong:
 | Mayzent (siponimod) | Oncology / Specialty | **Multiple Sclerosis** | S1P Receptor Modulator; label: *"relapsing forms of multiple sclerosis"* |
 | Zeposia (ozanimod) | Oncology / Specialty | **Multiple Sclerosis** | S1P Receptor Modulator; label: *"relapsing forms of multiple sclerosis"* |
 
-`Oncology / Specialty` now holds only the two genuine kinase-inhibitor oncology
-drugs (Rydapt, Tabrecta).
+`Oncology / Specialty` was left holding only Rydapt and Tabrecta — both of which
+were subsequently **removed from the catalog entirely** (2026-07-16) because no
+verifiable cash-pay price exists for them: the Novartis co-pay programme is $25 and
+commercial-insurance only, NPAF supplies them free to income-qualified uninsured
+patients, and the real uninsured cash price is roughly list (~$13,108 per 56
+capsules for Rydapt). The catalog's listed $2,908.64 / $2,649.92 matched none of
+those routes and could not be sourced, so it could not stay published. The category
+is therefore currently unused.
 
 ## The invariant
 

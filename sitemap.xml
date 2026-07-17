@@ -325,12 +325,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://0penrx.org/drugs/rydapt/</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://0penrx.org/drugs/sotyktu/</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
@@ -344,12 +338,6 @@
   </url>
   <url>
     <loc>https://0penrx.org/drugs/synthroid/</loc>
-    <lastmod>2026-07-06</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://0penrx.org/drugs/tabrecta/</loc>
     <lastmod>2026-07-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

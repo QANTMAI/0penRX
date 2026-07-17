@@ -25,6 +25,19 @@ console.log(`catalog: ${CATALOG.length} entries, ${new Set(CATALOG.map((d) => d.
 for (const w of warnings) console.log(`  warn  ${w}`);
 for (const e of errors) console.error(`  ERROR ${e}`);
 
+// A count typed into prose or JSON-LD drifts the moment a drug is added or removed —
+// index.html claimed "reference prices for 92 medications" for two drugs after the
+// catalog dropped to 90, in structured data that crawlers read. Assert instead.
+import { readFileSync } from 'node:fs';
+const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+const stale = [...html.matchAll(/\b(\d{2,3})\s+(?:medications|drugs|featured drugs|cash-pay medications)\b/g)]
+  .map((m) => Number(m[1]))
+  .filter((n) => n !== CATALOG.length);
+if (stale.length) {
+  console.error(`  ERROR index.html states ${[...new Set(stale)].join(', ')} where the catalog holds ${CATALOG.length}`);
+  errors.push('hardcoded catalog count in index.html is stale');
+}
+
 if (errors.length) {
   console.error(`\n::error::catalog validation failed with ${errors.length} error(s).`);
   process.exit(1);
