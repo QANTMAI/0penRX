@@ -12,7 +12,7 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => (
   { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const money = n => '$' + Number(n).toFixed(2);
 
-const state = { q: '', cat: 'all', sort: 'savings', view: 'browse', sourcesInit: false };
+const state = { q: '', cat: 'all', sort: 'savings' };
 
 // ---- Filter chips (distinct categories, by frequency) ----------------------
 function renderFilters() {
@@ -170,10 +170,10 @@ const PARTNER_URL = {
   'Novo Nordisk Savings Program': 'https://www.novocare.com',
   // ── Novartis ─────────────────────────────────────────────────────────────
   'Alongside MAYZENT': 'https://www.mayzent.com/support',
-  'Novartis Oncology Universal Co-pay': 'https://www.novartisoncologysupport.com',
+  'Novartis Patient Assistance Foundation': 'https://pap.novartis.com',
   'Novartis Direct': 'https://www.us.novartis.com',          // legacy alias
   // ── AbbVie ──────────────────────────────────────────────────────────────
-  'Synthroid Delivers Program': 'https://www.synthroid.com/savings',
+  'Synthroid Delivers Program': 'https://www.synthroid.com/synthroid-delivers-program',
   'AbbVie Synthroid Savings': 'https://www.synthroid.com',   // legacy alias
   'AbbVie At Your Service': 'https://www.savewithays.com',
   'myAbbVie Assist': 'https://www.abbvie.com/patients/patient-support/patient-assistance.html',
@@ -214,6 +214,7 @@ const FLAG_LABELS = {
   'shortage': 'FDA shortage',
   'intro-price': 'Intro price',
   'discontinued': 'Discontinued',
+  'income-qualified': 'Income-qualified',
 };
 function flagFor(d) {
   if (d.flag) return FLAG_LABELS[d.flag] || 'Limited';
@@ -933,7 +934,6 @@ const VIEW_TITLES = {
   dashboard: 'Catalog dashboard — 0penRX',
 };
 function setView(name) {
-  state.view = name;
   if (VIEW_TITLES[name]) document.title = VIEW_TITLES[name];
   $$('.ntab').forEach(t => {
     const on = t.dataset.nav === name;

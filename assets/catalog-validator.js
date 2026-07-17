@@ -3,7 +3,7 @@
 
 const VALID_STATUSES    = new Set(['active', 'limited', 'archived']);
 const VALID_ELIGIBILITY = new Set(['cash-pay', 'insured-only', 'medicare-only', 'income-qualified', 'mixed']);
-const VALID_FLAGS       = new Set(['program-closed', 'shortage', 'intro-price', 'discontinued']);
+const VALID_FLAGS       = new Set(['program-closed', 'shortage', 'intro-price', 'discontinued', 'income-qualified']);
 // A catch-all category is how 39% of the catalog once ended up in "Other Brand":
 // unfilterable, and a claim about the drug that no source backs. Every category
 // is derived from the drug's FDA Established Pharmacologic Class — see
