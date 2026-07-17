@@ -10,6 +10,11 @@ const VALID_FLAGS       = new Set(['program-closed', 'shortage', 'intro-price', 
 // docs/THERAPEUTIC_CLASSES.md. Guard the invariant rather than pin an exact list,
 // which would go stale every time the catalog grows a therapeutic area.
 const CATCH_ALL_CATEGORIES = new Set(['other brand', 'other', 'misc', 'miscellaneous', 'uncategorized', 'unknown', 'n/a']);
+// Where a `price` came from. A URL is the manufacturer/program page that
+// publishes the figure; the sentinels cover the non-URL sources. Added by the
+// July 2026 price audit after 39 entries were found carrying a price no route
+// could be traced to (docs/PROVENANCE.md).
+const PRICE_SOURCE_SENTINELS = new Set(['goodrx-network', 'nadac-estimate', 'manufacturer-direct']);
 const REQUIRED_FIELDS   = ['slug', 'name', 'price', 'retail', 'savings', 'company', 'generic', 'category'];
 const STALE_DAYS        = 90; // flag entries not re-verified in 90 days
 
@@ -52,6 +57,17 @@ export function validateCatalog(catalog) {
     }
     if (!d.pharmClass) {
       warnings.push(`${tag}: no pharmClass recorded — its category is not traceable to an FDA class`);
+    }
+
+    // Price provenance: every price must be traceable to a route a patient can take.
+    // A malformed source is an error; a missing one is a warning until the backfill
+    // completes (see docs/PROVENANCE.md), after which this should become an error.
+    if (d.priceSource == null || d.priceSource === '') {
+      // Backfilled to 100% by the July 2026 price audit, so this is now an error:
+      // no price ships without a traceable source.
+      errors.push(`${tag}: no priceSource — price ${d.price} is not traceable to a published figure`);
+    } else if (!PRICE_SOURCE_SENTINELS.has(d.priceSource) && !/^https:\/\/\S+$/.test(d.priceSource)) {
+      errors.push(`${tag}: priceSource "${d.priceSource}" must be an https URL or one of ${[...PRICE_SOURCE_SENTINELS].join(', ')}`);
     }
 
     // Staleness
