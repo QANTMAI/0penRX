@@ -80,9 +80,7 @@ def main() -> None:
 
     rows = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as ex:
-        futs = {
-            ex.submit(probe, PARTNER_URL[p]): p for p in used if p in PARTNER_URL
-        }
+        futs = {ex.submit(probe, PARTNER_URL[p]): p for p in used if p in PARTNER_URL}
         for f in concurrent.futures.as_completed(futs):
             p = futs[f]
             status, final = f.result()
@@ -101,10 +99,14 @@ def main() -> None:
             dead.append((p, url, status, used[p]))
         print(f"  {str(status):>9}  {p:<40} {note}")
 
-    print(f"\n{len(rows)} partner link(s) checked, {len(dead)} dead, {len(unmapped)} unmapped.")
+    print(
+        f"\n{len(rows)} partner link(s) checked, {len(dead)} dead, {len(unmapped)} unmapped."
+    )
 
     for p in unmapped:
-        print(f"::error::partner {p!r} is used by {used[p]} but has no PARTNER_URL entry")
+        print(
+            f"::error::partner {p!r} is used by {used[p]} but has no PARTNER_URL entry"
+        )
     for p, url, status, slugs in dead:
         print(
             f"::error::partner link dead ({status}): {p} -> {url} "
