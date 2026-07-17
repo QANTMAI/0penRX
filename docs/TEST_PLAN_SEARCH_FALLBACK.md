@@ -123,7 +123,7 @@ await type('gabapentin');
    emptyVisible: !document.getElementById('empty').hidden });
 await type('xyzzyfake');   // -> general title, panel still injected
 await type('metformin');   // -> cards rendered, empty.hidden === true
-await type('');            // -> full grid restored, count says "92 medications"
+await type('');            // -> full grid restored, count says "90 medications"
 ```
 Also assert the results count (`#count`, `aria-live=polite`) updates on every
 step — that's the screen-reader regression guard.

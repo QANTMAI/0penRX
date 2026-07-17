@@ -124,8 +124,7 @@ const BRAND_URL = {
   'orencia-sc': 'https://www.orencia.com', sotyktu: 'https://www.sotyktu.com',
   zeposia: 'https://www.zeposia.com',
   // Novartis
-  mayzent: 'https://www.mayzent.com', rydapt: 'https://www.rydapt.com',
-  tabrecta: 'https://www.tabrecta.com',
+  mayzent: 'https://www.mayzent.com',
   // Sanofi
   admelog: 'https://www.admelog.com', apidra: 'https://www.apidra.com',
   lantus: 'https://www.lantus.com', toujeo: 'https://www.toujeo.com',
