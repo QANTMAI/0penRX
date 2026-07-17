@@ -54,14 +54,33 @@ label attached to prices no programme charges:
 | `rydapt` | $2,908.64 | **Removed.** No cash-pay price exists: the Novartis co-pay programme is $25 and commercial-insurance only; NPAF supplies it free to income-qualified uninsured patients; real uninsured cash is roughly list (~$13,108/56 capsules). $2,908.64 was none of those and could not be sourced. |
 | `tabrecta` | $2,649.92 | **Removed.** Same programme, same reasoning. |
 
-**Known gap, not yet closed:** the catalog has **no per-entry price source field**, so no
-price can be verified from the repo alone — each must be re-researched against the
-programme that supposedly charges it. Roughly a dozen `ExternalLinkRouting` entries still
-carry odd-cent prices (e.g. `$156.63`, `$247.94`, `$336.06`) that look computed rather than
-published; three of three such prices spot-checked in that audit were wrong. They have not
-been verified and remain on the site pending that sweep. Prices that *are* round and match a
-known programme (the $35 insulins, NovoCare's $199, myAbbVie's $950) are consistent with
-published figures.
+### Gap closed — every price is now sourced (2026-07-17)
+
+The catalog previously had **no per-entry price source**, so no price was verifiable from
+the repo alone. That gap is closed: every one of the 84 entries now carries a **`priceSource`**
+(schema in `docs/SCHEMA.md`), and `catalog-validator.js` **errors** on a missing one — no price
+ships untraceable.
+
+The full `ExternalLinkRouting` sweep (all 47, verified against primary manufacturer sources)
+found the "odd cents look computed" hypothesis was mostly **wrong** — most odd-cent figures are
+real published prices ($156.63 AstraZeneca Direct, $93.30 Sanofi "Cash Paying Benefit", $743 BMS
+self-pay, $1,073.10 TrumpRx). Outcome:
+
+- **Corrected (7):** janumet/janumet-xr/januvia $336.06/$285.74 → **$84.57** (Merck Cash-Pay
+  Gateway); anoro/incruse/arnuity → GSK "Direct to You" prices; wegovy $199 → **$349** (ongoing,
+  not the intro).
+- **Relabelled (9):** the price was right but attributed to a free PAP or an insured-only copay
+  card — AZ ×4 → AstraZeneca Direct, Merck ×3 → Merck Cash-Pay Gateway, humira-pen + mayzent →
+  TrumpRx.
+- **Removed (6):** invokamet/invokamet-xr/invokana (J&J withMe insured-only), jentadueto/
+  jentadueto-xr (BI insured-only), humira-syringe (TrumpRx pen-only). No published cash price
+  exists for an uninsured patient.
+
+The 43 BIN-routed (`GenericCashCoupon`) entries carry `priceSource: goodrx-network` — their
+price *is* a GoodRx-network reference by construction.
+
+**Time-sensitive:** the Novo/Lilly intro prices (Ozempic/Wegovy $199) expire **2026-12-31**;
+several others are dated. Prices were verified 2026-07-17 and warrant a re-audit before then.
 
 Each catalog entry carries integrity metadata, validated at page load by `assets/catalog-validator.js`:
 

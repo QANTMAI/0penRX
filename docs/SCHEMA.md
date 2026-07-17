@@ -15,7 +15,7 @@ prices. Each entry is validated at page load by `assets/catalog-validator.js`.
 | generic | string | Non-proprietary (INN) name; biologics carry the FDA 4-letter suffix, e.g. "somatrogon-ghla" |
 | company | string | Manufacturer as displayed |
 | category | string | Therapeutic category (drives the filter chips) |
-| price | number | Reference cash-pay / program price in USD |
+| price | number | Reference cash-pay / program price in USD. Must correspond to a route an uninsured patient can actually take (a published program price, a discount-card price, or a documented cash price) and be backed by `priceSource`. |
 | retail | number | WAC list price in USD (savings-% baseline only, not a consumer quote) |
 | savings | number | Integer % off retail; must equal `round((retail−price)/retail×100)` ±2 |
 | heroType | string | `GenericCashCoupon` (BIN-routed card) or `ExternalLinkRouting` (partner portal) |
@@ -26,14 +26,19 @@ prices. Each entry is validated at page load by `assets/catalog-validator.js`.
 | **eligibility** | string | `cash-pay` · `insured-only` · `medicare-only` · `mixed` · `income-qualified`. Anything but `cash-pay` renders a warning that an uninsured payer cannot redeem the listed price. |
 | **priceNote** | string \| null | Dose-tier or expiry caveat, e.g. *"starting dose; up to $449/mo"*. Null when the price is unconditional. |
 | **verified** | string | ISO date (`YYYY-MM-DD`) of last manual audit. Validator + 12-hour sentinel flag entries older than 90 days. |
+| **priceSource** | string \| null | Where `price` came from. Either an `https://` URL of the page that publishes the figure, or one of the sentinels `goodrx-network` (BIN 015995 discount-card price), `nadac-estimate` (computed from the CMS NADAC baseline), or `manufacturer-direct` (a manufacturer self-pay/PAP page — pair with a `priceNote` that states the figure). A missing `priceSource` means the price is unsourced; the July 2026 price audit added this field precisely because 39 entries carried a `price` no route could be traced to. |
 
 ### Validation rules (`catalog-validator.js`)
 
 Fails loud (console error) on any of: missing required field; `price ≤ 0` or
 `retail ≤ 0`; `price > retail`; `savings` disagreeing with the computed
-percentage by more than 2 points; an unknown `status` or `eligibility` value.
-Warns (console warn) on: a `verified` date older than 90 days, or a missing
-`verified` date. Run automatically at module load via `validateCatalog(CATALOG)`.
+percentage by more than 2 points; an unknown `status`, `eligibility`, or `flag`
+value; a catch-all `category`; a **missing `priceSource`**, or one that is
+neither a known sentinel nor an `https://` URL (backfilled to 100% by the July
+2026 audit, so a missing source is now an error — no price ships untraceable).
+Warns (console warn) on: a `verified` date older than 90 days or missing; a
+missing `pharmClass`. Run automatically at module load via
+`validateCatalog(CATALOG)` and enforced in CI by `scripts/validate-catalog.mjs`.
 
 ## Price record
 
