@@ -142,7 +142,7 @@ const BRAND_URL = {
 const PARTNER_URL = {
   // ── AstraZeneca ─────────────────────────────────────────────────────────
   'AZ&Me': 'https://www.azandmeapp.com',
-  'AstraZeneca Direct': 'https://www.azandmeapp.com',       // legacy alias
+  'AstraZeneca Direct': 'https://www.azpatientdirect.com',
   // ── Sanofi ──────────────────────────────────────────────────────────────
   'Sanofi Patient Connection': 'https://www.sanofipatientconnection.com',
   // ── GSK ─────────────────────────────────────────────────────────────────
@@ -178,6 +178,8 @@ const PARTNER_URL = {
   'myAbbVie Assist': 'https://www.abbvie.com/patients/patient-support/patient-assistance.html',
   // ── Merck ────────────────────────────────────────────────────────────────
   'MerckHelps': 'https://www.merckhelps.com',
+  'Merck Cash-Pay Gateway': 'https://www.merckcashpaygateway.com',
+  'TrumpRx': 'https://trumprx.gov',
   'Merck Patient Assistance': 'https://www.merckhelps.com',  // legacy alias
   // ── EMD Serono ───────────────────────────────────────────────────────────
   'Fertility Instant Savings Program': 'https://www.fertilityinstantsavings.com',
