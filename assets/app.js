@@ -570,6 +570,28 @@ function prefetchDrug(slug) {
   live.getGoodRxCoupons(d.generic);
 }
 
+// A live lookup can end "empty" for two very different reasons, and conflating them
+// erodes trust. Say which, truthfully:
+//   unverifiedNote  — the authoritative public identity sources (openFDA + NLM RxNorm)
+//                     returned NO match. This is the only genuine "the system could not
+//                     verify this" case: we show nothing rather than a guess.
+//   lookupUnavailable — the request FAILED (network/500/404 from the API). A technical
+//                     problem on our side, explicitly not a statement about the drug.
+// Both render into a box that already carries role="status", so screen readers announce
+// them. Nothing here is transmitted — the check and the message are entirely client-side.
+const INFO_ICO = '<svg class="ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>';
+function unverifiedNote(token) {
+  return `<div class="live-disclaimer">${INFO_ICO}<div><strong>No verified record found.</strong>
+    We checked the public FDA (openFDA) and NLM RxNorm databases for “${esc(token)}” and found no
+    match — so we're not showing information we can't stand behind. Check the spelling, try the
+    drug's generic name, or use the price links above.</div></div>`;
+}
+function lookupUnavailable(what) {
+  return `<div class="live-disclaimer live-disclaimer--warn">${INFO_ICO}<div><strong>${esc(what)} is
+    temporarily unavailable</strong> — a connection problem on our end, not a statement about the
+    drug. The price links above still work; try the live data again in a moment.</div></div>`;
+}
+
 function enrichLive(d, token, gen) {
   // Abort if a newer panel has opened since this call was dispatched.
   const alive = () => _panelGen === gen;
@@ -579,10 +601,16 @@ function enrichLive(d, token, gen) {
     .then(([rx, fda]) => {
       if (!alive()) return;
       const el = $('#liveIdentity'); if (!el) return;
-      const rxv = rx.status === 'fulfilled' ? rx.value : null;
+      const rxOk = rx.status === 'fulfilled';
+      const rxv = rxOk ? rx.value : null;
       const fv = fda.status === 'fulfilled' ? fda.value : null;
       if (!rxv && !fv) {
-        el.innerHTML = `<div class="live-err">No public RxNorm/openFDA record found for “${esc(token)}”.</div>`;
+        // "No record" and "couldn't reach the sources" look identical here but must not
+        // read identical. RxNorm is the connectivity oracle: getRxNorm rejects on a
+        // network error, so a fulfilled status means it actually answered (and had
+        // nothing) — genuinely unverified. getOpenFda fail-softs to null, so its status
+        // can't tell empty from error. If RxNorm didn't answer, treat it as technical.
+        el.innerHTML = rxOk ? unverifiedNote(token) : lookupUnavailable('Live drug identity');
         return;
       }
       const rows = [];
@@ -615,7 +643,7 @@ function enrichLive(d, token, gen) {
         if (slug && grxBtn) grxBtn.href = `https://www.goodrx.com/${slug}`;
       }
     })
-    .catch(() => { if (!alive()) return; const el = $('#liveIdentity'); if (el) el.innerHTML = `<div class="live-err">Identity lookup unavailable.</div>`; });
+    .catch(() => { if (!alive()) return; const el = $('#liveIdentity'); if (el) el.innerHTML = lookupUnavailable('Live drug identity'); });
 
   // NADAC: real acquisition cost + estimated cash price. Pass the display name
   // (carries the "(Inhalant)"-style form) so a wrong-form row can be dropped.

@@ -389,6 +389,14 @@ ul { list-style: none; }
 .src-link:hover { text-decoration: underline; }
 .live-note { font-size: var(--t-xs); color: var(--text-2); margin-top: .5rem; }
 .live-err { font-size: var(--t-sm); color: var(--accent); }
+/* Empty-result disclaimer: says WHY a live lookup returned nothing. Informational, not
+   alarming — an empty result is the site refusing to guess, which is the point. The warn
+   variant (a temporary connection failure) borrows the gold accent to read as "our side,
+   transient", distinct from the neutral "no verified record" case. */
+.live-disclaimer { display: flex; gap: .55rem; align-items: flex-start; font-size: var(--t-sm); line-height: var(--lh-normal); color: var(--text-2); }
+.live-disclaimer .ico { flex: 0 0 auto; margin-top: .1rem; color: var(--primary); }
+.live-disclaimer strong { color: var(--text); }
+.live-disclaimer--warn .ico { color: var(--gold); }
 .live-more { margin-top: .8rem; padding-top: .65rem; border-top: 1px solid var(--border); display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
 .live-more-lbl { font-size: var(--t-xs); color: var(--text-2); white-space: nowrap; }
 .live-more-link { font-size: var(--t-xs); color: var(--primary); background: var(--surface-2); padding: .2rem .55rem; border-radius: 4px; text-decoration: none; white-space: nowrap; }
