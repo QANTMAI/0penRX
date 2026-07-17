@@ -1,0 +1,42 @@
+# The "Continue to <programme>" button is how an uninsured patient actually reaches
+# their savings or assistance programme — the most consequential external links on the
+# site. They rot silently: a 2026-07 audit found synthroid.com/savings at 404 and
+# novartisoncologysupport.com gone to NXDOMAIN (on two oncology drugs), and nothing in
+# CI would ever have said so.
+#
+# Weekly, not per-PR: these links live on other companies' sites and can break with no
+# commit here, so pinning it to our commits would miss exactly the failure mode. A dead
+# link fails the run, which surfaces on the Actions tab and by e-mail to the owner.
+name: Partner links
+
+on:
+  schedule:
+    - cron: "17 7 * * 1" # Mondays 07:17 UTC — off the hour to dodge scheduler pile-ups
+  workflow_dispatch:
+  push:
+    # Also run when the links or the routing themselves change, so a bad edit is caught
+    # at the PR rather than up to a week later.
+    paths:
+      - "data/build_coupons.py"
+      - "data/check_partner_links.py"
+      - "assets/catalog.js"
+      - ".github/workflows/partner-links.yml"
+  pull_request:
+    paths:
+      - "data/build_coupons.py"
+      - "data/check_partner_links.py"
+      - "assets/catalog.js"
+
+permissions:
+  contents: read
+
+jobs:
+  partner-links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: "3.12"
+      - name: Check every patient-facing programme link resolves
+        run: python data/check_partner_links.py

@@ -7,7 +7,7 @@
 
 /*
   Strict-Transport-Security: max-age=63072000; includeSubDomains
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://rxnav.nlm.nih.gov https://api.fda.gov https://data.medicaid.gov https://clinicaltables.nlm.nih.gov https://openrx-api.onrender.com; base-uri 'none'; object-src 'none'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://rxnav.nlm.nih.gov https://api.fda.gov https://data.medicaid.gov https://clinicaltables.nlm.nih.gov https://openrx-api.onrender.com; base-uri 'none'; object-src 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -15,6 +15,12 @@
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
   X-Permitted-Cross-Domain-Policies: none
+
+# form-action is 'self', not 'none': the header search on every non-home page is a
+# real GET form to "/". A meta CSP and a header CSP are enforced INDEPENDENTLY —
+# a form must pass BOTH — so leaving 'none' here would silently kill that search
+# the moment this file goes live on a header-capable host. 'self' still blocks the
+# threat form-action exists for: an injected form posting to a third-party origin.
 
 # Long-cache the fingerprint-free static assets (safe: content-addressed by path).
 /assets/fonts/*
