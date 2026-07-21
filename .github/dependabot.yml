@@ -16,3 +16,20 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: "ci"
+    # Group minor/patch action bumps into ONE pull request.
+    #
+    # Without this, Dependabot opens a separate PR per action *path* — and
+    # codeql-action/init and codeql-action/analyze are pinned to the SAME sha, so
+    # bumping only one produced a version mismatch that failed both Analyze jobs
+    # and silently stalled code scanning until it was fixed by hand (see #176,
+    # which superseded the split PRs #170 and #172).
+    #
+    # Majors are deliberately left ungrouped so a breaking change still arrives as
+    # its own reviewable PR.
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
