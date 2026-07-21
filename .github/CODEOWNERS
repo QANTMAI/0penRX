@@ -1,0 +1,18 @@
+# Code owners for 0penRX.
+#
+# This repo is PUBLIC and patient-facing: a wrong price, a bad price source, or a
+# broken assistance-program link costs a cash-paying patient real money at the
+# pharmacy counter. So no path is left unowned — every pull request, including
+# ones opened by outside contributors, auto-requests the owner's review.
+
+* @QANTMAI
+
+# Highest blast radius. Called out explicitly so a change here can never slip
+# through as part of a larger, casually-reviewed diff.
+/assets/catalog.js        @QANTMAI
+/assets/catalog-validator.js @QANTMAI
+/data/                    @QANTMAI
+/backend/                 @QANTMAI
+
+# Supply chain: workflows are SHA-pinned and least-privilege by design.
+/.github/                 @QANTMAI
