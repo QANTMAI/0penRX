@@ -84,29 +84,54 @@ export async function getRxNorm(name) {
 // NLM Clinical Table Search Service. Returns clean display names like
 // "metFORMIN (Oral Pill)". CORS-enabled. Used to search beyond the curated 88.
 const RXTERMS = 'https://clinicaltables.nlm.nih.gov/api/rxterms/v3/search';
+// Parse a RxTerms `data[3]` payload into deduped {display, clean} rows.
+export function rxTermsRows(data) {
+  const rows = Array.isArray(data) && Array.isArray(data[3]) ? data[3] : [];
+  const seen = new Set();
+  const out = [];
+  for (const r of rows) {
+    const display = Array.isArray(r) ? r[0] : String(r);
+    if (!display) continue;
+    // Strip the trailing "(Oral Pill)"-style form qualifier for lookups.
+    const clean = display.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    const key = clean.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ display, clean });
+  }
+  return out;
+}
+
 export async function rxTermsSearch(query, max = 6) {
   const q = (query || '').trim();
   if (q.length < 2) return [];
-  const url = `${RXTERMS}?terms=${encodeURIComponent(q)}&maxList=${max}`;
-  try {
-    const data = await fetchJSON(url, { timeout: 6000 });
-    const rows = Array.isArray(data) && Array.isArray(data[3]) ? data[3] : [];
-    const seen = new Set();
-    const out = [];
-    for (const r of rows) {
-      const display = Array.isArray(r) ? r[0] : String(r);
-      if (!display) continue;
-      // Strip the trailing "(Oral Pill)"-style form qualifier for lookups.
-      const clean = display.replace(/\s*\([^)]*\)\s*$/, '').trim();
-      const key = clean.toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push({ display, clean });
+
+  const rxterms = async (term) => {
+    try {
+      const data = await fetchJSON(
+        `${RXTERMS}?terms=${encodeURIComponent(term)}&maxList=${max}`, { timeout: 6000 });
+      return rxTermsRows(data);
+    } catch {
+      return [];
     }
-    return out;
-  } catch {
-    return [];
+  };
+
+  // 1) Exact query against the brand-first RxTerms autocomplete.
+  let out = await rxterms(q);
+
+  // 2) RxTerms is prefix/brand-indexed, so a multi-word *generic* phrase
+  //    ("testosterone enanthate") returns nothing though the drug exists. Retry
+  //    with the first token, which the index does resolve.
+  //    We deliberately stop here rather than fall through to a fuzzy matcher
+  //    (RxNav approximateTerm): it returns veterinary/chemical near-misses for
+  //    gibberish, which would betray the site's trust-first rule — a genuine
+  //    non-match must stay a clean zero so the "No verified record" disclaimer
+  //    can do its job.
+  if (out.length === 0 && /\s/.test(q)) {
+    out = await rxterms(q.split(/\s+/)[0]);
   }
+
+  return out;
 }
 
 // Bare ingredient/brand token for openFDA (its generic_name is the bare moiety,
