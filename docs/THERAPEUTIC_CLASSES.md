@@ -41,10 +41,27 @@ Two had no EPC in either openFDA endpoint and were sourced from **DailyMed**
 | Cetrotide (cetrorelix acetate) | Gonadotropin Releasing Hormone Antagonist | [DailyMed setid `aca7768e-…`](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=aca7768e-28a7-4027-b1d8-e66247665f79) |
 | Toviaz (fesoterodine fumarate) | Muscarinic Antagonist | [DailyMed setid `fead426f-…`](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=fead426f-b955-4b41-8553-f102d17afa3a) |
 
-Four biologics (`abrilada`, `aimovig`, `emgality`, `foundayo`) return no EPC from
-either endpoint and therefore carry **no `pharmClass`**. Their categories were
-already correct and are unchanged; the validator emits a warning for each rather
-than let the gap pass silently. Do not invent a class to clear the warning.
+Four more (`abrilada`, `aimovig`, `emgality`, `foundayo`) return **no EPC from any
+openFDA endpoint** — verified 2026-07-21 against the NDC directory, which returns
+records for each (4/3/6 respectively) but with an empty `pharm_class`. Controls
+confirm the query is sound: `ZAVZPRET` returns `Calcitonin Gene-related Peptide
+Receptor Antagonist [EPC]` and `OZEMPIC` returns `GLP-1 Receptor Agonist [EPC]`.
+Biologics and very new molecules frequently ship an SPL with no EPC.
+
+They are **not** left blank and are **not** invented. Each is sourced from a named
+standard classification, exactly as Cetrotide/Toviaz were sourced from DailyMed:
+
+| Drug | `pharmClass` | Source (not an FDA EPC) |
+|---|---|---|
+| Abrilada (adalimumab-afzb) | Tumor Necrosis Factor Blocker | The **adalimumab** EPC via RxClass/DailyMed; identical to its siblings `humira-pen` and `amjevita` |
+| Aimovig (erenumab-aooe) | Calcitonin Gene-related Peptide Receptor Antagonist | **SNOMED CT 771677008** (*CGRP receptor antagonist*) + **ATC N02CD**. Erenumab blocks the receptor, so it takes the same string as `zavzpret` |
+| Emgality (galcanezumab-gnlm) | Calcitonin Gene-related Peptide Antagonist | **ATC N02CD** (*CGRP antagonists*). Deliberately **not** "Receptor" — galcanezumab binds the CGRP ligand, not the receptor |
+| Foundayo (orforglipron) | GLP-1 Receptor Agonist | **MED-RT MoA N0000020057** (*GLP-1 Receptor Interaction*); same string as the `ozempic` EPC |
+
+**The rule, in order:** FDA EPC (openFDA NDC directory) → the label endpoint →
+DailyMed → a **named standard** (ATC / SNOMED CT / MED-RT), recorded in the table
+above with its identifier. A class is **never** invented, and anything sourced
+below the EPC tier must be documented here so the provenance is auditable.
 
 ## Where the class alone didn't decide it
 
