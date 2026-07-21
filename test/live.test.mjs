@@ -21,6 +21,7 @@ import {
   isPillDescription,
   nonOralFormHint,
   oralPillFormHint,
+  rxTermsRows,
 } from '../assets/live.js';
 
 test('searchToken: first moiety, uppercased, punctuation stripped', () => {
@@ -169,4 +170,23 @@ test('nadacEstimate: null for non-finite input', () => {
   assert.equal(nadacEstimate(NaN), null);
   assert.equal(nadacEstimate(undefined), null);
   assert.equal(nadacEstimate('x'), null);
+});
+
+test('rxTermsRows: strips form qualifier and dedupes case-insensitively', () => {
+  const out = rxTermsRows([2, [], null, [
+    ['XYOSTED (Injectable)'],
+    ['xyosted'],                 // same identity, different case -> dropped
+    ['Advil (Oral Pill)'],
+    [''],                        // empty display -> skipped
+  ]]);
+  assert.deepEqual(out, [
+    { display: 'XYOSTED (Injectable)', clean: 'XYOSTED' },
+    { display: 'Advil (Oral Pill)', clean: 'Advil' },
+  ]);
+});
+
+test('rxTermsRows: returns [] for malformed / empty payloads', () => {
+  assert.deepEqual(rxTermsRows(null), []);
+  assert.deepEqual(rxTermsRows([0, [], null, []]), []);
+  assert.deepEqual(rxTermsRows([1, []]), []);   // no data[3]
 });
