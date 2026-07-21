@@ -189,6 +189,8 @@ const PARTNER_URL = {
   'Genentech Patient Foundation': 'https://www.gene.com/patients/patient-foundation', // legacy
   // ── Pfizer (additional programs) ─────────────────────────────────────────
   'Amgen Assist360 / Pfizer': 'https://www.amgenassist360.com',
+  // ── Antares / Halozyme ───────────────────────────────────────────────────
+  'XYOSTED4YOU Cash Program': 'https://www.xyosted.com/xyosted4you',
 };
 const manufacturerUrl = d => BRAND_URL[d.slug] || PARTNER_URL[d.partner] || dailyMed(d);
 
