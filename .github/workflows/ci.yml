@@ -22,7 +22,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install ruff pytest
+          # Pin the lint tooling. Unpinned, CI installed whatever ruff had just
+          # been released, so a new ruff version could -- and on 2026-08-07 did --
+          # start failing unchanged code (30 errors: FURB167, RUF100, ISC004,
+          # E402...), blocking every open PR with no commit having caused it.
+          # Worse, .pre-commit-config.yaml DOES pin ruff, so the same code passed
+          # locally and failed in CI. Keep this version in step with the
+          # ruff-pre-commit `rev` there; that file is the source of truth.
+          # pytest is held to its major so a v10 release cannot break CI overnight.
+          pip install "ruff==0.15.17" "pytest>=9,<10"
       - name: Lint
         run: ruff check .
       - name: Compile check
