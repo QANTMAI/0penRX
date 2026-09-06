@@ -45,6 +45,15 @@ jobs:
         run: |
           python data/build_drug_pages.py --check
           python data/build_static_seo.py --check
+          # Team Cuban Card is a MANUAL import (their ToS forbid robots/scripts),
+          # so nothing regenerates it automatically. Only gate it once the source
+          # export is actually committed — otherwise every unrelated PR fails on a
+          # file the contributor was never asked to provide.
+          if ls data/sources/teamcuban-medications.* >/dev/null 2>&1; then
+            python data/build_teamcuban.py --check
+          else
+            echo "note: no Team Cuban source export committed — drift check skipped"
+          fi
 
   frontend:
     runs-on: ubuntu-latest

@@ -46,4 +46,7 @@ export const API_SOURCES = [
   {id:"sanofi", g:"doc", s:"a", n:"Sanofi Patient Connection", b:"Manufacturer",
    d:"Lantus, Admelog, Toujeo direct pricing. $35 insulin cap.",
    u:"https://www.sanofipatientconnection.com"},
+  {id:"teamcuban", g:"doc", s:"a", n:"Team Cuban Card", b:"Free membership \u00b7 18+",
+   d:"Mark Cuban Cost Plus Benefits' retail benefit card \u2014 Cost Plus pricing at an affiliate pharmacy counter (Kroger, Meijer, Albertsons, many independents; 50 states, DC, PR) instead of by mail. Free to join, one member per card, 18+. Not insurance; cannot be combined with insurance or another discount card. Prices are set for the retail channel and differ from costplusdrugs.com \u2014 check the list, then confirm at the counter.",
+   u:"https://www.teamcubancard.com/medications/"},
 ];

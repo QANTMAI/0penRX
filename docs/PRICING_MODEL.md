@@ -22,6 +22,7 @@ Two completely different things get called "savings." Keep them separate.
 | **Universal cash-discount card** | Anyone, incl. uninsured | No | GoodRx free card, SingleCare, ScriptSave WellRx, Optum Perks, America's Pharmacy |
 | **Discount-card membership** | Anyone (pays a subscription) | No | GoodRx Gold ($9.99/mo indiv, $19.99 family), GoodRx Companion ($14.99/mo) |
 | **Transparent cash pharmacy** | Anyone | No | Cost Plus Drugs, Amazon Pharmacy (cash price) |
+| **Transparent-cash retail benefit card** | Anyone who registers (18+) | No — and cannot be combined with it | Team Cuban Card (Cost Plus pricing at an affiliate counter) |
 | **Manufacturer direct self-pay** | Anyone | No | NovoCare ($199 Ozempic/Wegovy), LillyDirect |
 | **Patient assistance program (PAP)** | Low-income uninsured (income-qualified) | No | manufacturer PAPs, NeedyMeds, RxAssist |
 | **Manufacturer copay card** | **Commercially INSURED only** | **YES** — excludes cash-pay AND Medicare/Medicaid | AbbVie "At Your Service", myAbbVie Assist, most brand "$X/month" copay cards |
@@ -51,6 +52,16 @@ the headline cash price for the uninsured.
 - **Cost Plus Drugs** (Mark Cuban Cost Plus Drug Company) — transparent
   mail-order pharmacy: manufacturer cost **+ 15% + a $5 pharmacy fee +
   shipping**, ~2,200 generics, bypasses PBMs. Anyone, no insurance.
+- **Team Cuban Card** (Mark Cuban Cost Plus **Benefits** LLC — a *different
+  entity* from the mail-order pharmacy above) — a free, registration-gated
+  **benefit card** that gets Cost Plus pricing at a *retail* counter: Kroger
+  Family, Meijer, Albertsons Companies, and many independents across 50 states,
+  DC, and Puerto Rico. The pharmacy is paid a **$12 dispensing fee** rather than
+  paying the card company. 18+, one person per card, no family or pets. Not
+  insurance, cannot be combined with insurance or any other discount card, and
+  does not count toward TrOOP for Medicare/Medicaid beneficiaries. **Its prices
+  are set for the retail channel and are not the costplusdrugs.com prices** —
+  the vendor says the two "will vary."
 - **Manufacturer copay card** (e.g. AbbVie "At Your Service") — lowers the copay
   for patients who **already have commercial insurance**; explicitly excludes
   cash-pay patients and anyone on Medicare/Medicaid.
