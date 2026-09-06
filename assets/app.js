@@ -4,6 +4,8 @@
 import { CATALOG, API_SOURCES } from './catalog.js';
 import * as live from './live.js';
 import { validateCatalog } from './catalog-validator.js';
+import { TEAMCUBAN, TEAMCUBAN_CAPTURED, TEAMCUBAN_SOURCE_URL } from './teamcuban.js';
+import { matchTeamCuban, formatPrice as tcPrice } from './teamcuban-lookup.js';
 validateCatalog(CATALOG);
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -498,6 +500,8 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <${sub} class="label">Interactions <span class="live-badge">FDA label</span></${sub}>
     <div class="live-box" role="status" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
 
+    ${teamCubanBlockHTML(d.generic || d.name)}
+
     <div class="p-acts">
       <a id="fdaLabelLink" href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
       <a href="${esc(goodRxUrl(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-sec">GoodRx ↗</a>
@@ -773,6 +777,46 @@ function enrichLive(d, token, gen) {
   }).catch(() => { if (!alive()) return; const el = $('#liveCoupons'); if (el) el.remove(); });
 }
 
+// ── Team Cuban Card retail prices ────────────────────────────────────────────
+// Mark Cuban Cost Plus Benefits' RETAIL card, priced separately from
+// costplusdrugs.com mail order (the vendor says the two can differ). The list is
+// imported by hand from their official Excel export — see data/sources/README.md
+// — so it carries a capture date and we show it. A drug price that quietly ages
+// on a health site sends someone to a counter with the wrong number, so the date
+// and the "confirm at the counter" line are not optional decoration.
+function teamCubanBlockHTML(drugName) {
+  const hits = matchTeamCuban(drugName, TEAMCUBAN);
+  if (!hits.length) return '';                       // no data, or no match → show nothing
+
+  const rows = hits.slice(0, 6).map(r => `
+    <tr>
+      <td>${esc([r.s, r.f].filter(Boolean).join(' · ') || '—')}</td>
+      <td>${esc(r.q || '—')}</td>
+      <td class="tc-price">${esc(tcPrice(r.p))}</td>
+    </tr>`).join('');
+
+  const more = hits.length > 6
+    ? `<p class="note-sm">${hits.length - 6} more strength/quantity option(s) on their list.</p>`
+    : '';
+  const dated = TEAMCUBAN_CAPTURED
+    ? `Prices as published ${esc(TEAMCUBAN_CAPTURED)}`
+    : 'Prices undated';
+
+  return `
+    <div class="label">Team Cuban Card <span class="live-badge">retail</span></div>
+    <table class="tc-table">
+      <thead><tr><th>Strength / form</th><th>Quantity</th><th>Price</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    ${more}
+    <p class="note-sm">${dated} by Mark Cuban Cost Plus Benefits for the
+      <strong>retail card</strong> channel — set separately from costplusdrugs.com
+      mail order, and changed without notice. Confirm at the pharmacy counter.
+      Free membership, 18+; not insurance and cannot be combined with another
+      discount or prescription benefit card.
+      <a href="${esc(TEAMCUBAN_SOURCE_URL)}" target="_blank" rel="noopener noreferrer">Full list \u2197</a></p>`;
+}
+
 // Detail panel for an off-catalog drug — no curated price, pure live data.
 function openLiveDetail(display, clean) {
   _dialogTrigger = document.activeElement;
@@ -807,6 +851,8 @@ function openLiveDetail(display, clean) {
         <a href="${COSTPLUS_URL}" target="_blank" rel="noopener noreferrer" class="btn btn-pri" title="Look up ${esc(clean)} on Cost Plus Drugs">Cost Plus price ↗</a>
       </div>
     </div>
+
+    ${teamCubanBlockHTML(clean)}
 
     <div class="label">Estimated cash price <span class="live-badge">CMS NADAC</span></div>
     <div class="live-box" role="status" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>

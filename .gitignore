@@ -36,3 +36,9 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Team Cuban Card vendor export — the raw file stays local, deliberately.
+# assets/teamcuban.js (the derived, attributed data we publish) IS committed;
+# redistributing their original spreadsheet verbatim in a public repo is a
+# separate and larger exposure than publishing the prices, so we don't.
+data/sources/teamcuban-medications.*

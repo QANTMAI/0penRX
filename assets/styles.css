@@ -981,3 +981,31 @@ footer { margin-top: var(--sp-12); padding: var(--sp-8) var(--sp-6); background:
   .main, .wrap { padding-left: 1rem; padding-right: 1rem; }
   .cfields { grid-template-columns: 1fr 1fr; }
 }
+
+/* Team Cuban Card price table (drug detail + live lookup).
+   Uses the existing type/colour tokens so it reads as part of the panel rather
+   than a bolted-on widget. */
+.tc-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: .35rem 0 .5rem;
+  font-size: .9rem;
+}
+.tc-table th,
+.tc-table td {
+  text-align: left;
+  padding: .4rem .5rem;
+  border-bottom: 1px solid var(--border, rgba(255,255,255,.12));
+}
+.tc-table th {
+  font-weight: 600;
+  color: var(--text-2);
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+.tc-table td.tc-price {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+}
