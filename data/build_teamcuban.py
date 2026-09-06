@@ -95,9 +95,13 @@ def _rows_from_xlsx(path: str) -> list[list[str]]:
         if "xl/sharedStrings.xml" in z.namelist():
             root = ET.fromstring(z.read("xl/sharedStrings.xml"))
             for si in root.findall("m:si", _NS):
-                shared.append("".join(t.text or "" for t in si.iter(f"{{{_NS['m']}}}t")))
+                shared.append(
+                    "".join(t.text or "" for t in si.iter(f"{{{_NS['m']}}}t"))
+                )
 
-        sheets = [n for n in z.namelist() if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", n)]
+        sheets = [
+            n for n in z.namelist() if re.fullmatch(r"xl/worksheets/sheet\d+\.xml", n)
+        ]
         if not sheets:
             raise SystemExit(f"ERROR: no worksheet found inside {path}")
         root = ET.fromstring(z.read(sorted(sheets)[0]))
@@ -110,7 +114,7 @@ def _rows_from_xlsx(path: str) -> list[list[str]]:
                 col_letters = re.match(r"[A-Z]+", ref)
                 # Column letters → 0-based index, so blank cells don't shift data.
                 idx = 0
-                for ch in (col_letters.group(0) if col_letters else "A"):
+                for ch in col_letters.group(0) if col_letters else "A":
                     idx = idx * 26 + (ord(ch) - 64)
                 idx -= 1
 
@@ -157,7 +161,11 @@ def _split_name(raw: str) -> tuple[str, str | None]:
 
 
 def load_rows(path: str) -> list[dict]:
-    raw = _rows_from_xlsx(path) if path.lower().endswith(".xlsx") else _rows_from_csv(path)
+    raw = (
+        _rows_from_xlsx(path)
+        if path.lower().endswith(".xlsx")
+        else _rows_from_csv(path)
+    )
     if len(raw) < 2:
         raise SystemExit(f"ERROR: {path} has no data rows.")
 
@@ -165,6 +173,7 @@ def load_rows(path: str) -> list[dict]:
     out: list[dict] = []
     skipped = 0
     for row in raw[1:]:
+
         def cell(field: str) -> str:
             i = cols.get(field)
             return row[i].strip() if i is not None and i < len(row) else ""
@@ -186,7 +195,9 @@ def load_rows(path: str) -> list[dict]:
         out.append(rec)
 
     if not out:
-        raise SystemExit("ERROR: parsed 0 usable rows — refusing to write an empty list.")
+        raise SystemExit(
+            "ERROR: parsed 0 usable rows — refusing to write an empty list."
+        )
     if skipped:
         print(f"  note: skipped {skipped} row(s) with no name or no usable price")
     out.sort(key=lambda r: (r["n"].lower(), r.get("s", ""), r.get("q", "")))
@@ -232,9 +243,15 @@ def render(rows: list[dict], captured: str) -> str:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build assets/teamcuban.js from the official export")
-    ap.add_argument("--check", action="store_true", help="exit 1 if assets/teamcuban.js is stale")
-    ap.add_argument("--captured", help="capture date YYYY-MM-DD (default: the source file's mtime)")
+    ap = argparse.ArgumentParser(
+        description="Build assets/teamcuban.js from the official export"
+    )
+    ap.add_argument(
+        "--check", action="store_true", help="exit 1 if assets/teamcuban.js is stale"
+    )
+    ap.add_argument(
+        "--captured", help="capture date YYYY-MM-DD (default: the source file's mtime)"
+    )
     args = ap.parse_args()
 
     src = find_source()
@@ -244,7 +261,10 @@ def main() -> None:
         captured = args.captured
     elif args.check and os.path.exists(_OUT_PATH):
         # Reuse the committed date so --check compares data, not the clock.
-        prior = re.search(r"TEAMCUBAN_CAPTURED = \"([\d-]+)\"", open(_OUT_PATH, encoding="utf-8").read())
+        prior = re.search(
+            r"TEAMCUBAN_CAPTURED = \"([\d-]+)\"",
+            open(_OUT_PATH, encoding="utf-8").read(),
+        )
         captured = prior.group(1) if prior else _dt.date.today().isoformat()
     else:
         captured = _dt.date.fromtimestamp(os.path.getmtime(src)).isoformat()
@@ -252,11 +272,19 @@ def main() -> None:
     content = render(rows, captured)
 
     if args.check:
-        current = open(_OUT_PATH, encoding="utf-8").read() if os.path.exists(_OUT_PATH) else ""
+        current = (
+            open(_OUT_PATH, encoding="utf-8").read()
+            if os.path.exists(_OUT_PATH)
+            else ""
+        )
         if current != content:
-            print("STALE: assets/teamcuban.js does not match data/sources/ — run: python data/build_teamcuban.py")
+            print(
+                "STALE: assets/teamcuban.js does not match data/sources/ — run: python data/build_teamcuban.py"
+            )
             sys.exit(1)
-        print(f"OK — assets/teamcuban.js matches the source export ({len(rows)} medications).")
+        print(
+            f"OK — assets/teamcuban.js matches the source export ({len(rows)} medications)."
+        )
         return
 
     with open(_OUT_PATH, "w", encoding="utf-8") as fh:
