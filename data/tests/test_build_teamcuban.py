@@ -53,7 +53,7 @@ def _write_csv(tmp_path, rows):
 
 
 def test_parses_observed_rows(tmp_path):
-    rows = build_teamcuban.load_rows(_write_csv(tmp_path, _OBSERVED))
+    rows, _ = build_teamcuban.load_rows(_write_csv(tmp_path, _OBSERVED))
     assert len(rows) == 3
     abacavir = next(r for r in rows if r["n"].startswith("Abacavir"))
     assert abacavir["gf"] == "Epzicom"  # brand split off the name
@@ -77,19 +77,23 @@ def test_price_parsing_variants():
     assert build_teamcuban._parse_price("call for price") is None
 
 
-def test_rows_without_name_or_price_are_dropped(tmp_path):
-    rows = build_teamcuban.load_rows(
+def test_nameless_rows_dropped_but_priceless_rows_kept(tmp_path):
+    """The official export has NO price column, so a missing price must not
+    discard real coverage data. A missing NAME still must."""
+    rows, _ = build_teamcuban.load_rows(
         _write_csv(
             tmp_path,
             _OBSERVED
             + [
-                ["", "1 MG", "Tablet", "30 Tablets", "$ 9.99"],  # no name
-                ["Ghost Drug", "1 MG", "Tablet", "30 Tablets", ""],  # no price
+                ["", "1 MG", "Tablet", "30 Tablets", "$ 9.99"],  # no name -> dropped
+                ["Ghost Drug", "1 MG", "Tablet", "30 Tablets", ""],  # no price -> kept
             ],
         )
     )
-    assert len(rows) == 3
-    assert all(r["n"] and r["p"] is not None for r in rows)
+    assert len(rows) == 4
+    assert all(r["n"] for r in rows)
+    ghost = next(r for r in rows if r["n"] == "Ghost Drug")
+    assert "p" not in ghost  # absent, never 0
 
 
 def test_empty_result_is_refused(tmp_path):
@@ -100,15 +104,16 @@ def test_empty_result_is_refused(tmp_path):
         )
 
 
-def test_missing_required_column_fails_loudly(tmp_path):
-    """A vendor column rename must fail CI, not silently drop every price."""
+def test_missing_name_column_fails_loudly(tmp_path):
+    """If the vendor renames the NAME column beyond every known alias, that must
+    fail CI rather than silently publish an empty medication list."""
     with pytest.raises(SystemExit):
         build_teamcuban.load_rows(
             _write_csv(
                 tmp_path,
                 [
-                    ["Medication", "Strength", "Form", "Quantity", "Cost Per Fill"],
-                    ["Metformin Hcl", "500 MG", "Tablet", "30 Tablets", "$ 4.20"],
+                    ["Widget", "Thickness", "Shape"],
+                    ["Sprocket", "5 MM", "Round"],
                 ],
             )
         )
@@ -116,7 +121,7 @@ def test_missing_required_column_fails_loudly(tmp_path):
 
 def test_header_aliases_are_accepted(tmp_path):
     """Plausible alternate spellings should keep working without a code change."""
-    rows = build_teamcuban.load_rows(
+    rows, _ = build_teamcuban.load_rows(
         _write_csv(
             tmp_path,
             [
@@ -170,7 +175,7 @@ def test_xlsx_shared_strings_numeric_price_and_blank_column(tmp_path):
         z.writestr("xl/sharedStrings.xml", sst)
         z.writestr("xl/worksheets/sheet1.xml", sheet)
 
-    rows = build_teamcuban.load_rows(str(p))
+    rows, _ = build_teamcuban.load_rows(str(p))
     metformin = next(r for r in rows if r["n"] == "Metformin Hcl")
     assert metformin["q"] == "1 Bottle (240 Ml)"  # NOT shifted into "f"
     assert "f" not in metformin
@@ -193,3 +198,45 @@ def test_no_network_code_in_the_builder():
         assert banned not in src, (
             f"builder must not perform network I/O (found {banned!r})"
         )
+
+
+def test_banner_row_is_skipped_and_vendor_date_extracted(tmp_path):
+    """The real export's row 1 is a disclaimer banner; headers are on row 2, and
+    the banner carries the vendor's own 'Last Updated' date."""
+    rows, vendor_date = build_teamcuban.load_rows(
+        _write_csv(
+            tmp_path,
+            [
+                [
+                    "This Team Cuban Card Medication List is subject to change. "
+                    "Refer to TeamCubanCard.com for the most up to date Medication List. "
+                    "Last Updated: Sep 3, 2026",
+                    "",
+                    "",
+                ],
+                ["Generice Name", "Strength", "Form"],  # vendor's own spelling
+                ["Abacavir / Lamivudine", "600-300 MG", "Tablet"],
+                ["Zovia 1/35", "1-35 MG-MCG", "Tablet"],
+            ],
+        )
+    )
+    assert len(rows) == 2
+    assert vendor_date == "2026-09-03"
+    assert rows[0]["n"] == "Abacavir / Lamivudine"
+    assert rows[0]["s"] == "600-300 MG" and rows[0]["f"] == "Tablet"
+    assert "p" not in rows[0]  # coverage list, no prices
+
+
+def test_vendor_header_typo_is_accepted(tmp_path):
+    """'Generice Name' is what the vendor actually ships. Matching must not
+    depend on them fixing their own typo."""
+    rows, _ = build_teamcuban.load_rows(
+        _write_csv(
+            tmp_path,
+            [
+                ["Generice Name", "Strength", "Form"],
+                ["Metformin Hcl", "500 MG", "Tablet"],
+            ],
+        )
+    )
+    assert rows[0]["n"] == "Metformin Hcl"

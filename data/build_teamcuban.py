@@ -45,7 +45,19 @@ SOURCE_URL = "https://www.teamcubancard.com/medications/"
 # accepts a few plausible header spellings, because the export's exact headers
 # are the vendor's to change and a rename should not silently drop a column.
 _COLUMN_ALIASES = {
-    "name": ("name", "drug", "drugname", "medication", "product"),
+    # "Generice Name" is the vendor's own spelling in the Sep 2026 export. Kept
+    # verbatim rather than "corrected", because the file is theirs and a future
+    # export may still carry it.
+    "name": (
+        "name",
+        "drug",
+        "drugname",
+        "medication",
+        "product",
+        "genericname",
+        "genericename",
+        "genericedrugname",
+    ),
     "strength": ("strength", "dose", "dosage"),
     "form": ("form", "dosageform", "dosage form"),
     "quantity": ("quantity", "qty", "packsize", "pack size"),
@@ -69,7 +81,11 @@ def _map_columns(headers: list[str]) -> dict[str, int]:
             if h in wanted:
                 mapping[field] = idx
                 break
-    missing = [f for f in ("name", "price") if f not in mapping]
+    # Price is deliberately NOT required. The official Excel export carries only
+    # Generic Name / Strength / Form -- it is a COVERAGE list, not a price list
+    # (verified against the Sep 3 2026 export: columns A-C, 2411 rows, no price).
+    # Prices exist only in the paginated web table, which we do not scrape.
+    missing = [f for f in ("name",) if f not in mapping]
     if missing:
         raise SystemExit(
             f"ERROR: could not find required column(s) {missing} in the export.\n"
@@ -160,7 +176,68 @@ def _split_name(raw: str) -> tuple[str, str | None]:
     return text[: m.start()].strip(), m.group(1).strip()
 
 
-def load_rows(path: str) -> list[dict]:
+# The export opens with a disclaimer banner, not headers, e.g.
+#   "This Team Cuban Card Medication List is subject to change...
+#    Last Updated: Sep 3, 2026"
+# so the header row must be FOUND, not assumed to be row 0. The banner also
+# carries the vendor's own "last updated" date, which is a truer capture date
+# than the file's mtime (that only records when someone downloaded it).
+_LAST_UPDATED_RE = re.compile(
+    r"last\s+updated\s*:\s*([A-Za-z]{3,9}\s+\d{1,2},?\s+\d{4})", re.I
+)
+_MONTHS = {
+    m: i
+    for i, m in enumerate(
+        [
+            "jan",
+            "feb",
+            "mar",
+            "apr",
+            "may",
+            "jun",
+            "jul",
+            "aug",
+            "sep",
+            "oct",
+            "nov",
+            "dec",
+        ],
+        1,
+    )
+}
+
+
+def _vendor_last_updated(raw):
+    """The vendor's stated 'Last Updated' date as YYYY-MM-DD, if present."""
+    for row in raw[:5]:
+        for cell in row:
+            m = _LAST_UPDATED_RE.search(cell or "")
+            if not m:
+                continue
+            parts = re.match(r"([A-Za-z]{3,9})\s+(\d{1,2}),?\s+(\d{4})", m.group(1))
+            if not parts:
+                return None
+            mon, day, year = parts.groups()
+            key = mon[:3].lower()
+            if key not in _MONTHS:
+                return None
+            return f"{int(year):04d}-{_MONTHS[key]:02d}-{int(day):02d}"
+    return None
+
+
+def _find_header_row(raw):
+    """Index of the first row that maps to the columns we need."""
+    for i, row in enumerate(raw[:8]):
+        try:
+            _map_columns(row)
+            return i
+        except SystemExit:
+            continue
+    _map_columns(raw[0])  # re-raise naming the real headers
+    return 0
+
+
+def load_rows(path: str) -> tuple[list[dict], str | None]:
     raw = (
         _rows_from_xlsx(path)
         if path.lower().endswith(".xlsx")
@@ -169,10 +246,13 @@ def load_rows(path: str) -> list[dict]:
     if len(raw) < 2:
         raise SystemExit(f"ERROR: {path} has no data rows.")
 
-    cols = _map_columns(raw[0])
+    vendor_date = _vendor_last_updated(raw)
+    hdr = _find_header_row(raw)
+
+    cols = _map_columns(raw[hdr])
     out: list[dict] = []
     skipped = 0
-    for row in raw[1:]:
+    for row in raw[hdr + 1 :]:
 
         def cell(field: str) -> str:
             i = cols.get(field)
@@ -180,12 +260,16 @@ def load_rows(path: str) -> list[dict]:
 
         name, generic_for = _split_name(cell("name"))
         price = _parse_price(cell("price"))
-        # A row with no name or no usable price cannot help anyone at a counter.
-        if not name or price is None:
+        # A nameless row cannot help anyone. A priced row is better, but the
+        # official export has no price column at all, so absence of a price must
+        # not discard real coverage information.
+        if not name:
             skipped += 1
             continue
 
-        rec = {"n": name, "p": price}
+        rec = {"n": name}
+        if price is not None:
+            rec["p"] = price
         if generic_for:
             rec["gf"] = generic_for
         for key, field in (("s", "strength"), ("f", "form"), ("q", "quantity")):
@@ -199,9 +283,9 @@ def load_rows(path: str) -> list[dict]:
             "ERROR: parsed 0 usable rows — refusing to write an empty list."
         )
     if skipped:
-        print(f"  note: skipped {skipped} row(s) with no name or no usable price")
+        print(f"  note: skipped {skipped} nameless row(s)")
     out.sort(key=lambda r: (r["n"].lower(), r.get("s", ""), r.get("q", "")))
-    return out
+    return out, vendor_date
 
 
 def find_source() -> str:
@@ -255,7 +339,7 @@ def main() -> None:
     args = ap.parse_args()
 
     src = find_source()
-    rows = load_rows(src)
+    rows, vendor_date = load_rows(src)
 
     if args.captured:
         captured = args.captured
@@ -266,6 +350,11 @@ def main() -> None:
             open(_OUT_PATH, encoding="utf-8").read(),
         )
         captured = prior.group(1) if prior else _dt.date.today().isoformat()
+    elif vendor_date:
+        # The vendor states "Last Updated: <date>" in the export banner. That is
+        # when THEY refreshed the list; the file mtime is only when we downloaded
+        # it, which can be days later and would overstate freshness.
+        captured = vendor_date
     else:
         captured = _dt.date.fromtimestamp(os.path.getmtime(src)).isoformat()
 
