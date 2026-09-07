@@ -10,28 +10,47 @@
 export function normalizeDrugName(s) {
   return String(s || '')
     .toLowerCase()
-    .replace(/\(.*?\)/g, ' ')      // drop "(generic for x)" remnants
-    .replace(/[^a-z0-9/]+/g, ' ')  // keep the combination slash
+    .replace(/\(.*?\)/g, ' ')       // drop "(generic for x)" remnants
+    // The vendor separates combination ingredients with EITHER "/" or "-"
+    // ("Amlodipine-Olmesartan", "Amlodipine Besylate/Atorvastatin"), while our
+    // own lookups use "/". Canonicalise both to "/" so ingredient COUNT is
+    // comparable; getting this wrong is how "amlodipine" matched
+    // "Amlodipine-Olmesartan" (verified against the real Sep 2026 list).
+    .replace(/[-\u2010-\u2015]/g, '/')
+    .replace(/[^a-z0-9/]+/g, ' ')
     .replace(/\s*\/\s*/g, '/')
+    .replace(/\/+/g, '/')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
-// A query matches a row when the normalised names are equal, or when one is a
-// whole-token prefix of the other ("metformin" should find "metformin hcl").
-// Substring matching is deliberately NOT used: "amlodipine" must not match
-// "amlodipine/olmesartan", which is a different medicine at a different price.
+// Ingredients of a normalised name. "amlodipine besylate" is ONE ingredient
+// (besylate is a salt, not a second drug); "amlodipine/olmesartan" is two.
+function ingredients(normalised) {
+  return normalised.split('/').map(t => t.trim()).filter(Boolean);
+}
+
+// Whole-token prefix comparison for a single ingredient, so "metformin" finds
+// "metformin hcl" but never a different molecule.
+function ingredientMatches(a, b) {
+  if (!a || !b) return false;
+  if (a === b) return true;
+  const x = a.split(' ');
+  const y = b.split(' ');
+  const shorter = x.length < y.length ? x : y;
+  const longer = shorter === x ? y : x;
+  return shorter.length > 0 && shorter.every((tok, i) => longer[i] === tok);
+}
+
 function namesMatch(query, candidate) {
   if (!query || !candidate) return false;
-  if (query === candidate) return true;
-  const q = query.split(' ');
-  const c = candidate.split(' ');
-  const shorter = q.length < c.length ? q : c;
-  const longer = shorter === q ? c : q;
-  if (shorter.length === 0) return false;
-  // Combination drugs must match on the full set, never on one component.
-  if (query.includes('/') !== candidate.includes('/')) return false;
-  return shorter.every((tok, i) => longer[i] === tok);
+  const q = ingredients(query);
+  const c = ingredients(candidate);
+  // A single ingredient must never match a combination product, and vice versa.
+  // Different medicine, different price -- quoting the wrong one at a pharmacy
+  // counter is a real harm, not a cosmetic bug.
+  if (q.length !== c.length) return false;
+  return q.every((tok, i) => ingredientMatches(tok, c[i]));
 }
 
 /**

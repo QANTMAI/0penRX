@@ -777,44 +777,52 @@ function enrichLive(d, token, gen) {
   }).catch(() => { if (!alive()) return; const el = $('#liveCoupons'); if (el) el.remove(); });
 }
 
-// ── Team Cuban Card retail prices ────────────────────────────────────────────
-// Mark Cuban Cost Plus Benefits' RETAIL card, priced separately from
-// costplusdrugs.com mail order (the vendor says the two can differ). The list is
-// imported by hand from their official Excel export — see data/sources/README.md
-// — so it carries a capture date and we show it. A drug price that quietly ages
-// on a health site sends someone to a counter with the wrong number, so the date
-// and the "confirm at the counter" line are not optional decoration.
+// ── Team Cuban Card coverage ─────────────────────────────────────────────────
+// Mark Cuban Cost Plus Benefits' RETAIL card. The list is imported by hand from
+// their official Excel export (see data/sources/README.md); their Terms of Use
+// forbid robots/scripts on the site, so nothing here is scraped.
+//
+// IMPORTANT: that official export contains Generic Name / Strength / Form and
+// NO PRICE COLUMN (verified against the Sep 3 2026 export: columns A-C, 2411
+// rows). So this block answers "is my drug covered, in which strength and form"
+// and sends people to the vendor for the price. It must never imply we know a
+// price we do not have -- a made-up number here gets quoted at a pharmacy
+// counter. If a future export does carry prices, the price column appears
+// automatically and nothing else needs to change.
 function teamCubanBlockHTML(drugName) {
   const hits = matchTeamCuban(drugName, TEAMCUBAN);
   if (!hits.length) return '';                       // no data, or no match → show nothing
 
-  const rows = hits.slice(0, 6).map(r => `
+  const anyPrice = hits.some(r => typeof r.p === 'number');
+  const shown = hits.slice(0, 8);
+
+  const rows = shown.map(r => `
     <tr>
-      <td>${esc([r.s, r.f].filter(Boolean).join(' · ') || '—')}</td>
-      <td>${esc(r.q || '—')}</td>
-      <td class="tc-price">${esc(tcPrice(r.p))}</td>
+      <td>${esc(r.s || '—')}</td>
+      <td>${esc(r.f || '—')}</td>
+      ${anyPrice ? `<td class="tc-price">${esc(tcPrice(r.p))}</td>` : ''}
     </tr>`).join('');
 
-  const more = hits.length > 6
-    ? `<p class="note-sm">${hits.length - 6} more strength/quantity option(s) on their list.</p>`
+  const more = hits.length > shown.length
+    ? `<p class="note-sm">${hits.length - shown.length} more strength/form option(s) on their list.</p>`
     : '';
   const dated = TEAMCUBAN_CAPTURED
-    ? `Prices as published ${esc(TEAMCUBAN_CAPTURED)}`
-    : 'Prices undated';
+    ? `List published ${esc(TEAMCUBAN_CAPTURED)} by Mark Cuban Cost Plus Benefits`
+    : 'List date unknown';
 
   return `
-    <div class="label">Team Cuban Card <span class="live-badge">retail</span></div>
+    <div class="label">Team Cuban Card <span class="live-badge">covered</span></div>
     <table class="tc-table">
-      <thead><tr><th>Strength / form</th><th>Quantity</th><th>Price</th></tr></thead>
+      <thead><tr><th>Strength</th><th>Form</th>${anyPrice ? '<th>Price</th>' : ''}</tr></thead>
       <tbody>${rows}</tbody>
     </table>
     ${more}
-    <p class="note-sm">${dated} by Mark Cuban Cost Plus Benefits for the
-      <strong>retail card</strong> channel — set separately from costplusdrugs.com
-      mail order, and changed without notice. Confirm at the pharmacy counter.
-      Free membership, 18+; not insurance and cannot be combined with another
-      discount or prescription benefit card.
-      <a href="${esc(TEAMCUBAN_SOURCE_URL)}" target="_blank" rel="noopener noreferrer">Full list \u2197</a></p>`;
+    <p class="note-sm">${dated}${anyPrice ? '' : '. Their published list states coverage only, not price'} —
+      the card is priced for the <strong>retail counter</strong>, separately from
+      costplusdrugs.com mail order, and changes without notice.
+      <a href="${esc(TEAMCUBAN_SOURCE_URL)}" target="_blank" rel="noopener noreferrer">Check the current price \u2197</a>.
+      18+, not insurance, and cannot be combined with another discount or
+      prescription benefit card. Confirm at the pharmacy counter.</p>`;
 }
 
 // Detail panel for an off-catalog drug — no curated price, pure live data.
