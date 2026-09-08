@@ -13,7 +13,7 @@
  *
  * Bump CACHE on any shell-asset change so old caches are evicted on activate.
  */
-const CACHE = 'openrx-shell-v56';
+const CACHE = 'openrx-shell-v57';
 const SHELL = [
   '/',
   '/index.html',
@@ -23,6 +23,10 @@ const SHELL = [
   '/assets/live.js',
   '/assets/catalog.js',
   '/assets/catalog-validator.js',
+  // Loaded on demand (dynamic import) by the drug detail views, not at
+  // startup — precached so the coverage block still works offline.
+  '/assets/teamcuban.js',
+  '/assets/teamcuban-lookup.js',
   '/assets/config.js',
   '/assets/favicon.svg',
   '/assets/fonts/dm-sans-latin.woff2',

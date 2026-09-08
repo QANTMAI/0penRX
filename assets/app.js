@@ -4,8 +4,6 @@
 import { CATALOG, API_SOURCES } from './catalog.js';
 import * as live from './live.js';
 import { validateCatalog } from './catalog-validator.js';
-import { TEAMCUBAN, TEAMCUBAN_CAPTURED, TEAMCUBAN_SOURCE_URL } from './teamcuban.js';
-import { matchTeamCuban, formatPrice as tcPrice } from './teamcuban-lookup.js';
 validateCatalog(CATALOG);
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -500,7 +498,7 @@ function detailBodyHTML(d, token, ext, hTag = 'h2') {
     <${sub} class="label">Interactions <span class="live-badge">FDA label</span></${sub}>
     <div class="live-box" role="status" id="liveInteractions"><span class="spinner"></span> <span style="color:var(--text-2)">Reading FDA label interactions…</span></div>
 
-    ${teamCubanBlockHTML(d.generic || d.name)}
+    ${teamCubanPlaceholderHTML()}
 
     <div class="p-acts">
       <a id="fdaLabelLink" href="${esc(dailyMed(d))}" target="_blank" rel="noopener noreferrer" class="btn btn-pri">FDA label ↗</a>
@@ -532,6 +530,7 @@ function openDetail(slug) {
   $('#panelBody [data-close]').focus();
 
   enrichLive(d, token, ++_panelGen);
+  hydrateTeamCuban(d.generic || d.name, _panelGen);
 }
 
 // Per-drug static page (/drugs/<slug>/): render the same body inline (no modal),
@@ -552,6 +551,7 @@ function renderDrugPage(dp) {
   const token = live.searchToken(d.generic) || live.searchToken(d.name);
   dp.innerHTML = detailBodyHTML(d, token, ext, 'h1');
   enrichLive(d, token, ++_panelGen);
+  hydrateTeamCuban(d.generic || d.name, _panelGen);
 }
 
 // Fetch + inject the real RxNorm / openFDA / NADAC data.
@@ -782,35 +782,55 @@ function enrichLive(d, token, gen) {
 // their official Excel export (see data/sources/README.md); their Terms of Use
 // forbid robots/scripts on the site, so nothing here is scraped.
 //
-// IMPORTANT: that official export contains Generic Name / Strength / Form and
-// NO PRICE COLUMN (verified against the Sep 3 2026 export: columns A-C, 2411
-// rows). So this block answers "is my drug covered, in which strength and form"
-// and sends people to the vendor for the price. It must never imply we know a
-// price we do not have -- a made-up number here gets quoted at a pharmacy
-// counter. If a future export does carry prices, the price column appears
-// automatically and nothing else needs to change.
-function teamCubanBlockHTML(drugName) {
-  const hits = matchTeamCuban(drugName, TEAMCUBAN);
-  if (!hits.length) return '';                       // no data, or no match → show nothing
+// That official export carries Generic Name / Strength / Form and NO PRICE
+// COLUMN (verified against the Sep 3 2026 export: columns A-C, 2411 rows). So
+// this block answers "is my drug covered, in which strength and form" and sends
+// people to the vendor for the price. It must never imply we know a price we do
+// not have -- a made-up number here gets quoted at a pharmacy counter. If a
+// future export carries prices, the price column appears automatically.
+//
+// The list is ~137KB, which is larger than app.js. It is therefore loaded with a
+// DYNAMIC import when a detail view opens, not a static one -- a static import
+// put the whole table on the critical path of every page, including the home
+// page where it is never used. Same async-fill pattern as the live FDA boxes.
+function teamCubanPlaceholderHTML() {
+  return '<div id="tcBlock"></div>';
+}
+
+async function hydrateTeamCuban(drugName, gen) {
+  const host = $('#tcBlock');
+  if (!host || !drugName) return;
+  let mod, data;
+  try {
+    [data, mod] = await Promise.all([
+      import('./teamcuban.js'),
+      import('./teamcuban-lookup.js'),
+    ]);
+  } catch {
+    return;                       // offline or blocked: show nothing, never a guess
+  }
+  if (gen !== undefined && gen !== _panelGen) return;   // panel changed under us
+  if (!$('#tcBlock')) return;
+
+  const hits = mod.matchTeamCuban(drugName, data.TEAMCUBAN);
+  if (!hits.length) return;                              // not covered → say nothing
 
   const anyPrice = hits.some(r => typeof r.p === 'number');
   const shown = hits.slice(0, 8);
-
   const rows = shown.map(r => `
     <tr>
       <td>${esc(r.s || '—')}</td>
       <td>${esc(r.f || '—')}</td>
-      ${anyPrice ? `<td class="tc-price">${esc(tcPrice(r.p))}</td>` : ''}
+      ${anyPrice ? `<td class="tc-price">${esc(mod.formatPrice(r.p))}</td>` : ''}
     </tr>`).join('');
-
   const more = hits.length > shown.length
     ? `<p class="note-sm">${hits.length - shown.length} more strength/form option(s) on their list.</p>`
     : '';
-  const dated = TEAMCUBAN_CAPTURED
-    ? `List published ${esc(TEAMCUBAN_CAPTURED)} by Mark Cuban Cost Plus Benefits`
+  const dated = data.TEAMCUBAN_CAPTURED
+    ? `List published ${esc(data.TEAMCUBAN_CAPTURED)} by Mark Cuban Cost Plus Benefits`
     : 'List date unknown';
 
-  return `
+  host.innerHTML = `
     <div class="label">Team Cuban Card <span class="live-badge">covered</span></div>
     <table class="tc-table">
       <thead><tr><th>Strength</th><th>Form</th>${anyPrice ? '<th>Price</th>' : ''}</tr></thead>
@@ -820,7 +840,7 @@ function teamCubanBlockHTML(drugName) {
     <p class="note-sm">${dated}${anyPrice ? '' : '. Their published list states coverage only, not price'} —
       the card is priced for the <strong>retail counter</strong>, separately from
       costplusdrugs.com mail order, and changes without notice.
-      <a href="${esc(TEAMCUBAN_SOURCE_URL)}" target="_blank" rel="noopener noreferrer">Check the current price \u2197</a>.
+      <a href="${esc(data.TEAMCUBAN_SOURCE_URL)}" target="_blank" rel="noopener noreferrer">Check the current price \u2197</a>.
       18+, not insurance, and cannot be combined with another discount or
       prescription benefit card. Confirm at the pharmacy counter.</p>`;
 }
@@ -860,7 +880,7 @@ function openLiveDetail(display, clean) {
       </div>
     </div>
 
-    ${teamCubanBlockHTML(clean)}
+    ${teamCubanPlaceholderHTML()}
 
     <div class="label">Estimated cash price <span class="live-badge">CMS NADAC</span></div>
     <div class="live-box" role="status" id="liveNadac"><span class="spinner"></span> <span style="color:var(--text-2)">Fetching CMS NADAC acquisition cost…</span></div>
@@ -885,6 +905,7 @@ function openLiveDetail(display, clean) {
   $('#panel').scrollTop = 0;
   $('#panelBody [data-close]').focus();
   enrichLive({ generic: clean, name: display }, token, ++_panelGen);
+  hydrateTeamCuban(clean, _panelGen);
 }
 
 function closeDetail() {
