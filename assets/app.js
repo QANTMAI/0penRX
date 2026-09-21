@@ -149,7 +149,10 @@ const PARTNER_URL = {
   'GSK For You': 'https://www.gskforyou.com',
   // ── Johnson & Johnson ────────────────────────────────────────────────────
   'J&J withMe Savings Program': 'https://www.jnjwithme.com',
-  'J&J Direct': 'https://www.jnjwithme.com',                // legacy alias
+  // J&J Direct is J&J's self-pay program (uninsured / pay out of pocket), distinct from
+  // the withMe co-pay card for insured patients. It was aliased to withMe, which sent
+  // cash-pay Xarelto patients to the insured-only program.
+  'J&J Direct': 'https://www.jnjdirect.com',
   // ── Bristol Myers Squibb ─────────────────────────────────────────────────
   'BMS Patient Connect': 'https://www.bmspatientconnect.com',
   'Bristol Myers Squibb': 'https://www.bmsaccesssupport.com', // legacy alias

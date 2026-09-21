@@ -61,7 +61,8 @@ PARTNER_URL: dict[str, str] = {
     "GSK For You": "https://www.gskforyou.com",
     # Johnson & Johnson
     "J&J withMe Savings Program": "https://www.jnjwithme.com",
-    "J&J Direct": "https://www.jnjwithme.com",  # legacy alias
+    # Self-pay program, distinct from the withMe co-pay card (see assets/app.js).
+    "J&J Direct": "https://www.jnjdirect.com",
     # Bristol Myers Squibb
     "BMS Patient Connect": "https://www.bmspatientconnect.com",
     "Bristol Myers Squibb": "https://www.bmsaccesssupport.com",  # legacy alias

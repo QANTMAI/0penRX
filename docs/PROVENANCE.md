@@ -93,6 +93,10 @@ Each catalog entry carries integrity metadata, validated at page load by `assets
 
 The validator fails loud (console errors) on: missing required fields, `price > retail`, a `savings` value that disagrees with `round((retail−price)/retail×100)` by more than 2 points, an unknown `status`/`eligibility`, or a stale `verified` date.
 
+**Re-verification: 2026-09-21** — every entry older than 90 days (74 of 85) was re-checked against a primary source, matching both the price and the list price to the cent for the configuration the catalog shows. GoodRx-network prices were checked on TrumpRx.gov, which names GoodRx as its pricing source for Pfizer and Amgen (GoodRx itself serves a CAPTCHA to automated clients, which was not bypassed); the rest on the manufacturer's own program page or PDF; status claims against FDA's drug shortage list, NDC Directory and Drugs@FDA. Corrections: Otezla ($5,133.82 → $3,353.93), Lovenox ($20.88 → $25.36), Zepbound KwikPen list price ($1,086.37 → $499, per Lilly's WAC disclosure and TrumpRx), Xarelto ($197 is a J&J Direct cash price, not Medicare-only), Wegovy pill pricing, Zepbound refill terms, Trulicity/Nicotrol/Viracept status, and Januvia/Janumet/Farxiga generic availability.
+
+Why many Pfizer entries show exactly 50% (or 60/80/85%) savings: Pfizer's GoodRx prices are set as a fixed percentage off list price (Pfizer: 33% to more than 93% off, commonly 50%). TrumpRx.gov shows the same list price as "Original Price", so these round ratios are real, not derived.
+
 **Last full audit: 2026-06-17** — a 5-agent web-research pass over all 86 drugs corrected 42 entries (discontinuations, INN suffixes, program-name fixes, dose-tier price notes, eligibility flags). See git history for the itemized changelog.
 
 **Verification spot-checks** (as of the 2026-06-17 audit — read live from GoodRx in a real browser; matched the then-current catalog exactly):
