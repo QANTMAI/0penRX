@@ -16,6 +16,13 @@ A 403/405/429 is NOT a failure. Several manufacturer sites (LillyDirect, AbbVie)
 automated clients outright while serving humans perfectly well; treating those as dead
 would make the check cry wolf until it got ignored. Only an explicit 404/410 or a DNS/
 connection failure — which is what actually happened — fails the build.
+
+Any 2xx is live: a server that answers with a success code is, by definition, not a
+dead link. The check previously accepted ONLY 200, so AmgenNow — served through
+CloudFront, and answering GitHub's datacenter runners with 202 — failed the weekly
+run while serving 200 to residential clients. A 202 carrying `x-amzn-waf-action`
+is AWS WAF's bot challenge (the same "closed to bots, open to humans" case as a
+403), and is labelled as such so the log shows what actually happened.
 """
 
 from __future__ import annotations
@@ -42,6 +49,23 @@ UA = (
 TIMEOUT = 30
 # Served to humans, closed to bots. Live, not dead.
 BOT_BLOCKED = {401, 403, 405, 429}
+# Header AWS WAF sets on a Challenge/CAPTCHA response (served with HTTP 202).
+WAF_HEADER = "x-amzn-waf-action"
+
+
+def classify(status: int | str, waf_action: str | None = None) -> tuple[str, bool]:
+    """Return (note, dead) for a probe result. Pure, so it can be unit-tested."""
+    if status == 200:
+        return "ok", False
+    if isinstance(status, int) and 200 <= status < 300:
+        if waf_action:
+            return f"bot-challenge {WAF_HEADER}={waf_action} (live)", False
+        return f"ok ({status})", False
+    if isinstance(status, int) and 300 <= status < 400:
+        return "redirect", False
+    if status in BOT_BLOCKED:
+        return "bot-blocked (live)", False
+    return "DEAD", True
 
 
 def used_partners() -> dict[str, list[str]]:
@@ -57,20 +81,21 @@ def used_partners() -> dict[str, list[str]]:
     return used
 
 
-def probe(url: str) -> tuple[int | str, str]:
+def probe(url: str) -> tuple[int | str, str, str | None]:
+    """Return (status, final_url, value of the AWS WAF action header if present)."""
     ctx = ssl.create_default_context()
-    last: tuple[int | str, str] = ("ERR", "")
+    last: tuple[int | str, str, str | None] = ("ERR", "", None)
     for _ in range(2):  # one retry: a single network blip must not fail the build
         try:
             req = urllib.request.Request(
                 url, headers={"User-Agent": UA, "Accept": "text/html,*/*"}
             )
             with urllib.request.urlopen(req, timeout=TIMEOUT, context=ctx) as r:
-                return r.status, r.geturl()
+                return r.status, r.geturl(), r.headers.get(WAF_HEADER)
         except urllib.error.HTTPError as e:
-            return e.code, url
+            return e.code, url, e.headers.get(WAF_HEADER) if e.headers else None
         except Exception as e:  # DNS/TLS/connection — retry once, then report
-            last = (type(e).__name__, url)
+            last = (type(e).__name__, url, None)
     return last
 
 
@@ -83,19 +108,13 @@ def main() -> None:
         futs = {ex.submit(probe, PARTNER_URL[p]): p for p in used if p in PARTNER_URL}
         for f in concurrent.futures.as_completed(futs):
             p = futs[f]
-            status, final = f.result()
-            rows.append((p, PARTNER_URL[p], status, final))
+            status, final, waf = f.result()
+            rows.append((p, PARTNER_URL[p], status, final, waf))
 
     dead = []
-    for p, url, status, _final in sorted(rows, key=lambda r: r[0].lower()):
-        if status == 200:
-            note = "ok"
-        elif isinstance(status, int) and 300 <= status < 400:
-            note = "redirect"
-        elif status in BOT_BLOCKED:
-            note = "bot-blocked (live)"
-        else:
-            note = "DEAD"
+    for p, url, status, _final, waf in sorted(rows, key=lambda r: r[0].lower()):
+        note, is_dead = classify(status, waf)
+        if is_dead:
             dead.append((p, url, status, used[p]))
         print(f"  {str(status):>9}  {p:<40} {note}")
 
