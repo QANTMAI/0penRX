@@ -30,7 +30,7 @@ CATALOG_PATH = os.path.join(_REPO_ROOT, "assets", "catalog.js")
 DRUGS_DIR = os.path.join(_REPO_ROOT, "drugs")
 SITEMAP = os.path.join(_REPO_ROOT, "sitemap.xml")
 SITE = "https://0penrx.org"
-TODAY = "2026-07-06"  # sitemap lastmod; bump on regeneration
+TODAY = "2026-09-21"  # sitemap lastmod; bump on regeneration
 
 sys.path.insert(0, _DATA_DIR)
 from build_coupons import PARTNER_URL, load_catalog  # noqa: E402
