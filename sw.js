@@ -13,7 +13,7 @@
  *
  * Bump CACHE on any shell-asset change so old caches are evicted on activate.
  */
-const CACHE = 'openrx-shell-v58';
+const CACHE = 'openrx-shell-v59';
 const SHELL = [
   '/',
   '/index.html',
