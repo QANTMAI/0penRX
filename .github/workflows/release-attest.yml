@@ -26,6 +26,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.12"
@@ -61,6 +63,8 @@ jobs:
 
       - name: Upload artifacts to the release
         if: github.event_name == 'release'
-        run: gh release upload "${{ github.event.release.tag_name }}" openrx-site.tar.gz backend-sbom.cdx.json --clobber
+        run: gh release upload "$TAG" openrx-site.tar.gz backend-sbom.cdx.json --clobber
         env:
           GH_TOKEN: ${{ github.token }}
+          # Passed via env, never expanded into the script, so a tag name can't inject shell.
+          TAG: ${{ github.event.release.tag_name }}

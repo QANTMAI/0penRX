@@ -56,6 +56,17 @@ function fetchJSON(url, { timeout = TIMEOUT } = {}) {
   return p;
 }
 
+// Only http(s) links from network data may become an href. Coupon records come
+// from the backend (and, when enabled, GoodRx), so a javascript:/data: URL there
+// must never reach the page — the CSP would block it, but don't rely on that alone.
+export function safeHttpUrl(u) {
+  if (typeof u !== 'string' || !u.trim()) return null;
+  try {
+    const url = new URL(u.trim());
+    return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null;
+  } catch { return null; }
+}
+
 // Active moiety used to match NADAC's generic descriptions, e.g.
 // "sitagliptin/metformin HCl" -> "SITAGLIPTIN", "atorvastatin calcium" -> "ATORVASTATIN".
 export function searchToken(generic) {

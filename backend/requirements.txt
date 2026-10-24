@@ -2,3 +2,11 @@ fastapi==0.141.1
 uvicorn[standard]==0.52.1
 pydantic==2.13.4
 httpx==0.28.1
+# Security floors for transitive deps (resolved today to patched versions; these
+# stop a cached or older resolution from regressing below the fixes):
+#   starlette  GHSA-82w8-qh3p-5jfq (CVE-2026-54283) fixed in 1.3.1
+#   h11        GHSA-vqfr-h8mv-ghfj (CVE-2025-43859) fixed in 0.16.0
+#   anyio      GHSA-82r6-8w77-94w6 (CVE-2026-63374) fixed in 4.14.2
+starlette>=1.3.1
+h11>=0.16.0
+anyio>=4.14.2

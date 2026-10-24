@@ -22,6 +22,7 @@ import {
   nonOralFormHint,
   oralPillFormHint,
   rxTermsRows,
+  safeHttpUrl,
 } from '../assets/live.js';
 
 test('searchToken: first moiety, uppercased, punctuation stripped', () => {
@@ -189,4 +190,17 @@ test('rxTermsRows: returns [] for malformed / empty payloads', () => {
   assert.deepEqual(rxTermsRows(null), []);
   assert.deepEqual(rxTermsRows([0, [], null, []]), []);
   assert.deepEqual(rxTermsRows([1, []]), []);   // no data[3]
+});
+
+test('safeHttpUrl: only http(s) links from network data become an href', () => {
+  assert.equal(safeHttpUrl('https://www.goodrx.com/coupon'), 'https://www.goodrx.com/coupon');
+  assert.equal(safeHttpUrl('  http://example.org/a?b=1 '), 'http://example.org/a?b=1');
+  assert.equal(safeHttpUrl('javascript:alert(1)'), null);
+  assert.equal(safeHttpUrl(' JaVaScRiPt:alert(1)'), null);
+  assert.equal(safeHttpUrl('data:text/html,<script>alert(1)</script>'), null);
+  assert.equal(safeHttpUrl('vbscript:msgbox(1)'), null);
+  assert.equal(safeHttpUrl('/relative/path'), null);
+  assert.equal(safeHttpUrl(''), null);
+  assert.equal(safeHttpUrl(null), null);
+  assert.equal(safeHttpUrl({ toString: () => 'https://x.org' }), null);
 });
