@@ -424,13 +424,14 @@ const cfieldsHTML = pairs => `<div class="cfields">${pairs.map(([l, v]) =>
 // Backend-sourced coupon / patient-assistance card (live data; backend only).
 function couponCardHTML(c) {
   const hasCard = !!c.bin;
+  const site = live.safeHttpUrl(c.url);
   const pcn = c.pcn || UNAVAILABLE, grp = c.group || UNAVAILABLE, mem = c.member_id || UNAVAILABLE;
   return `<div class="coupon" style="margin-top:0">
     <div class="coupon-t"><strong>${esc(c.program_name)}</strong>${c.program_type ? ` <span class="badge lo">${esc(c.program_type.replace(/-/g, ' '))}</span>` : ''}</div>
     ${c.manufacturer ? `<p style="font-size:var(--t-sm);color:var(--text-2);margin-bottom:.6rem">${esc(c.manufacturer)}</p>` : ''}
     ${hasCard ? `${cfieldsHTML([['BIN', c.bin], ['PCN', pcn], ['Group', grp], ['Member', mem]])}
       <button class="copy-btn" data-copy="${esc(c.bin)}|${esc(pcn)}|${esc(grp)}|${esc(mem)}">${COPY_ICO} Copy coupon</button>` : ''}
-    ${c.url ? `<a class="btn btn-sec" href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">Program site ↗</a>` : ''}
+    ${site ? `<a class="btn btn-sec" href="${esc(site)}" target="_blank" rel="noopener noreferrer">Program site ↗</a>` : ''}
     ${c.state_restrictions?.length ? `<div class="live-note">Restricted in: ${esc(c.state_restrictions.join(', '))}</div>` : ''}
     ${c.expiration_date ? `<div class="row-note" style="margin-top:.4rem">Expires ${esc(c.expiration_date)}</div>` : ''}
   </div>`;
@@ -1264,7 +1265,9 @@ function init() {
   };
   const viewFromHash = () => {
     const h = (location.hash || '').replace('#', '');
-    if (MOVED_HASHES[h]) { location.replace(MOVED_HASHES[h]); return; }
+    // Own keys only: '#toString' or '#constructor' must not resolve to an inherited
+    // function and send the visitor to a junk URL.
+    if (Object.hasOwn(MOVED_HASHES, h)) { location.replace(MOVED_HASHES[h]); return; }
     if (h === 'browse' || h === 'dashboard') setView(h);
   };
   viewFromHash();

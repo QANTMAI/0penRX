@@ -75,13 +75,19 @@ _SECURITY_HEADERS = {
 _RATE_MAX = int(os.environ.get("RATE_LIMIT_MAX", "120"))  # requests per window
 _RATE_WINDOW = int(os.environ.get("RATE_LIMIT_WINDOW", "60"))  # seconds
 _rate_hits: dict[str, deque] = defaultdict(deque)
+_RATE_MAX_KEYS = 50000  # prune idle IPs once the table passes this size
 
 
 def _client_ip(request) -> str:
-    # Render terminates TLS at a proxy, so the real client is in X-Forwarded-For.
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        return xff.split(",")[0].strip()
+    # Render sits behind Cloudflare, which overwrites CF-Connecting-IP with the
+    # real visitor address and rejects a client-supplied one (403, error 1000 —
+    # verified against openrx-api.onrender.com 2026-10-23). X-Forwarded-For is
+    # NOT trusted: Render appends to whatever the client sent, so its leftmost
+    # entry is attacker-controlled (verified: a forged value bypassed the limit),
+    # and its rightmost entry is an internal proxy shared by every visitor.
+    cf = request.headers.get("cf-connecting-ip", "").strip()
+    if cf:
+        return cf
     return request.client.host if request.client else "unknown"
 
 
@@ -95,9 +101,11 @@ def _rate_retry_after(request) -> int | None:
     if len(dq) >= _RATE_MAX:
         return int(_RATE_WINDOW - (now - dq[0])) + 1
     dq.append(now)
-    # Bound memory: drop idle IPs if the table grows large.
-    if len(_rate_hits) > 50000:
-        for ip in [k for k, v in _rate_hits.items() if not v]:
+    # Bound memory: drop IPs with no hit inside the window if the table grows
+    # large. Every deque just appended to is non-empty, so checking emptiness
+    # alone would never free anything — check the newest timestamp instead.
+    if len(_rate_hits) > _RATE_MAX_KEYS:
+        for ip in [k for k, v in _rate_hits.items() if not v or v[-1] < cutoff]:
             del _rate_hits[ip]
     return None
 
@@ -192,7 +200,9 @@ def _coupon_matches(needle: str, r: dict) -> bool:
 @app.get("/coupons")
 def coupons(
     drug: str = Query(
-        ..., description="Drug name/brand/slug to match (identity, not sub-ingredient)"
+        ...,
+        max_length=200,
+        description="Drug name/brand/slug to match (identity, not sub-ingredient)",
     ),
     type: str | None = Query(
         None, description="Exact program_type filter (copay-card|manufacturer-direct)"
@@ -266,7 +276,7 @@ def _goodrx_sign(query_params: dict[str, str], post_body: str = "") -> str:
 
 @app.get("/coupons/goodrx")
 async def coupons_goodrx(
-    drug: str = Query(..., description="Generic drug name to look up"),
+    drug: str = Query(..., max_length=200, description="Generic drug name to look up"),
     quantity: int = Query(30, ge=1, le=360, description="Fill quantity for pricing"),
 ):
     """Proxy to GoodRx Partner API v2: price compare then coupon adjudication.
@@ -328,6 +338,9 @@ async def coupons_goodrx(
             )
             if r2.status_code != 200:
                 raise HTTPException(502, f"GoodRx coupon returned {r2.status_code}")
+            c = r2.json().get("data") or {}
+            if not isinstance(c, dict):
+                raise ValueError("coupon data is not an object")
 
     except HTTPException:
         raise
@@ -337,8 +350,9 @@ async def coupons_goodrx(
         raise HTTPException(502, "GoodRx request timed out")
     except httpx.HTTPError:
         raise HTTPException(502, "GoodRx upstream error")
-
-    c = r2.json().get("data", {})
+    except (ValueError, AttributeError, TypeError):
+        # Non-JSON or unexpectedly shaped upstream body: a clean 502, not a 500.
+        raise HTTPException(502, "GoodRx returned an unexpected response")
     result = {
         "program_name": "GoodRx",
         "program_type": "copay-card",

@@ -416,3 +416,132 @@ def test_goodrx_no_prices_returns_empty():
         _app_module._GOODRX_API_KEY = orig_key
         _app_module._GOODRX_PRIVATE_KEY = orig_priv
         _app_module._GOODRX_ENABLED = orig_enabled
+
+
+def test_rate_limit_ignores_forged_x_forwarded_for():
+    """A client-chosen X-Forwarded-For must not open a fresh rate-limit bucket.
+    Render appends to the client's header, so its leftmost entry is forgeable —
+    this exact bypass was reproduced against production on 2026-10-23."""
+    import app as appmod
+
+    original = appmod._RATE_MAX
+    appmod._RATE_MAX = 2
+    appmod._rate_hits.clear()
+    try:
+        for i in range(2):
+            hdr = {"X-Forwarded-For": f"203.0.113.{i}"}
+            assert (
+                client.get("/coupons", params={"drug": "x"}, headers=hdr).status_code
+                == 200
+            )
+        forged = client.get(
+            "/coupons",
+            params={"drug": "x"},
+            headers={"X-Forwarded-For": "198.51.100.9"},
+        )
+        assert forged.status_code == 429
+    finally:
+        appmod._RATE_MAX = original
+        appmod._rate_hits.clear()
+
+
+def test_rate_limit_keys_on_cf_connecting_ip():
+    """Behind Cloudflare the visitor is CF-Connecting-IP (Cloudflare overwrites
+    it and rejects a client-supplied one), so distinct visitors get distinct
+    buckets even though they share the proxy's socket address."""
+    import app as appmod
+
+    original = appmod._RATE_MAX
+    appmod._RATE_MAX = 1
+    appmod._rate_hits.clear()
+    try:
+        a = {"CF-Connecting-IP": "203.0.113.10"}
+        b = {"CF-Connecting-IP": "203.0.113.11"}
+        assert (
+            client.get("/coupons", params={"drug": "x"}, headers=a).status_code == 200
+        )
+        assert (
+            client.get("/coupons", params={"drug": "x"}, headers=a).status_code == 429
+        )
+        assert (
+            client.get("/coupons", params={"drug": "x"}, headers=b).status_code == 200
+        )
+    finally:
+        appmod._RATE_MAX = original
+        appmod._rate_hits.clear()
+
+
+def test_rate_limit_table_prunes_idle_ips():
+    """Idle IPs are evicted once the table passes its size cap. The old pruner
+    only dropped EMPTY deques, which never exist after an append, so the table
+    grew without bound."""
+    import collections
+
+    import app as appmod
+
+    orig_keys = appmod._RATE_MAX_KEYS
+    appmod._RATE_MAX_KEYS = 5
+    appmod._rate_hits.clear()
+    try:
+        # 10 IPs whose only hit is far outside the window.
+        for i in range(10):
+            appmod._rate_hits[f"10.0.0.{i}"] = collections.deque([-1e9])
+        req = MagicMock()
+        req.headers = {"cf-connecting-ip": "203.0.113.20"}
+        assert appmod._rate_retry_after(req) is None
+        assert list(appmod._rate_hits) == ["203.0.113.20"]
+    finally:
+        appmod._RATE_MAX_KEYS = orig_keys
+        appmod._rate_hits.clear()
+
+
+def test_coupons_rejects_oversized_query():
+    """An unbounded drug string is regex-matched against every record; cap it."""
+    assert client.get("/coupons", params={"drug": "a" * 201}).status_code == 422
+    assert client.get("/coupons/goodrx", params={"drug": "a" * 201}).status_code == 422
+    assert client.get("/coupons", params={"drug": "a" * 200}).status_code == 200
+
+
+def test_goodrx_malformed_upstream_returns_502():
+    """A non-JSON or wrongly shaped GoodRx body is a clean 502, never a 500."""
+    orig = (
+        _app_module._GOODRX_API_KEY,
+        _app_module._GOODRX_PRIVATE_KEY,
+        _app_module._GOODRX_ENABLED,
+    )
+    _app_module._GOODRX_API_KEY = "testkey"
+    _app_module._GOODRX_PRIVATE_KEY = "testsecret"
+    _app_module._GOODRX_ENABLED = True
+
+    def run(r1_json, r2_json=None):
+        mock_r1 = MagicMock(status_code=200)
+        if isinstance(r1_json, Exception):
+            mock_r1.json.side_effect = r1_json
+        else:
+            mock_r1.json.return_value = r1_json
+        mock_r2 = MagicMock(status_code=200)
+        mock_r2.json.return_value = r2_json
+        mock_client = AsyncMock()
+        mock_client.get = AsyncMock(return_value=mock_r1)
+        mock_client.post = AsyncMock(return_value=mock_r2)
+        mock_cm = MagicMock()
+        mock_cm.__aenter__ = AsyncMock(return_value=mock_client)
+        mock_cm.__aexit__ = AsyncMock(return_value=False)
+        with patch("app.httpx.AsyncClient", return_value=mock_cm):
+            return client.get("/coupons/goodrx", params={"drug": "atorvastatin"})
+
+    good_prices = {"data": {"prices": [{"display": {"price": 5}, "pharmacy": {}}]}}
+    try:
+        assert run(ValueError("not json")).status_code == 502
+        assert (
+            run({"data": {"prices": [{"display": {"price": None}}, {}]}}).status_code
+            == 502
+        )
+        assert run(good_prices, {"data": None}).status_code == 200
+        assert run(good_prices, {"data": ["not", "an", "object"]}).status_code == 502
+    finally:
+        (
+            _app_module._GOODRX_API_KEY,
+            _app_module._GOODRX_PRIVATE_KEY,
+            _app_module._GOODRX_ENABLED,
+        ) = orig
